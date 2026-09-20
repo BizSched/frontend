@@ -50,6 +50,11 @@
 @theme {
     --font-sans: "Pretendard", sans-serif;
 
+    --breakpoint-*: initial;
+    --breakpoint-mobile: 23.4375rem; 
+    --breakpoint-tablet: 46.5rem;
+    --breakpoint-desktop: 120rem;
+
     --color-primary-50: #FFFDF9;
     --color-primary-100: #FFF9ED;
     --color-primary-200: #FFF5E2;
