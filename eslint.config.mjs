@@ -11,7 +11,7 @@ export default tseslint.config(
       'node_modules/**',
       'dist/**',
       'coverage/**',
-      '*.config.mjs',
+      '*.config.{js,mjs,ts}',
     ],
   },
   ...nextVitals,
