@@ -1,7 +1,7 @@
 ---
 name: Pull Request 템플릿
 about: Pull Request 생성 시 사용되는 템플릿입니다.
-title: '[역할 / 작업성격-${이슈번호}] 작업한 내용 (내용은 한글)'
+title: '[역할-#{이슈번호}] 작업한 내용 (내용은 한글)'
 labels: bug, feature, refactor
 assignees: ''
 ---
