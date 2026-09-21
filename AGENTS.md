@@ -27,7 +27,6 @@ Next.js v16 기반 프론트엔드 프로젝트. TailwindCSS v4 + Shadcn/ui, Zus
 | 이슈 등록              | `.github/ISSUE_TEMPLATE/`                                                                                                   |
 | 브랜치/PR              | `collaboration/branch-strategy.md`, `collaboration/pr-flow.md`                                                              |
 | CI/배포                | `collaboration/ci.md`                                                                                                       |
-| 공통 컴포넌트 작업     | `component/{컴포넌트}/README.md` — 작업 전 해당 컴포넌트 설계 문서부터 확인. 새 공통 컴포넌트 설계도 이 경로에 작성한다     |
 | 특정 기능(도메인) 파악 | `feature/{도메인}/README.md` — 작업 전 해당 도메인 문서부터 확인                                                            |
 
 ## 코드 작성 시 필수 체크

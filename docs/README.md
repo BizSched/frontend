@@ -7,7 +7,6 @@ docs/
 ├── architecture/     # 구조·데이터·렌더링 설계
 ├── convention/       # 코드·스타일·문서 작성 규칙
 ├── collaboration/    # 브랜치·PR·리뷰·CI
-├── component/        # 공통 컴포넌트 설계 문서
 └── feature/          # 도메인별 기능 문서
 ```
 
@@ -44,15 +43,6 @@ docs/
 | [collaboration/pr-flow.md](./collaboration/pr-flow.md)         | 기능 개발 / 긴급 수정 플로우             |
 | [collaboration/code-review.md](./collaboration/code-review.md) | 리뷰 체크리스트 (사람 확인 / AI 위임)    |
 | [collaboration/ci.md](./collaboration/ci.md)                   | 린트/CI/배포/알림                        |
-
-## component/
-
-`src/components/_common/`에 들어가는 공통 컴포넌트의 설계 문서를 모은다. **앞으로 추가되는 공통 컴포넌트 설계는 `component/{컴포넌트}/README.md`에 작성한다.**
-
-| 경로                                                     | 내용                                                        |
-| -------------------------------------------------------- | ----------------------------------------------------------- |
-| [component/README.md](./component/README.md)              | 작성 규칙, `convention/`과의 차이, 문서 목록                |
-| [component/modal/README.md](./component/modal/README.md)  | Modal — compound 슬롯, variant, 토큰 매핑, overlay-kit 연동 |
 
 ## feature/
 
