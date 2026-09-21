@@ -28,8 +28,8 @@ description: 정해진 형식에 따라 구조화된 커밋 메시지를 생성�
 타입: 간결한 설명 (영어 소문자, 50자 이내) [#이슈번호]
 ```
 
-> husky `commit-msg` 훅이 강제하는 정규식: `^(feat|fix|style|refactor|test|docs|build|delete|chore|ci/cd): .+( #[0-9]+)?$`
-> 타입은 아래 7종만 허용하며 `#이슈번호`는 선택이다. **이 훅이 커밋 컨벤션의 source of truth다.**
+> husky `commit-msg` 훅이 강제하는 정규식: `^(feat|fix|design|refactor|test|docs|chore|ci/cd): .+( #[0-9]+)?$`
+> 타입은 아래 8종만 허용하며 `#이슈번호`는 선택이다. **이 훅이 커밋 컨벤션의 source of truth다.**
 
 ### 바디 형식
 
@@ -44,7 +44,7 @@ description: 정해진 형식에 따라 구조화된 커밋 메시지를 생성�
 
 ## 커밋 타입 가이드
 
-사용 가능한 타입(husky `commit-msg` 훅 기준 — 이 10종만 통과): **feat, fix, design, refactor, docs, build, delete, chore, test, ci/cd**
+사용 가능한 타입(husky `commit-msg` 훅 기준 — 이 8종만 통과): **feat, fix, design, refactor, docs, test, chore, ci/cd**
 
 ### 타입 선택 기준
 
@@ -54,10 +54,8 @@ description: 정해진 형식에 따라 구조화된 커밋 메시지를 생성�
 4. 동작은 같지만 코드 구조를 개선했는가? → `refactor`
 5. 테스트 코드를 추가/수정했는가? → `test`
 6. 문서 관련 내용인가? → `docs`
-7. 빌드 설정이나 패키지를 업데이트했는가? → `build`
-8. 파일을 삭제하는 내용인가? → `delete`
-9. CI/CD 관련 내용인가? → `ci/cd`
-10. 위 10가지 외 내용 → `chore`
+7. CI/CD 관련 내용인가? → `ci/cd`
+8. 위 7가지 외 내용(빌드 설정·패키지 업데이트·파일 삭제 포함) → `chore`
 
 ## 프론트엔드 프로젝트 특화 가이드
 
