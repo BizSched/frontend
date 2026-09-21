@@ -1,12 +1,8 @@
 'use client';
 
-import { overlay } from 'overlay-kit';
-
-import {
-  ConfirmModal,
-  type ConfirmModalProps,
-} from '@components/_common/Modal/ConfirmModal';
 import { useOverlayStackIndex } from '@hooks/overlay/useOverlayStackIndex';
+
+import { ConfirmModal, type ConfirmModalProps } from './ConfirmModal';
 
 type ConfirmModalContent = Omit<
   ConfirmModalProps,
@@ -47,16 +43,5 @@ function ConfirmModalController({
   );
 }
 
-const openConfirmModal = (content: ConfirmModalContent) =>
-  overlay.openAsync<boolean>(({ overlayId, isOpen, close, unmount }) => (
-    <ConfirmModalController
-      {...content}
-      overlayId={overlayId}
-      isOpen={isOpen}
-      close={close}
-      unmount={unmount}
-    />
-  ));
-
-export { openConfirmModal };
-export type { ConfirmModalContent };
+export { ConfirmModalController };
+export type { ConfirmModalContent, ConfirmModalControllerProps };
