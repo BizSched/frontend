@@ -53,6 +53,7 @@ docs/
 | -------------------------------------------------------- | ----------------------------------------------------------- |
 | [component/README.md](./component/README.md)              | 작성 규칙, `convention/`과의 차이, 문서 목록                |
 | [component/modal/README.md](./component/modal/README.md)  | Modal — compound 슬롯, variant, 토큰 매핑, overlay-kit 연동 |
+| [component/pagination/README.md](./component/pagination/README.md) | Pagination — 평면 props API, size 반응형 판정, 슬롯 계산, 토큰 매핑 |
 
 ## feature/
 
