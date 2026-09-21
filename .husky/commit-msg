@@ -13,7 +13,7 @@ echo -e "${CYAN}${BOLD}━━━━━━━━━━━━━━━━━━━
 echo ""
 
 COMMIT_MSG=$(cat "$1")
-PATTERN='^(feat|fix|style|refactor|test|docs|build|delete|chore|ci/cd): .+( #[0-9]+)?$'
+PATTERN='^(feat|fix|design|refactor|test|docs|chore|ci/cd): .+( #[0-9]+)$'
 
 echo -e "${YELLOW}${BOLD}[1/1] Checking commit message format...${RESET}"
 echo -e "${CYAN}──────────────────────────────────────────────────${RESET}"
@@ -29,7 +29,7 @@ else
   echo -e "  ${BOLD}타입: 설명 #이슈번호${RESET}"
   echo ""
   echo -e "${YELLOW}  사용 가능한 타입:${RESET}"
-  echo "  feat, fix, style, refactor, test, docs, build, delete, chore, ci/cd"
+  echo "  feat, fix, design, refactor, test, docs, chore, ci/cd"
   echo ""
   echo -e "${YELLOW}  예시:${RESET}"
   echo "  feat: add login page #12"
