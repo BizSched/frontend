@@ -96,7 +96,7 @@ shadcn은 의존성이 아니라 코드 생성기다. 생성된 파일은 그 �
 ```
 ① Primitive  src/components/_common/Modal/         Base UI Dialog 래핑 · 도메인 무지 · compound
 ② Preset     src/components/_common/Modal/         ConfirmModal (Figma Confirm 계열 고정 조합)
-③ Launcher   src/lib/utilities/overlay/            overlay-kit 호출 API (Provider는 providers/overlay/)
+③ Launcher   src/components/_common/Modal/         overlay 어댑터 + 호출 API (Provider는 providers/overlay/)
 ```
 
 `_common/ui/`는 **shadcn/ui CLI가 생성한 파일 전용**이다. 직접 작성·재구성한 컴포넌트는 `_common/Modal/`처럼 `_common/` 바로 아래 컴포넌트 폴더에 둔다. 따라서 primitive와 preset이 같은 폴더를 쓰며, `ConfirmModal`은 문구·버튼 구성이 서비스 맥락을 갖는다는 점만 파일 이름으로 구분된다.
@@ -114,7 +114,9 @@ src/components/_common/Modal/
 ├── ModalCloseButton.tsx  # Dialog.Close — 기본 X 아이콘 버튼, render로 위임 가능
 ├── ModalBody.tsx         # 자유 슬롯 (스크롤 영역)
 ├── ModalFooter.tsx       # cva: layout
-└── ConfirmModal.tsx      # Confirm 계열 프리셋
+├── ConfirmModal.tsx      # Confirm 계열 프리셋
+├── ConfirmModalController.tsx  # 프리셋의 overlay-kit 어댑터 (stackIndex 계산)
+└── openConfirmModal.tsx  # overlay.openAsync 호출 API
 
 src/providers/modal/
 └── ModalProvider.tsx     # stackIndex 컨텍스트
@@ -128,18 +130,24 @@ src/hooks/modal/
 src/providers/overlay/
 └── OverlayProvider.tsx   # overlay-kit Provider 래핑
 
-src/lib/utilities/overlay/
-└── openConfirmModal.tsx  # overlay.openAsync 기반 호출 API
-
 src/hooks/overlay/
 └── useOverlayStackIndex.ts   # 중첩 z-index 계산
 ```
 
 각 파일은 개별 named export를 유지하고, `Modal.tsx`는 dot-notation만 **추가로** 제공한다. 서브컴포넌트를 직접 import할 수도 있으므로 [code-style.md](../../convention/code-style.md)의 배럴 `index.ts` 금지 규칙에 걸리지 않는다.
 
-> **확인 필요**: [folder-structure.md](../../architecture/folder-structure.md)는 `lib/` 하위를 `utility/`, `api/`, `types/`로 적고 있으나 **실제 폴더는 `utilities/`** 다(`src/lib/utilities/cn.ts`). 문서의 오타를 바로잡고 `utilities/overlay/`를 목록에 추가해야 한다.
+`OverlayProvider`는 `src/providers/overlay/`에 둔다(확정). Context·Provider는 `providers/`, 소비 훅은 `hooks/`에 두는 규칙을 따른다.
 
-`OverlayProvider`는 `src/providers/overlay/`에 둔다(확정). Context·Provider는 `providers/`, 소비 훅은 `hooks/`에 두는 규칙을 따르며, 호출 API(`openConfirmModal`)만 `lib/utilities/overlay/`에 남긴다.
+### 컨트롤러·launcher를 `_common/Modal/`에 두는 이유 (확정)
+
+`ConfirmModalController`와 `openConfirmModal`은 처음에 `lib/utilities/overlay/`에 있었으나 **프리셋 폴더로 옮겼다.** 근거는 두 가지다.
+
+- 둘 다 `ConfirmModal`을 쓰는 하나의 방법, 즉 프리셋의 일부다. primitive와 preset은 어차피 같은 폴더를 쓴다(위 "레이어 구조"). 프리셋 하나가 UI·어댑터·호출 API 세 파일로 한자리에 모인다.
+- `lib/utilities/`는 `cn.ts` 같은 순수 함수가 있는 자리다. 훅을 호출하는 React 컴포넌트와 특정 컴포넌트 전용 API가 섞이지 않게 한다.
+
+**overlay-kit에 의존하지 않아야 하는 것은 폴더가 아니라 primitive 파일**(`ModalRoot`·`ModalPanel` 등)이며, 이 배치에서도 그대로 지켜진다. `openConfirmModal.tsx`는 컴포넌트가 아니므로 [folder-structure.md](../../architecture/folder-structure.md)의 "기타 utility·핸들러 파일명은 `camelCase`" 규칙을 따라 camelCase를 쓴다.
+
+새 프리셋에 launcher를 붙일 때도 같은 형태를 따른다 — `XxxModal.tsx` · `XxxModalController.tsx` · `openXxxModal.tsx`.
 
 ## Compound API
 
@@ -300,7 +308,7 @@ export const useOverlayStackIndex = (overlayId?: string) => {
 };
 ```
 
-`overlayId`는 overlay-kit이 컨트롤러에 넘겨주는 값이다. **훅 호출은 launcher가 하고, primitive에는 계산된 숫자만 내려간다.** launcher가 `<Modal stackIndex={useOverlayStackIndex(overlayId)}>`로 전달하면 `ModalRoot`가 `ModalProvider`로 컨텍스트에 싣고 `Modal.Panel`이 `useModalContext()`로 읽는다. primitive가 overlay-kit에 직접 의존하지 않도록 이 방향을 유지한다. overlay-kit을 거치지 않고 직접 `<Modal>`을 쓰면 `stackIndex`는 기본값 `0`이다.
+`overlayId`는 overlay-kit이 컨트롤러에 넘겨주는 값이다. **훅 호출은 컨트롤러가 하고, primitive에는 계산된 숫자만 내려간다.** `ConfirmModalController`가 `<Modal stackIndex={useOverlayStackIndex(overlayId)}>`로 전달하면 `ModalRoot`가 `ModalProvider`로 컨텍스트에 싣고 `Modal.Panel`이 `useModalContext()`로 읽는다. primitive가 overlay-kit에 직접 의존하지 않도록 이 방향을 유지한다. overlay-kit을 거치지 않고 직접 `<Modal>`을 쓰면 `stackIndex`는 기본값 `0`이다.
 
 ### 딤 중복
 
@@ -415,10 +423,10 @@ Body가 없을 때 상단 여백을 키워 시각 중심을 맞춘 것이다. �
 
 ## overlay-kit 연동
 
-`stackIndex`를 구하려면 훅을 호출해야 하므로, 컨트롤러를 컴포넌트로 한 겹 감싼다. 훅 호출이 이 레이어에 머무르고 `ConfirmModal`은 숫자만 받는다.
+`stackIndex`를 구하려면 훅을 호출해야 하므로, 컨트롤러를 컴포넌트로 한 겹 감싼다. 훅 호출이 컨트롤러에 머무르고 `ConfirmModal`은 숫자만 받는다. 컨트롤러와 launcher는 프리셋과 같은 폴더에 **파일을 나눠** 둔다.
 
 ```tsx
-// src/lib/utilities/overlay/openConfirmModal.tsx
+// src/components/_common/Modal/ConfirmModalController.tsx
 function ConfirmModalController({
   overlayId,
   isOpen,
@@ -439,12 +447,17 @@ function ConfirmModalController({
     />
   );
 }
+```
 
-export const openConfirmModal = (content: ConfirmModalContent) =>
+```tsx
+// src/components/_common/Modal/openConfirmModal.tsx
+const openConfirmModal = (content: ConfirmModalContent) =>
   overlay.openAsync<boolean>((controller) => (
     <ConfirmModalController {...content} {...controller} />
   ));
 ```
+
+overlay-kit이 컨트롤러 콜백에 넘기는 `{ overlayId, isOpen, close, unmount }`가 `ConfirmModalController`의 props 이름과 그대로 맞으므로 launcher는 스프레드 한 줄로 끝난다.
 
 ```tsx
 // 호출부 — isOpen 상태가 필요 없다
@@ -499,7 +512,8 @@ Base UI `Dialog`가 포커스 트랩, ESC 닫기, 스크롤 락, `aria-labelledb
 ```
 test/components/_common/Modal/modal.test.tsx
 test/components/_common/Modal/confirmModal.test.tsx
-test/lib/utilities/overlay/openConfirmModal.test.tsx
+test/components/_common/Modal/confirmModalController.test.tsx
+test/components/_common/Modal/openConfirmModal.test.tsx
 ```
 
 | 대상      | 검증                                                                                                                                 |
@@ -540,11 +554,7 @@ GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-star
 
 Figma에는 모바일 Form 모달이 하단 앵커로만 그려져 있고 **드래그로 닫기·스냅 포인트 같은 제스처는 정의되어 있지 않다.** 스크롤 가능한 패널로만 구현할지 확인이 필요하다.
 
-### 3. `folder-structure.md` 갱신
-
-[folder-structure.md](../../architecture/folder-structure.md)가 `lib/` 하위를 `utility/`로 적고 있으나 실제 폴더는 `utilities/`다. 이 정정과 함께 `providers/overlay/`, `providers/modal/`, `hooks/overlay/`, `hooks/modal/`을 문서에 추가해야 한다. Provider 위치 자체는 확정됐다("파일 구성" 참고).
-
-Provider 위치와 중첩 동작은 확정·검증됐다 — "중첩 동작 검증 결과" 참고.
+Provider 위치와 중첩 동작, `folder-structure.md` 갱신은 확정·반영됐다 — "중첩 동작 검증 결과"와 "파일 구성"을 참고한다.
 
 ## 참고
 
