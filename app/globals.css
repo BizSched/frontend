@@ -3,21 +3,21 @@
 @import 'shadcn/tailwind.css';
 @import 'pretendard/dist/web/static/pretendard-dynamic-subset.css';
 
-@import './styles/breakpoints.css';
-@import './styles/colors.css';
-@import './styles/typography.css';
-@import './styles/theme.css';
+@import '../src/assets/styles/breakpoints.css';
+@import '../src/assets/styles/colors.css';
+@import '../src/assets/styles/typography.css';
+@import '../src/assets/styles/theme.css';
 
 @custom-variant dark (&:is(.dark *));
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    }
+  }
   body {
     @apply bg-background text-foreground;
-    }
+  }
   html {
     @apply font-sans;
-    }
+  }
 }
