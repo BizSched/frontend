@@ -43,21 +43,19 @@ Figma 디자인에는 모달 전용 컴포넌트 페이지가 없고 화면별 �
 | --------------- | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 범위            | 범용 Modal compound + Confirm 프리셋                | Form·Upload는 도메인에서 조합, 반복되는 삭제 확인만 프리셋화                                                                                                      |
 | 기반 primitive  | Base UI `Dialog` (`@base-ui/react`)                 | 포커스 트랩·ESC·스크롤 락·ARIA·**중첩 다이얼로그**를 제공. 직접 구현 시 [accessibility.md](../../convention/accessibility.md)의 WCAG 2.1 AA 목표 달성 비용이 크다 |
-| 시작점          | `shadcn add dialog`로 생성 후 재구성                | Base UI 배선과 `data-open`/`data-closed` 애니메이션 훅을 참조 구현으로 활용                                                                                       |
+| 시작점          | 레지스트리는 참조만 하고 직접 작성                  | `shadcn add dialog`를 실행해 대조한 결과 재구성 후 남는 것이 없어 생성물을 두지 않는다. 아래 "`shadcn add dialog` 검증 결과" 참고                                 |
 | 열기/닫기       | `overlay-kit`                                       | `openAsync`로 Confirm 호출부가 한 줄이 된다                                                                                                                       |
 | 중첩 모달       | overlay-kit 경로로 통일 + append index 기반 z-index | 트리 중첩과 혼용하면 같은 동작이 두 방식으로 갈린다. 아래 "중첩 모달" 참고                                                                                        |
 | 비동기 Body     | **보류** (`@suspensive/react` 미도입)               | 실사용례가 생기는 시점에 도입. 아래 "비동기 Body 전략" 참고                                                                                                       |
 | 모바일 바텀시트 | Panel의 variant                                     | Figma상 바텀시트는 Form 계열 1개뿐이라 별도 컴포넌트로 분리할 근거가 부족                                                                                         |
 
-## `shadcn add dialog` 적용 시 주의
+## `shadcn add dialog` 검증 결과
 
-레지스트리(`base-nova/dialog.json`) 확인 결과 그대로 쓸 수 없는 지점이 있다.
+`npx shadcn add dialog`를 실제로 실행해 생성물(`base-nova` 스타일)과 대조했고, **생성물을 저장소에 두지 않기로 했다.** `src/components/_common/ui/`는 비워둔다. 아래는 그 판단의 근거이며, 다른 컴포넌트를 받을 때도 같은 기준으로 판단한다.
 
-1. `registryDependencies: ["button"]` — **Button 컴포넌트가 함께 생성된다.** Button은 아직 설계 전이므로, 생성물을 그대로 두면 이후 Button 설계와 충돌한다.
-2. `import { IconPlaceholder } from "@/app/(create)/components/icon-placeholder"` — **이 경로는 shadcn 레지스트리 저장소 내부 경로이고, 이 프로젝트에는 존재하지 않는다.** `tsconfig.json`에는 bare `@/*` alias 자체가 없으며(`@app/*`, `@components/*` … 만 있다), `app/(create)/` 라우트 그룹도 없다. CLI가 `components.json`의 `iconLibrary: "lucide"` 설정으로 치환해주지 못하면 **해결 불가능한 import가 남는다.** 생성 직후 이 줄이 `lucide-react`의 `XIcon` 직접 import로 바뀌었는지 반드시 확인한다.
-3. `import { cn } from "cn"` — 이 저장소는 `@lib/utilities/cn` 재export를 단일 출처로 쓴다.
+### 1. 재구성 후 남는 것이 없다
 
-생성 스타일도 대부분 교체 대상이다.
+생성 스타일이 사실상 전부 교체 대상이다.
 
 | shadcn 기본값                               | Figma                                      | 조치          |
 | ------------------------------------------- | ------------------------------------------ | ------------- |
@@ -67,34 +65,65 @@ Figma 디자인에는 모달 전용 컴포넌트 페이지가 없고 화면별 �
 | Footer `-mx-4 border-t bg-muted/50`         | 배경·보더 없음, 버튼 2분할                 | 교체          |
 | Title `text-base font-medium`               | `20px / 600`, Confirm은 중앙 정렬          | variant화     |
 
-파일명도 shadcn은 `dialog.tsx`(lowercase)를 생성하는데 [naming.md](../../convention/naming.md)는 `Name.tsx`(PascalCase)를 요구한다. **프로젝트 네이밍으로 재작성한다.**
+교체하고 나면 `Portal + Backdrop + Popup` 합성 구조만 남는데, 이는 `@base-ui/react/dialog`의 타입 정의만 보고도 나오는 형태다. 실제로 문서만 보고 작성한 `ModalPanel`과 레지스트리의 `DialogContent`가 같은 구조로 수렴했다.
+
+### 2. 경유해도 업스트림 개선이 따라오지 않는다
+
+shadcn은 의존성이 아니라 코드 생성기다. 생성된 파일은 그 시점부터 이 저장소의 파일이고, 재실행은 병합이 아니라 덮어쓰기다. `import { cn } from "cn"` 같은 수정도 재생성할 때마다 다시 해야 한다. 실제 동작 개선(포커스 트랩·ESC·스크롤 락·ARIA)은 semver 의존성인 `@base-ui/react`에서 오며, Modal은 이미 거기에 직접 붙어 있다. **생성물을 한 겹 끼우는 것으로 얻는 추종 효과는 없다.**
+
+### 3. 경유 비용은 실재한다
+
+- `registryDependencies: ["button"]` — Button이 함께 생성된다. Button은 아직 설계 전이라 이후 설계와 충돌한다.
+- `sm:max-w-sm`(Popup), `sm:flex-row sm:justify-end`(Footer) — [style.md](../../convention/style.md)의 `--breakpoint-*: initial` 때문에 **클래스 자체가 생성되지 않는다.** 그대로 쓰면 반응형이 조용히 사라진다.
+- 파일명이 `dialog.tsx`(lowercase)라 [naming.md](../../convention/naming.md)의 `Name.tsx` 규칙과 충돌한다. 생성물은 재생성 가능해야 하므로 이름을 고칠 수도 없다.
+- override로 덮은 부분은 상위 클래스가 바뀌어도 어긋난 사실을 알려주지 않는다.
+
+### 실행 기록
+
+| 항목                                                                           | 결과                                                                                          |
+| ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| `components.json` · `package.json` · `app/globals.css`                         | 변경 없음                                                                                     |
+| `import { IconPlaceholder } from "@/app/(create)/components/icon-placeholder"` | **CLI가 자동 치환** — `iconLibrary: "lucide"` 설정대로 `XIcon` 직접 import로 생성된다         |
+| Button import 경로                                                             | `components.json`의 alias대로 `@components/_common/ui/button`으로 생성된다                    |
+| `import { cn } from "cn"`                                                      | 치환되지 않는다. 이 저장소는 `@lib/utilities/cn` 재export를 단일 출처로 쓰므로 수동 수정 필요 |
+
+### 언제 생성물을 쓰는가
+
+동작 로직이 무겁고 디자인 차이가 토큰 수준인 컴포넌트(Table·Select·Checkbox 등)는 교체율이 낮아 생성물이 그대로 값을 한다. Dialog는 반대 사례였다 — 동작은 Base UI가 전부 제공하고 디자인은 전부 다르다.
 
 ## 레이어 구조
 
 ```
-① Primitive  src/components/_common/ui/Modal/      Base UI Dialog 래핑 · 도메인 무지 · compound
-② Preset     src/components/_common/modal/         ConfirmModal (Figma Confirm 계열 고정 조합)
+① Primitive  src/components/_common/Modal/         Base UI Dialog 래핑 · 도메인 무지 · compound
+② Preset     src/components/_common/Modal/         ConfirmModal (Figma Confirm 계열 고정 조합)
 ③ Launcher   src/lib/utilities/overlay/            overlay-kit 호출 API + Provider
 ```
 
-[ui-component.md](../../convention/ui-component.md)의 _"기본 UI는 `_common/ui/`, 여러 화면에서 쓰는 서비스 컴포넌트는 `src/components/`"_ 구분을 따른다. `ConfirmModal`은 문구·버튼 구성이 서비스 맥락을 갖기 때문에 primitive가 아니다.
+`_common/ui/`는 **shadcn/ui CLI가 생성한 파일 전용**이다. 직접 작성·재구성한 컴포넌트는 `_common/Modal/`처럼 `_common/` 바로 아래 컴포넌트 폴더에 둔다. 따라서 primitive와 preset이 같은 폴더를 쓰며, `ConfirmModal`은 문구·버튼 구성이 서비스 맥락을 갖는다는 점만 파일 이름으로 구분된다.
 
 ### 파일 구성
 
 ```
-src/components/_common/ui/Modal/
+src/components/_common/Modal/
 ├── Modal.tsx             # 네임스페이스 합성 (Modal.Panel …)
-├── ModalRoot.tsx         # Dialog.Root
+├── ModalRoot.tsx         # Dialog.Root + ModalProvider
 ├── ModalPanel.tsx        # Portal + Backdrop + Popup (cva: size, placement, backdrop)
 ├── ModalHeader.tsx       # cva: align
 ├── ModalTitle.tsx        # Dialog.Title
 ├── ModalDescription.tsx  # Dialog.Description
 ├── ModalCloseButton.tsx  # Dialog.Close — 기본 X 아이콘 버튼, render로 위임 가능
 ├── ModalBody.tsx         # 자유 슬롯 (스크롤 영역)
-└── ModalFooter.tsx       # cva: layout
+├── ModalFooter.tsx       # cva: layout
+└── ConfirmModal.tsx      # Confirm 계열 프리셋
 
-src/components/_common/modal/
-└── ConfirmModal.tsx
+src/providers/modal/
+└── ModalProvider.tsx     # stackIndex 컨텍스트
+
+src/providers/types/
+└── modal.ts              # ModalContextValue · ModalProviderProps
+
+src/hooks/modal/
+└── useModalContext.ts    # 컨텍스트 소비 훅
 
 src/lib/utilities/overlay/
 ├── OverlayProvider.tsx   # overlay-kit Provider 래핑
@@ -194,6 +223,18 @@ Figma 3계열이 **부품 추가 없이 조합만으로** 나온다. 새 모달�
 
 패딩은 전 계열 공통 `p-8 max-tablet:p-6` (32px → 24px). [style.md](../../convention/style.md)의 **desktop-first + `max-*` 전용** 규칙을 따르며 `min-*` 변형과 혼용하지 않는다.
 
+## 구현 결과
+
+PR 2 구현본을 임시 프리뷰 화면으로 렌더한 결과다. 프리뷰 화면 자체는 저장소에 포함하지 않는다.
+
+| Confirm 계열 (456px)                              | Form 계열 (488px)                           |
+| ------------------------------------------------- | ------------------------------------------- |
+| ![Confirm 계열 모달](./preview/modal-confirm.png) | ![Form 계열 모달](./preview/modal-form.png) |
+
+| Upload 계열 (456px)                             | Form 계열 모바일 바텀시트 (390px)                   |
+| ----------------------------------------------- | --------------------------------------------------- |
+| ![Upload 계열 모달](./preview/modal-upload.png) | ![모바일 바텀시트](./preview/modal-form-mobile.png) |
+
 ## 중첩 모달
 
 모달 위에 모달을 띄우는 경우 **overlay-kit 경로로 통일한다.** 쌓임 순서는 overlay-kit의 append 순서를 z-index에 반영해 명시적으로 제어한다.
@@ -253,7 +294,7 @@ export const useOverlayStackIndex = (overlayId?: string) => {
 };
 ```
 
-`overlayId`는 overlay-kit이 컨트롤러에 넘겨주는 값이다. launcher가 `<Modal overlayId={overlayId}>`로 전달하고 `Modal.Panel`이 Modal context에서 읽는다. overlay-kit을 거치지 않고 직접 `<Modal>`을 쓰면 `overlayId`가 없으므로 `stackIndex`는 `0`이 된다.
+`overlayId`는 overlay-kit이 컨트롤러에 넘겨주는 값이다. **훅 호출은 launcher가 하고, primitive에는 계산된 숫자만 내려간다.** launcher가 `<Modal stackIndex={useOverlayStackIndex(overlayId)}>`로 전달하면 `ModalRoot`가 `ModalProvider`로 컨텍스트에 싣고 `Modal.Panel`이 `useModalContext()`로 읽는다. primitive가 overlay-kit에 직접 의존하지 않도록 이 방향을 유지한다. overlay-kit을 거치지 않고 직접 `<Modal>`을 쓰면 `stackIndex`는 기본값 `0`이다.
 
 ### 딤 중복
 
@@ -305,7 +346,6 @@ const handleClose = async () => {
 | Figma                     | 코드 토큰                            |
 | ------------------------- | ------------------------------------ |
 | Panel 배경                | `--color-white-50`                   |
-| Description `#EBDDB9`     | `--color-secondary-600`              |
 | 제목 `20px / 30px`        | `--text-xl` (`1.25rem` / `1.875rem`) |
 | 설명 `16px / 24px`        | `--text-base` (`1rem` / `1.5rem`)    |
 | 버튼 텍스트 `18px / 28px` | `--text-lg` (`1.125rem` / `1.75rem`) |
@@ -318,6 +358,12 @@ const handleClose = async () => {
 | `--radius-modal`  | `2.5rem` (40px)                | `--radius: 0.625rem` 기준 최대가 `--radius-4xl`(26px)이라 40px를 표현할 수 없다 |
 | `--shadow-modal`  | `0 0 30px rgba(0, 0, 0, 0.05)` | 그림자 토큰이 없다                                                              |
 | `--z-modal-base`  | `1000`                         | 중첩 모달의 z-index 기준점. 아래 "중첩 모달" 참고                               |
+
+### 방침 — Description 색상은 대비 우선 (확정)
+
+Figma의 Description은 `#EBDDB9`(`--color-secondary-600`)이지만, Panel 배경이 `--color-white-50`(`#FFFFFE`)이라 대비가 **약 1.3:1**로 [accessibility.md](../../convention/accessibility.md)의 WCAG 2.1 AA 목표(본문 4.5:1)에 크게 못 미친다. `ModalDescription`은 `text-muted-foreground`(`--color-slate-400`, `#6B6A68`, 약 5.3:1)를 쓴다.
+
+Figma 값을 되살리려면 Description이 놓이는 배경을 먼저 바꿔야 한다.
 
 ### 방침 — 컬러는 CSS 토큰 기준 (확정)
 
@@ -413,8 +459,8 @@ Base UI `Dialog`가 포커스 트랩, ESC 닫기, 스크롤 락, `aria-labelledb
 [test.md](../../convention/test.md)에 따라 `test/`가 `src/` 구조를 미러링한다.
 
 ```
-test/components/_common/ui/Modal/modal.test.tsx
-test/components/_common/modal/confirmModal.test.tsx
+test/components/_common/Modal/modal.test.tsx
+test/components/_common/Modal/confirmModal.test.tsx
 test/lib/utilities/overlay/openConfirmModal.test.tsx
 ```
 
