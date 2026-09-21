@@ -12,7 +12,7 @@ echo -e "${CYAN}${BOLD}  🚀 Pre-push Check                               ${RES
 echo -e "${CYAN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 echo ""
 
-STEPS=("type-check" "lint" "test")
+STEPS=("type-check" "lint" "test --changed origin/dev")
 TOTAL=${#STEPS[@]}
 STEP=1
 
