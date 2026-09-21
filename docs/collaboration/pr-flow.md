@@ -5,7 +5,7 @@
 2. `dev` 브랜치에서 최신 상태로 pull
 3. `feat/` 브랜치 생성
 4. 작업 + 커밋 (`feat:` — [commit.md](../convention/commit.md) 참고)
-5. Husky를 활용한 로컬 체크 (현재 `.husky/` 훅이 구성되지 않아 수동 확인 필요 — 미확정)
+5. Husky를 활용한 로컬 체크
 6. origin으로 push
 7. `dev`로 PR 생성
 8. CI 통과 확인 (lint, test, build)

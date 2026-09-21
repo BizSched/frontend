@@ -4,7 +4,7 @@
 
 - 컴포넌트 폴더·파일명: `PascalCase` (예: `ModalHeader.tsx`)
 - 기타 utility·핸들러 파일명: `camelCase`
-- export는 `index.ts` 네임드 export 방식 사용
+- 타입 선언·export 방식은 [code-style.md](../convention/code-style.md) 참고
 
 ## 컴포넌트 분리 기준
 
