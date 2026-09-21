@@ -45,20 +45,21 @@ design 캔버스 전수 조사 결과 인스턴스는 **26개(desktop 11 · tabl
 
 레지스트리(`base-nova/pagination.json`) 확인 결과는 다음과 같다.
 
-1. `registryDependencies: ["button"]` — Button이 함께 생성된다. **`_common/ui/button.tsx`가 이미 존재하므로 새로 덮어쓰지 않는지 확인**하고, 덮어쓰기를 요구하면 거부한다.
+1. `registryDependencies: ["button"]` — **Button이 함께 생성된다.** Button은 아직 설계 전(이슈 #8)이므로 생성물을 남기면 이후 설계와 충돌한다. `PaginationLink`를 쓰지 않으면 Button 의존이 사라지므로, **생성된 `button.tsx`는 삭제한다.**
 2. `import { IconPlaceholder } from "@/app/(create)/components/icon-placeholder"` — 레지스트리 내부용 플레이스홀더다. CLI가 `components.json`의 `iconLibrary: "lucide"`로 치환하지만, 실패하면 깨진 import가 남는다.
 3. `import { cn } from "cn"` — 이 저장소는 `@lib/utilities/cn` 재export를 단일 출처로 쓴다.
+4. `PaginationPrevious` / `PaginationNext`가 쓰는 `sm:block`은 **이 프로젝트에 없는 breakpoint다.** `breakpoints.css`가 `--breakpoint-*: initial`로 Tailwind 기본 breakpoint를 전부 제거하고 `mobile` · `tablet` · `desktop`만 정의한다.
 
-생성물에서 **실제로 쓰는 것은 세 개**다.
+생성물에서 **실제로 쓰는 것은 세 개**다. 나머지는 Button 의존을 끊기 위해 `_common/ui/pagination.tsx`에서 제거하고, 필요한 것은 `_common/Pagination/`에서 직접 만든다.
 
-| 생성물                        | 사용 | 비고                                                          |
-| ----------------------------- | ---- | ------------------------------------------------------------- |
-| `Pagination` (`<nav>`)        | ○    | `role="navigation"` + `aria-label`                            |
-| `PaginationContent` (`<ul>`)  | ○    | gap만 교체                                                    |
-| `PaginationItem` (`<li>`)     | ○    | 그대로                                                        |
-| `PaginationLink`              | ✕    | `<a>` + Button variant 기반. Figma는 `<button>`에 전용 스타일 |
-| `PaginationPrevious` / `Next` | ✕    | "Previous" / "Next" 텍스트 라벨을 붙인다. Figma는 아이콘 전용 |
-| `PaginationEllipsis`          | ✕    | 배경 없는 맨 `span`. Figma는 다른 셀과 같은 배경을 가진다     |
+| 생성물                        | 사용 | 비고                                                                         |
+| ----------------------------- | ---- | ---------------------------------------------------------------------------- |
+| `Pagination` (`<nav>`)        | ○    | `role="navigation"` + `aria-label`                                           |
+| `PaginationContent` (`<ul>`)  | ○    | gap만 교체                                                                   |
+| `PaginationItem` (`<li>`)     | ○    | 그대로                                                                       |
+| `PaginationLink`              | ✕    | `<a>` + Button variant 기반. Figma는 `<button>`에 전용 스타일                |
+| `PaginationPrevious` / `Next` | ✕    | "Previous" / "Next" 텍스트 라벨을 붙인다. Figma는 아이콘 전용                |
+| `PaginationEllipsis`          | ✕    | 배경 없는 맨 `span`에 아이콘 16px. Figma는 다른 셀과 같은 배경에 아이콘 24px |
 
 `_common/ui/pagination.tsx`의 `Pagination`과 이 문서의 공개 컴포넌트 이름이 겹치므로, 조립부에서 `Pagination as PaginationNav`로 별칭 import 한다.
 
@@ -259,7 +260,7 @@ Figma 컴포넌트에 **상태 변형이 정의되어 있지 않다**(`size` 속
 - 현재 페이지 버튼에만 `aria-current="page"`.
 - 숫자 버튼은 `aria-label="{n}페이지로 이동"`, 화살표는 `aria-label="이전 페이지"` / `"다음 페이지"`.
 - 아이콘에는 `aria-hidden="true"`.
-- 생략 표시는 `aria-hidden="true"` + `sr-only` "더 많은 페이지".
+- 생략 표시는 **아이콘에만** `aria-hidden="true"`를 걸고 `sr-only` "더 많은 페이지"를 읽힌다. 생성물처럼 바깥 `span` 전체에 `aria-hidden`을 걸면 `sr-only` 텍스트까지 함께 숨겨진다.
 - 1페이지에서 이전, 마지막 페이지에서 다음 버튼은 `disabled`.
 - `transition-colors`에는 `motion-reduce:` 대응을 넣는다.
 
