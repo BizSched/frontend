@@ -121,7 +121,7 @@ test/components/_common/Button/Button.test.tsx
 
 ### `Button` 자체 단계
 
-설계 문서와 구현(`hierarchy × size`)은 같은 PR로 묶되, 테스트는 Modal(`feat/common-modal-test`)과 동일하게 별도 stacked PR로 분리한다.
+설계 문서와 구현(`hierarchy × size`)은 같은 PR로 묶되, 테스트는 별도 PR로 분리한다. `design/common-button`(1/2)이 `dev`에 머지된 뒤, `feat/common-button-test`(2/2)는 그 시점의 `dev`를 기준으로 새로 분기한다.
 
 | 단계 | 브랜치                    | 내용                                | 상태                 |
 | ---- | ------------------------- | ----------------------------------- | -------------------- |
