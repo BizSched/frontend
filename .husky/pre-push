@@ -27,16 +27,17 @@ run_step() {
   SCRIPT=$1
   shift
 
-  print_line "${YELLOW}${BOLD}[$STEP/$TOTAL] Running pnpm run $CMD...${RESET}"
+  if [ "$SCRIPT" = "test" ]; then
+    print_line "${YELLOW}${BOLD}[$STEP/$TOTAL] Running vitest changed tests...${RESET}"
+  else
+    print_line "${YELLOW}${BOLD}[$STEP/$TOTAL] Running pnpm run $CMD...${RESET}"
+  fi
   print_line "${CYAN}──────────────────────────────────────────────────${RESET}"
 
   if [ "$SCRIPT" = "test" ]; then
     git fetch "$TEST_CHANGED_REMOTE" "$TEST_CHANGED_BRANCH" --quiet
-  fi
-
-  if [ "$#" -gt 0 ]; then
     RUN_RESULT=0
-    pnpm run "$SCRIPT" -- "$@" || RUN_RESULT=$?
+    pnpm exec vitest run --changed "$TEST_CHANGED_BASE" --passWithNoTests || RUN_RESULT=$?
   else
     RUN_RESULT=0
     pnpm run "$SCRIPT" || RUN_RESULT=$?
@@ -56,7 +57,7 @@ run_step() {
 
 run_step "type-check"
 run_step "lint"
-run_step test --run --changed "$TEST_CHANGED_BASE" --passWithNoTests
+run_step test --changed "$TEST_CHANGED_BASE"
 
 print_line "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 print_line "${GREEN}${BOLD}  ✅ All checks passed! Pushing...                ${RESET}"
