@@ -13,7 +13,7 @@ echo -e "${CYAN}${BOLD}━━━━━━━━━━━━━━━━━━━
 echo ""
 
 COMMIT_MSG=$(cat "$1")
-PATTERN='^(feat|fix|design|refactor|test|docs|chore|ci/cd): .+( #[0-9]+)$'
+PATTERN='^(feat|fix|design|refactor|test|docs|chore|ci/cd): .+( #[0-9]+)?$'
 
 echo -e "${YELLOW}${BOLD}[1/1] Checking commit message format...${RESET}"
 echo -e "${CYAN}──────────────────────────────────────────────────${RESET}"
