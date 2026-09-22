@@ -10,13 +10,13 @@ Figma에는 별도의 Card 컴포넌트가 없지만, 실제 화면에서는 같
 
 ## 설계 결정 요약
 
-| 결정        | 선택                                                                                            | 근거                                                                    |
-| ----------- | ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| 범위        | Card primitive + compound 슬롯                                                                  | 화면별 카드 내용은 다르지만 외곽 표면과 슬롯 구조는 반복된다            |
-| 배치        | `src/components/_common/Card/`                                                                  | 프로젝트 공통 컴포넌트는 `_common/` 하위 컴포넌트 폴더에서 관리한다     |
-| API         | `Card`, `CardHeader`, `CardTitle`, `CardDescription`, `CardContent`, `CardFooter`, `CardAction` | shadcn Card와 유사한 구조라 학습 비용이 낮고, 도메인 조합을 막지 않는다 |
-| variant     | `cva`로 `radius`, `padding`, `tone`, `interactive`만 정의                                       | 도메인별 의미를 primitive에 넣지 않고 반복되는 시각 차이만 축으로 둔다  |
-| 도메인 카드 | 별도 구현                                                                                       | `SummaryCard`, `EmployeeCard`, `TableCard` 등은 각 feature 책임이다     |
+| 결정        | 선택                                                                                                  | 근거                                                                    |
+| ----------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| 범위        | Card primitive + compound 슬롯                                                                        | 화면별 카드 내용은 다르지만 외곽 표면과 슬롯 구조는 반복된다            |
+| 배치        | `src/components/_common/Card/`                                                                        | 프로젝트 공통 컴포넌트는 `_common/` 하위 컴포넌트 폴더에서 관리한다     |
+| API         | `Card`, `Card.Header`, `Card.Title`, `Card.Description`, `Card.Content`, `Card.Footer`, `Card.Action` | shadcn Card와 유사한 구조라 학습 비용이 낮고, 도메인 조합을 막지 않는다 |
+| variant     | `cva`로 `radius`, `padding`, `tone`, `interactive`만 정의                                             | 도메인별 의미를 primitive에 넣지 않고 반복되는 시각 차이만 축으로 둔다  |
+| 도메인 카드 | 별도 구현                                                                                             | `SummaryCard`, `EmployeeCard`, `TableCard` 등은 각 feature 책임이다     |
 
 ## 레이어 구조
 
@@ -32,45 +32,52 @@ Figma에는 별도의 Card 컴포넌트가 없지만, 실제 화면에서는 같
 
 ```
 src/components/_common/Card/
-└── Card.tsx
+├── Card.tsx
+├── CardPanel.tsx
+├── CardHeader.tsx
+├── CardTitle.tsx
+├── CardDescription.tsx
+├── CardAction.tsx
+├── CardContent.tsx
+└── CardFooter.tsx
 ```
 
-`Card.tsx`는 compound 서브컴포넌트를 같은 파일에서 named export한다. 파일 수를 늘릴 만큼 각 슬롯의 로직이 크지 않아 한 파일에서 시작하고, 구현이 커지면 같은 폴더 안에서 슬롯 파일로 분리한다.
+`Card.tsx`는 compound API를 조립하는 진입점이다. 실제 슬롯 구현은 같은 폴더의 개별 파일에 둔다. 호출부는 `Card.Header`처럼 `Card` 네임스페이스 아래의 슬롯을 사용한다.
 
 ## API
 
 ```tsx
 <Card>
-  <CardHeader>
-    <CardTitle>입력한 매출</CardTitle>
-    <CardAction>{/* 더보기 버튼 */}</CardAction>
-  </CardHeader>
-  <CardContent>{/* table, chart, list, empty state */}</CardContent>
-  <CardFooter>{/* 최근 8일 / 합계 */}</CardFooter>
+  <Card.Header>
+    <Card.Title>입력한 매출</Card.Title>
+    <Card.Action>{/* 더보기 버튼 */}</Card.Action>
+  </Card.Header>
+  <Card.Content>{/* table, chart, list, empty state */}</Card.Content>
+  <Card.Footer>{/* 최근 8일 / 합계 */}</Card.Footer>
 </Card>
 ```
 
 ```tsx
 <Card radius="xl" padding="lg">
-  <CardHeader>
-    <CardTitle>오늘의 업무</CardTitle>
-    <CardDescription>86%</CardDescription>
-  </CardHeader>
-  <CardContent>{/* todo / done section */}</CardContent>
+  <Card.Header>
+    <Card.Title>오늘의 업무</Card.Title>
+    <Card.Description>86%</Card.Description>
+  </Card.Header>
+  <Card.Content>{/* todo / done section */}</Card.Content>
 </Card>
 ```
 
 ### 슬롯 책임
 
-| 슬롯              | 책임                                          | 비고                                               |
-| ----------------- | --------------------------------------------- | -------------------------------------------------- |
-| `Card`            | 외곽 surface, radius, padding, 배경, overflow | 도메인 무지                                        |
-| `CardHeader`      | 제목·설명·액션 배치                           | 기본은 좌우 정렬                                   |
-| `CardTitle`       | 카드 제목                                     | `h2`/`h3`는 호출부 문맥에 따라 `asChild` 검토 가능 |
-| `CardDescription` | 보조 텍스트·진행률 등                         | 색상은 muted 계열                                  |
-| `CardAction`      | 더보기, 메뉴, 탭, 드롭다운 같은 우측 액션     | 버튼 자체의 동작은 호출부 책임                     |
-| `CardContent`     | 본문 자유 슬롯                                | chart, table, list, empty 모두 수용                |
-| `CardFooter`      | 하단 보조 정보·합계                           | 선택 슬롯                                          |
+| 슬롯               | 책임                                          | 비고                                |
+| ------------------ | --------------------------------------------- | ----------------------------------- |
+| `Card`             | 외곽 surface, radius, padding, 배경, overflow | 도메인 무지                         |
+| `Card.Header`      | 제목·설명·액션 배치                           | 기본은 좌우 정렬                    |
+| `Card.Title`       | 카드 제목                                     | 기본 태그는 `h2`                    |
+| `Card.Description` | 보조 텍스트·진행률 등                         | 색상은 muted 계열                   |
+| `Card.Action`      | 더보기, 메뉴, 탭, 드롭다운 같은 우측 액션     | 버튼 자체의 동작은 호출부 책임      |
+| `Card.Content`     | 본문 자유 슬롯                                | chart, table, list, empty 모두 수용 |
+| `Card.Footer`      | 하단 보조 정보·합계                           | 선택 슬롯                           |
 
 ## variant (cva)
 
@@ -139,7 +146,7 @@ Figma에서 확인된 shadow는 다음처럼 특수 목적에 가깝다.
 | `TableCard`          | 입력한 매출                         | `Card` + table/empty/footer              |
 | `SectionCard`        | TO DO / DONE 내부 박스              | `Card`의 중첩 사용 또는 별도 `div`       |
 
-`Card`는 `EmployeeCard`의 `phone`, `date`, `menu` 같은 필드를 props로 받지 않는다. 그런 값은 도메인 컴포넌트가 소유한다.
+`Card`는 `EmployeeCard`의 `phone`, `date`, `menu` 같은 필드를 props로 받지 않는다. 그런 값은 도메인 컴포넌트가 소유하고, 필요한 영역에 `Card.Content` 또는 `Card.Action`으로 조합한다.
 
 ## 반응형
 
@@ -163,25 +170,25 @@ Figma에서 확인한 화면별 배치는 다음과 같다.
 - `Card` 자체는 landmark나 interactive role을 갖지 않는다.
 - 클릭 가능한 카드가 필요하면 호출부가 `<button>` 또는 `<a>`를 선택한다. `Card`는 `asChild` 지원 여부를 구현 시 검토한다.
 - `interactive=true`인 경우 `focus-visible` 스타일을 반드시 제공한다.
-- 제목 계층은 페이지 문맥에 따라 달라질 수 있으므로 `CardTitle`은 기본 태그를 제공하되 `asChild` 또는 `as` 확장을 고려한다.
-- `CardAction` 내부 버튼은 명확한 접근성 이름을 가져야 한다. 아이콘 버튼은 `aria-label`을 호출부에서 제공한다.
+- 제목 계층은 페이지 문맥에 따라 달라질 수 있으므로 `Card.Title`은 기본 태그를 제공하되 `asChild` 또는 `as` 확장을 고려한다.
+- `Card.Action` 내부 버튼은 명확한 접근성 이름을 가져야 한다. 아이콘 버튼은 `aria-label`을 호출부에서 제공한다.
 
 ## 렌더링 경계
 
 Card primitive는 상태·이벤트·브라우저 API가 없다. 따라서 기본 구현은 Server Component로 유지한다.
 
-| 파일       | `"use client"` | 이유                            |
-| ---------- | -------------- | ------------------------------- |
-| `Card.tsx` | ✕              | 순수 마크업, 스타일 합성만 수행 |
+| 파일                   | `"use client"` | 이유                            |
+| ---------------------- | -------------- | ------------------------------- |
+| `Card.tsx`와 슬롯 파일 | ✕              | 순수 마크업, 스타일 합성만 수행 |
 
-이벤트가 필요한 메뉴, 탭, 드롭다운, 차트는 `CardAction` 또는 `CardContent`에 들어오는 자식 컴포넌트가 클라이언트 경계를 가진다. Card가 그 경계를 대신 소유하지 않는다.
+이벤트가 필요한 메뉴, 탭, 드롭다운, 차트는 `Card.Action` 또는 `Card.Content`에 들어오는 자식 컴포넌트가 클라이언트 경계를 가진다. Card가 그 경계를 대신 소유하지 않는다.
 
 ## 테스트 전략
 
 Card는 로직보다 스타일 조합이 중심이므로 구현 PR에서는 최소 렌더 테스트만 둔다.
 
 ```
-test/components/_common/Card/card.test.tsx
+test/components/_common/Card/Card.test.tsx
 ```
 
 | 대상           | 검증                                                                 |

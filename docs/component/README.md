@@ -52,6 +52,6 @@
 
 | 경로                                           | 컴포넌트                                                 | 상태                  |
 | ---------------------------------------------- | -------------------------------------------------------- | --------------------- |
-| [card/README.md](./card/README.md)             | Card — 공통 surface primitive, compound 슬롯, variant 축 | 설계 완료 · 구현 예정 |
+| [card/README.md](./card/README.md)             | Card — 공통 surface primitive, compound 슬롯, variant 축 | 구현 완료             |
 | [modal/README.md](./modal/README.md)           | Modal — compound 모달, Confirm 프리셋, overlay-kit 연동  | 설계 완료 · 구현 예정 |
 | [pagination/README.md](./pagination/README.md) | Pagination — 평면 props, size 반응형 판정, 슬롯 계산 훅  | 설계 완료 · 구현 예정 |
