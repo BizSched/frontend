@@ -1,16 +1,8 @@
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { FlatCompat } from '@eslint/eslintrc';
+import nextVitals from 'eslint-config-next/core-web-vitals';
+import nextTs from 'eslint-config-next/typescript';
 import tseslint from 'typescript-eslint';
 import prettierConfig from 'eslint-config-prettier';
 import importPlugin from 'eslint-plugin-import';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
 
 export default tseslint.config(
   {
@@ -19,10 +11,11 @@ export default tseslint.config(
       'node_modules/**',
       'dist/**',
       'coverage/**',
-      '**/index.ts', // named re-export 파일은 default export 규칙 제외
+      '*.config.{js,mjs,ts}',
     ],
   },
-  ...compat.extends('next/core-web-vitals', 'next/typescript'),
+  ...nextVitals,
+  ...nextTs,
   prettierConfig,
   {
     plugins: { import: importPlugin },
@@ -64,15 +57,17 @@ export default tseslint.config(
       'no-restricted-imports': [
         'error',
         {
+          paths: [
+            {
+              name: 'axios',
+              message: 'axios 대신 fetch API를 사용하세요.',
+            },
+          ],
           patterns: [
             {
               group: ['../*'],
               message:
                 '상위 디렉토리 상대경로 대신 절대경로 alias(@components, @hooks 등)를 사용하세요.',
-            },
-            {
-              name: 'axios',
-              message: 'axios 대신 fetch API를 사용하세요.',
             },
           ],
         },
@@ -129,7 +124,8 @@ export default tseslint.config(
         'warn',
         { prefer: 'type-imports' },
       ],
-      '@typescript-eslint/no-floating-promises': 'error',
+      // NOTE: no-floating-promises는 타입 정보(parserOptions.projectService)가 필요
+      // lint 속도 비용 때문에 제외. 비동기 코드가 늘어나면 함께 재검토한다.
       'no-console': ['warn', { allow: ['warn', 'error'] }],
       'prefer-const': 'error',
       eqeqeq: ['error', 'always'],
