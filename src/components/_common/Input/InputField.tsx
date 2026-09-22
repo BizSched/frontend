@@ -1,6 +1,8 @@
-import { type ReactNode } from 'react';
+import { cloneElement, type ReactElement } from 'react';
 
 import { cn } from '@lib/utilities/cn';
+
+import { type InputProps } from './Input';
 
 interface InputFieldProps {
   id: string;
@@ -8,7 +10,7 @@ interface InputFieldProps {
   description?: string;
   errorMessage?: string;
   className?: string;
-  children: ReactNode;
+  children: ReactElement<InputProps>;
 }
 
 function InputField({
@@ -22,6 +24,17 @@ function InputField({
   const descriptionId = description ? `${id}-description` : undefined;
   const errorId = errorMessage ? `${id}-error` : undefined;
   const hasError = Boolean(errorMessage);
+  const describedBy = [
+    children.props['aria-describedby'],
+    hasError ? errorId : descriptionId,
+  ]
+    .filter(Boolean)
+    .join(' ');
+  const input = cloneElement(children, {
+    id,
+    'aria-describedby': describedBy || undefined,
+    'aria-invalid': hasError || children.props['aria-invalid'] || undefined,
+  });
 
   return (
     <div
@@ -36,13 +49,7 @@ function InputField({
         {label}
       </label>
 
-      <div
-        data-slot="input-field-control"
-        aria-describedby={cn(descriptionId, errorId) || undefined}
-        aria-invalid={hasError || undefined}
-      >
-        {children}
-      </div>
+      <div data-slot="input-field-control">{input}</div>
 
       {description && !hasError && (
         <p

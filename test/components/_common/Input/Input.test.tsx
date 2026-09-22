@@ -1,14 +1,13 @@
 import '@testing-library/jest-dom/vitest';
-import { render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import { SearchIcon } from 'lucide-react';
 import { createRef } from 'react';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { Input } from '@components/_common/Input/Input';
-import { InputField } from '@components/_common/Input/InputField';
 import { InputIcon } from '@components/_common/Input/InputIcon';
 
-// ─── Input primitive ────────────────────────────────────────────────────────
+afterEach(cleanup);
 
 describe('Input', () => {
   it('placeholder를 렌더한다', () => {
@@ -40,53 +39,59 @@ describe('Input', () => {
   });
 
   it('size="large" 클래스가 적용된다', () => {
-    render(<Input id="test" size="large" data-testid="input-root" />);
-    expect(screen.getByTestId('input-root')).toHaveClass(
+    const { container } = render(<Input id="test" size="large" />);
+    expect(container.querySelector('[data-slot="input-root"]')).toHaveClass(
       'h-14',
       'rounded-[16px]',
     );
   });
 
   it('size="small" 클래스가 적용된다', () => {
-    render(<Input id="test" size="small" data-testid="input-root" />);
-    expect(screen.getByTestId('input-root')).toHaveClass(
+    const { container } = render(<Input id="test" size="small" />);
+    expect(container.querySelector('[data-slot="input-root"]')).toHaveClass(
       'h-11',
       'rounded-[12px]',
     );
   });
 
   it('variant="search" 클래스가 적용된다', () => {
-    render(<Input id="test" variant="search" data-testid="input-root" />);
-    expect(screen.getByTestId('input-root')).toHaveClass(
+    const { container } = render(<Input id="test" variant="search" />);
+    expect(container.querySelector('[data-slot="input-root"]')).toHaveClass(
       'h-12',
       'rounded-full',
     );
   });
 
   it('tone="muted" 클래스가 적용된다', () => {
-    render(<Input id="test" tone="muted" data-testid="input-root" />);
-    expect(screen.getByTestId('input-root')).toHaveClass('bg-slate-50');
+    const { container } = render(<Input id="test" tone="muted" />);
+    expect(container.querySelector('[data-slot="input-root"]')).toHaveClass(
+      'bg-slate-50',
+    );
   });
 
   it('status="typing" 클래스가 적용된다', () => {
-    render(<Input id="test" status="typing" data-testid="input-root" />);
-    expect(screen.getByTestId('input-root')).toHaveClass('border-primary-500');
+    const { container } = render(<Input id="test" status="typing" />);
+    expect(container.querySelector('[data-slot="input-root"]')).toHaveClass(
+      'border-primary-500',
+    );
   });
 
   it('status="error" 클래스가 적용된다', () => {
-    render(<Input id="test" status="error" data-testid="input-root" />);
-    expect(screen.getByTestId('input-root')).toHaveClass('border-warning-500');
+    const { container } = render(<Input id="test" status="error" />);
+    expect(container.querySelector('[data-slot="input-root"]')).toHaveClass(
+      'border-warning-500',
+    );
   });
 
   it('disabled일 때 disabled 상태 클래스가 적용된다', () => {
-    render(<Input id="test" disabled data-testid="input-root" />);
-    expect(screen.getByTestId('input-root')).toHaveClass(
+    const { container } = render(<Input id="test" disabled />);
+    expect(container.querySelector('[data-slot="input-root"]')).toHaveClass(
       'disabled:cursor-not-allowed',
     );
   });
 
   it('leftSlot이 렌더된다', () => {
-    render(
+    const { container } = render(
       <Input
         id="test"
         leftSlot={
@@ -97,14 +102,12 @@ describe('Input', () => {
       />,
     );
     expect(
-      screen
-        .getByTestId('input-root')
-        .querySelector('[data-slot="input-left-slot"]'),
+      container.querySelector('[data-slot="input-left-slot"]'),
     ).toBeTruthy();
   });
 
   it('rightSlot이 렌더된다', () => {
-    render(
+    const { container } = render(
       <Input
         id="test"
         rightSlot={
@@ -112,20 +115,17 @@ describe('Input', () => {
             <SearchIcon />
           </InputIcon>
         }
-        data-testid="input-root"
       />,
     );
     expect(
-      screen
-        .getByTestId('input-root')
-        .querySelector('[data-slot="input-right-slot"]'),
+      container.querySelector('[data-slot="input-right-slot"]'),
     ).toBeTruthy();
   });
 
   it('호출부 className이 cn으로 병합된다', () => {
-    render(
-      <Input id="test" className="custom-class" data-testid="input-root" />,
+    const { container } = render(<Input id="test" className="custom-class" />);
+    expect(container.querySelector('[data-slot="input-root"]')).toHaveClass(
+      'custom-class',
     );
-    expect(screen.getByTestId('input-root')).toHaveClass('custom-class');
   });
 });
