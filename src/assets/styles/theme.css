@@ -39,6 +39,8 @@
     --radius-2xl: calc(var(--radius) * 1.8);
     --radius-3xl: calc(var(--radius) * 2.2);
     --radius-4xl: calc(var(--radius) * 2.6);
+    --radius-modal: 2.5rem;
+    --shadow-modal: 0 0 30px rgba(0, 0, 0, 0.05);
 }
 
 :root {
@@ -66,6 +68,7 @@
     --chart-4: var(--color-warning-500);
     --chart-5: var(--color-slate-500);
     --radius: 0.625rem;
+    --z-modal-base: 1000;
     --sidebar: var(--color-white-100);
     --sidebar-foreground: var(--color-slate-900);
     --sidebar-primary: var(--color-primary-500);
