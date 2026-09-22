@@ -199,13 +199,14 @@ test/components/_common/Checkbox/checkbox.test.tsx
 
 ## 단계별 PR 계획
 
-Modal·Pagination·Radio와 동일하게 [stacked pull requests](https://docs.github.com/en/pull-requests/get-started/about-stacked-prs)로 진행하고, `git worktree`로 브랜치별 독립 디렉터리에서 작업한다.
+Modal·Pagination·Radio와 동일하게 [stacked pull requests](https://docs.github.com/en/pull-requests/get-started/about-stacked-prs)로 진행하고, `git worktree`로 브랜치별 독립 디렉터리에서 작업한다. Checkbox는 Radio와 코드를 공유하지 않지만, UI 구현 PR은 하나로 합쳐 총 4단계로 진행한다([radio/README.md](../radio/README.md)와 공유하는 계획).
 
 | 순서 | 브랜치 | base | 내용 | 상태 |
 | --- | --- | --- | --- | --- |
 | 1 | `design/common-selector` | `dev` | **이 설계 문서** + [radio/README.md](../radio/README.md) + `docs/component/README.md`·`docs/README.md` 인덱스 갱신 | 작성 중(현재 브랜치) |
-| 2 | `feat/common-checkbox-ui` | `design/common-selector` | `shadcn add checkbox` + `Checkbox` 구현(variant 2종) | 예정 |
-| 3 | `feat/common-checkbox-test` | `feat/common-checkbox-ui` | Vitest 테스트 | 예정 |
+| 2 | `feat/common-selector-ui` | `design/common-selector` | `shadcn add radio-group` + `shadcn add checkbox` + `RadioGroup`·`RadioGroupItem`·`Checkbox` 구현(Radio+Checkbox 합본) | 예정 |
+| 3 | `feat/common-radio-test` | `feat/common-selector-ui` | Radio Vitest 테스트([radio/README.md](../radio/README.md) 참고) | 예정 |
+| 4 | `feat/common-checkbox-test` | `feat/common-selector-ui` | Checkbox Vitest 테스트 | 예정 |
 
 ## 확인 필요
 
@@ -231,7 +232,7 @@ Radio 문서와 동일한 사안 — 폼 검증과 함께 쓰이는 시점에 �
 
 ### 5. lucide `Check` 채택의 시각 검수
 
-"체크마크가 단순한 tick이라 lucide `Check`와 유사하다"는 판단이 18px 크기에서도 실제로 맞는지는 검증되지 않았다. 선 길이·위치·끝단이 Figma와 다르게 보일 수 있다. 구현 PR(`feat/common-checkbox-ui`)의 완료 조건에 `solid`·`subtle` 두 상태의 Figma 스크린샷과 실제 렌더 결과 비교를 추가하고, 차이가 크면 커스텀 path로 전환한다.
+"체크마크가 단순한 tick이라 lucide `Check`와 유사하다"는 판단이 18px 크기에서도 실제로 맞는지는 검증되지 않았다. 선 길이·위치·끝단이 Figma와 다르게 보일 수 있다. 구현 PR(`feat/common-selector-ui`)의 완료 조건에 `solid`·`subtle` 두 상태의 Figma 스크린샷과 실제 렌더 결과 비교를 추가하고, 차이가 크면 커스텀 path로 전환한다.
 
 ## 참고
 

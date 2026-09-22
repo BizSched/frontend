@@ -158,13 +158,14 @@ test/components/_common/Radio/radioGroup.test.tsx
 
 ## 단계별 PR 계획
 
-Modal·Pagination과 동일하게 [stacked pull requests](https://docs.github.com/en/pull-requests/get-started/about-stacked-prs)로 진행하고, `git worktree`로 브랜치별 독립 디렉터리에서 작업한다.
+Modal·Pagination과 동일하게 [stacked pull requests](https://docs.github.com/en/pull-requests/get-started/about-stacked-prs)로 진행하고, `git worktree`로 브랜치별 독립 디렉터리에서 작업한다. Radio·Checkbox는 서로 코드를 공유하지 않지만, UI 구현 PR은 하나로 합쳐 총 4단계로 진행한다([checkbox/README.md](../checkbox/README.md)와 공유하는 계획).
 
 | 순서 | 브랜치 | base | 내용 | 상태 |
 | --- | --- | --- | --- | --- |
 | 1 | `design/common-selector` | `dev` | **이 설계 문서** + [checkbox/README.md](../checkbox/README.md) + `docs/component/README.md`·`docs/README.md` 인덱스 갱신 | 작성 중(현재 브랜치) |
-| 2 | `feat/common-radio-ui` | `design/common-selector` | `shadcn add radio-group` + `RadioGroup`·`RadioGroupItem` 구현 | 예정 |
-| 3 | `feat/common-radio-test` | `feat/common-radio-ui` | Vitest 테스트 | 예정 |
+| 2 | `feat/common-selector-ui` | `design/common-selector` | `shadcn add radio-group` + `shadcn add checkbox` + `RadioGroup`·`RadioGroupItem`·`Checkbox` 구현(Radio+Checkbox 합본) | 예정 |
+| 3 | `feat/common-radio-test` | `feat/common-selector-ui` | Radio Vitest 테스트 | 예정 |
+| 4 | `feat/common-checkbox-test` | `feat/common-selector-ui` | Checkbox Vitest 테스트([checkbox/README.md](../checkbox/README.md) 참고) | 예정 |
 
 ## 확인 필요
 
