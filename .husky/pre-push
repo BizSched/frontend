@@ -20,12 +20,12 @@ TOTAL=3
 STEP=1
 
 run_step() {
-  CMD=$1
+  CMD="$*"
 
   print_line "${YELLOW}${BOLD}[$STEP/$TOTAL] Running pnpm run $CMD...${RESET}"
   print_line "${CYAN}──────────────────────────────────────────────────${RESET}"
 
-  if ! pnpm run "$CMD"; then
+  if ! pnpm run "$@"; then
     print_line ""
     print_line "${RED}${BOLD}✖ '$CMD' failed — push aborted${RESET}"
     print_line ""
@@ -37,21 +37,20 @@ run_step() {
   STEP=$((STEP + 1))
 }
 
-run_step "type-check"
-run_step "lint"
+run_step type-check
+run_step lint
 
-print_line "${YELLOW}${BOLD}[$STEP/$TOTAL] Running pnpm run test -- --changed origin/dev...${RESET}"
-print_line "${CYAN}──────────────────────────────────────────────────${RESET}"
-
-if ! pnpm run test -- --changed origin/dev; then
+print_line "${YELLOW}${BOLD}Updating origin/dev before changed tests...${RESET}"
+if ! git fetch origin dev --quiet; then
   print_line ""
-  print_line "${RED}${BOLD}✖ 'test --changed origin/dev' failed — push aborted${RESET}"
+  print_line "${RED}${BOLD}✖ failed to fetch origin/dev — push aborted${RESET}"
   print_line ""
   exit 1
 fi
-
-print_line "${GREEN}✔ test --changed origin/dev passed${RESET}"
+print_line "${GREEN}✔ origin/dev updated${RESET}"
 print_line ""
+
+run_step test --changed origin/dev
 
 print_line "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 print_line "${GREEN}${BOLD}  ✅ All checks passed! Pushing...                ${RESET}"
