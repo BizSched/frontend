@@ -24,15 +24,25 @@ STEP=1
 
 run_step() {
   CMD="$*"
+  SCRIPT=$1
+  shift
 
   print_line "${YELLOW}${BOLD}[$STEP/$TOTAL] Running pnpm run $CMD...${RESET}"
   print_line "${CYAN}──────────────────────────────────────────────────${RESET}"
 
-  if [ "$1" = "test" ]; then
+  if [ "$SCRIPT" = "test" ]; then
     git fetch "$TEST_CHANGED_REMOTE" "$TEST_CHANGED_BRANCH" --quiet
   fi
 
-  if ! pnpm run "$@"; then
+  if [ "$#" -gt 0 ]; then
+    RUN_RESULT=0
+    pnpm run "$SCRIPT" -- "$@" || RUN_RESULT=$?
+  else
+    RUN_RESULT=0
+    pnpm run "$SCRIPT" || RUN_RESULT=$?
+  fi
+
+  if [ "$RUN_RESULT" -ne 0 ]; then
     print_line ""
     print_line "${RED}${BOLD}✖ '$CMD' failed — push aborted${RESET}"
     print_line ""
@@ -46,7 +56,7 @@ run_step() {
 
 run_step "type-check"
 run_step "lint"
-run_step test -- --run --changed "$TEST_CHANGED_BASE"
+run_step test --run --changed "$TEST_CHANGED_BASE" --passWithNoTests
 
 print_line "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 print_line "${GREEN}${BOLD}  ✅ All checks passed! Pushing...                ${RESET}"
