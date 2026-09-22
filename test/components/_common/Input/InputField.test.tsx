@@ -1,15 +1,17 @@
 import '@testing-library/jest-dom/vitest';
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { cleanup, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { Input } from '@components/_common/Input/Input';
 import { InputField } from '@components/_common/Input/InputField';
+
+afterEach(cleanup);
 
 describe('InputField', () => {
   it('label이 렌더되고 input과 htmlFor로 연결된다', () => {
     render(
       <InputField id="email" label="이메일">
-        <Input id="email" />
+        <Input />
       </InputField>,
     );
     expect(screen.getByLabelText('이메일')).toBeInTheDocument();
@@ -36,11 +38,11 @@ describe('InputField', () => {
     );
     expect(screen.getByText('잘못된 이메일입니다.')).toBeInTheDocument();
     expect(screen.getByRole('alert')).toBeInTheDocument();
-    expect(
-      screen.getByRole('group', { hidden: true }) ??
-        screen.getByTestId?.('input-field-control') ??
-        document.querySelector('[data-slot="input-field-control"]'),
-    ).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByRole('textbox')).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.getByRole('textbox')).toHaveAttribute(
+      'aria-describedby',
+      'email-error',
+    );
   });
 
   it('errorMessage가 있으면 description은 렌더되지 않는다', () => {
