@@ -72,4 +72,6 @@
     --color-white-800: #ADABA3;
     --color-white-900: #8C8A84;
     --color-white-950: #73716C;
+
+    --color-overlay: rgba(0, 0, 0, 0.6);
 }

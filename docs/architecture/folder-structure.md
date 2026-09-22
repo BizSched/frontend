@@ -1,6 +1,8 @@
 # 폴더 구조 / 컴포넌트 분리 기준
 
-`src/`는 `components`, `apps`, `hooks`, `lib`, `stores`, `providers`로 구성한다.
+프로젝트 최상위에는 `app/`(Next.js App Router 라우트 진입점), `src/`, `test/`를 나란히 둔다. `src/`는 `components`, `hooks`, `lib`, `stores`, `providers`, `assets`로 구성한다.
+
+각 폴더에 대응하는 절대경로 alias는 [naming.md](../convention/naming.md#import-순서--절대경로-alias) 참고.
 
 - 컴포넌트 폴더·파일명: `PascalCase` (예: `ModalHeader.tsx`)
 - 기타 utility·핸들러 파일명: `camelCase`
@@ -21,14 +23,27 @@
 
 `interface`는 각 레이어 폴더(`hooks`, `lib`, `provider`, `store`) 하위의 `types/`에 분리해서 선언한다. (`components`는 내부에서 관리)
 
+## app/ 구조
+
+`layout.tsx`, `page.tsx`, `globals.css`가 여기 위치한다.
+
+- `app/`: `login/`, `signup/`, `partTime/`(`schedule/`, `staff/`), `sales/`(`dashboard/`, `details/`), `task/`(`calendar/`, `form/`, `detail/`), `dashboard/`, `layout.tsx`, `page.tsx`
+
+`app/**/page.tsx`·`app/**/layout.tsx`의 렌더링 경계 규칙은 [rendering.md](./rendering.md) 참고.
+
 ## src/ 상세 구조
 
 도메인(기능)별로 하위 폴더를 둔다.
 
-- `apps/`: `login/`, `signup/`, `partTime/`(`schedule/`, `staff/`), `sales/`(`dashboard/`, `details/`), `task/`(`calendar/`, `form/`, `detail/`), `dashboard/`, `layout.tsx`, `page.tsx`
-- `components/`: `_common/`, `auth/`(`form/`), `dashboard/`, `landing/`, `partTime/`(`schedule/`, `staff/`), `sales/`(`chart/`, `table/`, `form/`, `category/`), `task/`(`calendar/`, `form/`, `detail/`)
+- `components/`: `_common/`(하위 `ui/`는 Shadcn/ui 기본 UI 전용 — [ui-component.md](../convention/ui-component.md) 참고), `auth/`(`form/`), `dashboard/`, `landing/`, `partTime/`(`schedule/`, `staff/`), `sales/`(`chart/`, `table/`, `form/`, `category/`), `task/`(`calendar/`, `form/`, `detail/`)
 - `hooks/`: `types/`, `api/`
 - `lib/`: `utility/`, `api/`, `types/`
 - `providers/`: `auth/`, `partTime/`, `sales/`, `task/`
 - `stores/`: `auth/`, `partTime/`, `sales/`, `task/`
+- `assets/`: `styles/` (전역 CSS 토큰: `breakpoints`, `colors`, `theme`, `typography`)
+
+## test/ 구조
+
 - `test/`: `fixtures/`, 나머지는 `src/` 구조를 미러링
+
+파일명·러너 규칙은 [test.md](../convention/test.md) 참고.
