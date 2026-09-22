@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 BOLD='\033[1m'
 GREEN='\033[0;32m'
@@ -7,24 +7,28 @@ YELLOW='\033[0;33m'
 CYAN='\033[0;36m'
 RESET='\033[0m'
 
-echo ""
-echo -e "${CYAN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo -e "${CYAN}${BOLD}  🔍 Pre-commit Check                             ${RESET}"
-echo -e "${CYAN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo ""
+print_line() {
+  printf '%b\n' "$1"
+}
 
-echo -e "${YELLOW}${BOLD}[1/1] Running lint-staged...${RESET}"
-echo -e "${CYAN}──────────────────────────────────────────────────${RESET}"
+print_line ""
+print_line "${CYAN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+print_line "${CYAN}${BOLD}  🔍 Pre-commit Check                             ${RESET}"
+print_line "${CYAN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+print_line ""
+
+print_line "${YELLOW}${BOLD}[1/1] Running lint-staged...${RESET}"
+print_line "${CYAN}──────────────────────────────────────────────────${RESET}"
 
 if pnpm exec lint-staged; then
-  echo ""
-  echo -e "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-  echo -e "${GREEN}${BOLD}  ✅ Pre-commit check passed!                    ${RESET}"
-  echo -e "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-  echo ""
+  print_line ""
+  print_line "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+  print_line "${GREEN}${BOLD}  ✅ Pre-commit check passed!                    ${RESET}"
+  print_line "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+  print_line ""
 else
-  echo ""
-  echo -e "${RED}${BOLD}✖ Pre-commit check failed — commit aborted${RESET}"
-  echo ""
+  print_line ""
+  print_line "${RED}${BOLD}✖ Pre-commit check failed — commit aborted${RESET}"
+  print_line ""
   exit 1
 fi
