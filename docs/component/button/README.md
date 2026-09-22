@@ -121,7 +121,7 @@ test/components/_common/Button/Button.test.tsx
 
 ### `Button` 자체 단계
 
-설계 문서와 구현(`hierarchy × size`)은 같은 PR로 묶되, 테스트는 별도 PR로 분리한다. `design/common-button`(1/2)이 `dev`에 머지된 뒤, `feat/common-button-test`(2/2)는 그 시점의 `dev`를 기준으로 새로 분기한다.
+설계 문서와 구현(`hierarchy × size`)은 같은 PR로 묶되, 테스트는 별도 PR로 분리한다. `design/common-button`(1/2)이 `dev`에 머지된 뒤, `feat/common-button-test`(2/2)는 그 시점의 `dev`를 기준으로 새로 분기한다. 이는 [pr-flow.md](../../collaboration/pr-flow.md)의 기본 Feat Workflow(머지 후 분기)를 두 차례 순서대로 적용하는 **순차(sequential) 전략**이며, 아래 "버튼 계열 컴포넌트 분리"의 stacked PR과는 다른 방식이다 — 테스트가 설계/구현 완료를 전제로 하므로 병렬 진행할 이유가 없어 순차로 정했다.
 
 | 단계 | 브랜치                    | 내용                                | 상태                 |
 | ---- | ------------------------- | ----------------------------------- | -------------------- |
