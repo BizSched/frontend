@@ -52,4 +52,5 @@
 
 | 경로                                 | 컴포넌트                                                | 상태                  |
 | ------------------------------------ | ------------------------------------------------------- | --------------------- |
+| [input/README.md](./input/README.md) | Input — 입력 primitive, 검색·파일·이미지 입력 설계      | 설계 완료 · 구현 예정 |
 | [modal/README.md](./modal/README.md) | Modal — compound 모달, Confirm 프리셋, overlay-kit 연동 | 설계 완료 · 구현 예정 |
