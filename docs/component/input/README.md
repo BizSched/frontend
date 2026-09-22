@@ -18,6 +18,8 @@ Figma 컴포넌트 캔버스의 `inputs` 섹션(`71:70540`)에는 일반 텍스�
 
 파일·이미지 입력은 시각적으로 Input과 비슷하지만 native file input, drag/drop, 파일명 표시, 이미지 preview 같은 동작 책임이 다르다. 따라서 일반 `Input` variant에 넣지 않고 `UploadInput`, `ImageInput` 후보로 분리한다. 단, drag/drop·파일명 표시·이미지 preview는 구현 방향으로 확정하되 **MVP 범위에서는 제외**한다.
 
+태그 입력(`71:70550`)은 이번 스코프에서 **개발하지 않는다.** 별도 primitive나 variant 후보로도 만들지 않으며, 필요해지면 이 문서에 계열을 추가하고 별도 설계를 진행한다.
+
 ### Figma 원본 노드
 
 본문에서는 아래 이름으로 참조한다. 노드 ID는 이 표에서만 관리한다.
@@ -41,16 +43,21 @@ Figma 컴포넌트 캔버스의 `inputs` 섹션(`71:70540`)에는 일반 텍스�
 
 ## 설계 결정 요약
 
-| 결정        | 선택                                              | 근거                                                                                   |
-| ----------- | ------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| API 형태    | primitive props + `InputField` 조합               | Input의 핵심은 native `<input>`이다. compound 슬롯을 열 만큼 고정 골격이 복잡하지 않다 |
-| 범위        | `Input` primitive + label/error wrapper           | `<input>` 접근성·폼 연동은 공통화하고, 검증 규칙과 submit은 호출부가 소유한다          |
-| 시작점      | shadcn Input 구조 참조 후 Figma 스타일로 재구성   | shadcn 기본 구조는 유용하지만 height/radius/padding은 Figma와 다르다                   |
-| 검색 입력   | `Input variant="search"`                          | 기능은 텍스트 입력과 같고 디자인 차이만 있다                                           |
-| 파일 입력   | `UploadInput`, `ImageInput`은 후속 primitive 후보 | native file input, drag/drop, preview 등 동작 책임이 다르다                            |
-| 도메인 입력 | 매출 수정 입력창·날짜 선택 입력은 도메인 조합     | 단위, 포맷, date picker 연결을 primitive에 넣지 않는다                                 |
-| 아이콘      | lucide 사용                                       | `lucide-react`가 설치되어 있고, 검색·캘린더·업로드·보기/숨김 계열을 커버한다           |
-| 색상        | `colors.css`의 slate 토큰 우선                    | 프로젝트 전역 토큰을 단일 기준으로 삼는다                                              |
+| 결정          | 선택                                                                         | 근거                                                                                                 |
+| ------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| API 형태      | primitive props + `InputField` 조합                                          | Input의 핵심은 native `<input>`이다. compound 슬롯을 열 만큼 고정 골격이 복잡하지 않다               |
+| 상태 동기화   | `forwardRef` + `ComponentPropsWithoutRef<'input'>` 확장 + `...rest` 스프레드 | RHF `register()`(uncontrolled, `ref` 기반)와 `useState` 기반(controlled) 입력을 분기 없이 동시 지원. |
+| 속성 전달/ref | 별도 `inputRef` prop 대신 표준 `forwardRef`                                  | RHF가 `ref.current.value`로 DOM을 직접 읽으므로 ref가 네이티브 `<input>`까지 반드시 도달해야 한다    |
+| 합성/슬롯     | Compound Component(`<Input.Icon>` 등) 대신 `leftSlot`/`rightSlot` props      | 아이콘/액션 위치가 좌/우 2곳으로 고정되어 있어 slot을 여는 것보다 props가 단순하다                   |
+| a11y wrapper  | `Input`이 직접 label/error를 렌더하지 않고 `InputField`로 분리               | `Input` 단독 사용(검색 등)에 불필요한 label/error 구조를 강제하지 않는다                             |
+| 범위          | `Input` primitive + label/error wrapper                                      | `<input>` 접근성·폼 연동은 공통화하고, 검증 규칙과 submit은 호출부가 소유한다                        |
+| 시작점        | shadcn Input 구조 참조 후 Figma 스타일로 재구성                              | shadcn 기본 구조는 유용하지만 height/radius/padding은 Figma와 다르다                                 |
+| 검색 입력     | `Input variant="search"`                                                     | 기능은 텍스트 입력과 같고 디자인 차이만 있다                                                         |
+| 파일 입력     | `UploadInput`, `ImageInput`은 후속 primitive 후보                            | native file input, drag/drop, preview 등 동작 책임이 다르다                                          |
+| 태그 입력     | 이번 스코프에서 제외 (`71:70550`)                                            | 우선순위상 개발하지 않기로 결정                                                                      |
+| 도메인 입력   | 매출 수정 입력창·날짜 선택 입력은 도메인 조합                                | 단위, 포맷, date picker 연결을 primitive에 넣지 않는다                                               |
+| 아이콘        | lucide 사용                                                                  | `lucide-react`가 설치되어 있고, 검색·캘린더·업로드·보기/숨김 계열을 커버한다                         |
+| 색상          | `colors.css`의 slate 토큰 우선                                               | 프로젝트 전역 토큰을 단일 기준으로 삼는다                                                            |
 
 ## `shadcn add input` 적용 시 판단
 
@@ -127,15 +134,19 @@ src/components/_common/Input/
 />
 ```
 
-| prop / slot | 기본값    | 설명                                                     |
-| ----------- | --------- | -------------------------------------------------------- |
-| `size`      | `large`   | `large` \| `small`                                       |
-| `variant`   | `default` | `default` \| `search`                                    |
-| `tone`      | `default` | `default` \| `muted`                                     |
-| `status`    | `default` | `default` \| `done` \| `typing` \| `error` \| `disabled` |
-| `leftSlot`  | —         | 좌측 아이콘 또는 장식 요소                               |
-| `rightSlot` | —         | 우측 아이콘 또는 액션 요소                               |
-| `className` | —         | `cn`으로 variant class와 병합                            |
+`Input`은 `React.ComponentPropsWithoutRef<'input'>`을 확장한다. `value`/`onChange`/`onBlur`/`name`/`disabled` 등 네이티브 input 속성은 별도로 선언하지 않고 `...rest`로 그대로 전달하므로, `{...register('email')}`와 `value`+`onChange`(`useState`) 둘 다 동일하게 동작한다. 근거는 [ADR-0001](../../adr/0001-input-value-props-passthrough.md) 참고.
+
+| prop / slot | 기본값    | 설명                                                                   |
+| ----------- | --------- | ---------------------------------------------------------------------- |
+| `size`      | `large`   | `large` \| `small`                                                     |
+| `variant`   | `default` | `default` \| `search`                                                  |
+| `tone`      | `default` | `default` \| `muted`                                                   |
+| `status`    | `default` | `default` \| `done` \| `typing` \| `error` \| `disabled`               |
+| `leftSlot`  | —         | 좌측 아이콘 또는 장식 요소                                             |
+| `rightSlot` | —         | 우측 아이콘 또는 액션 요소                                             |
+| `className` | —         | `cn`으로 variant class와 병합                                          |
+| `ref`       | —         | `forwardRef`로 네이티브 `<input>`까지 전달 (RHF `register().ref` 필수) |
+| `...rest`   | —         | `value`/`onChange`/`onBlur`/`name` 등 네이티브 input 속성 pass-through |
 
 ### 슬롯 책임
 
