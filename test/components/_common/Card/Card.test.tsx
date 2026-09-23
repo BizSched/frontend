@@ -22,7 +22,8 @@ describe('Card', () => {
       </Card>,
     );
 
-    expect(screen.getByText('입력한 매출')).toBeInTheDocument();
+    const title = screen.getByRole('heading', { level: 2, name: '입력한 매출' });
+    expect(title).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '더보기' })).toBeInTheDocument();
     expect(screen.getByText('최근 8일')).toBeInTheDocument();
     expect(screen.getByText('테이블')).toBeInTheDocument();
