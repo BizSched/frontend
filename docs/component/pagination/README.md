@@ -37,7 +37,7 @@ design 캔버스 전수 조사 결과 인스턴스는 **26개(desktop 11 · tabl
 | 범위      | primitive + 계산 훅 + URL 연동 훅                                          | 데이터 조회는 호출부(도메인) 소유. [ui-component.md](../../convention/ui-component.md)의 _"공통 컴포넌트에 특정 페이지의 API·비즈니스 로직을 넣지 않는다"_                        |
 | page 상태 | **URL Search Params `?page=`** — `usePageSearchParam` 훅                   | 새로고침·공유·뒤로가기에서 페이지가 유지되어야 한다. 컴포넌트는 URL을 모르고, 훅이 URL ↔ props를 연결한다. 아래 "URL 연동" 참고                                                   |
 | 시작점    | **`shadcn add pagination` 생성물을 `_common/Pagination/`에 기능별로 분리** | 생성물의 `nav` / `ul` / `li` 시맨틱을 `PaginationRoot` · `PaginationContent` · `PaginationItem`으로 옮기고 `_common/ui/pagination.tsx`는 남기지 않는다                            |
-| 요소      | `<button type="button">`                                                   | page 상태가 콜백으로 호출부에 올라간다. 생성물의 `PaginationLink`는 `<a>` 기반이라 쓰지 않는다                                                                                    |
+| 요소      | **공통 `Button`** (`_common/Button/Button.tsx`) + className 덮어쓰기       | 버튼 동작·접근성을 공통 Button(Base UI)으로 통일한다. page 상태는 콜백으로 호출부에 올라간다. 생성물의 `PaginationLink`는 `<a>` 기반이라 쓰지 않는다                              |
 | 아이콘    | lucide `ChevronLeft` · `ChevronRight` · `Ellipsis`                         | `components.json`의 `iconLibrary: "lucide"`, `lucide-react` 설치 완료. 글리프가 Figma와 1:1 대응해 에셋 커밋이 불필요하다                                                         |
 | 반응형    | **`size`를 JS로 판정** (SSR `lg` → 마운트 후 교정)                         | 아래 "반응형 전략" 참고                                                                                                                                                           |
 | 토큰      | **전역 토큰 신설 없음. 기존 토큰·Tailwind 유틸리티 + 임의값**              | 아래 "디자인 토큰 매핑" 참고                                                                                                                                                      |
@@ -265,6 +265,24 @@ usePaginationRange({ currentPage, totalPages, visibleCount }): PaginationSlot[]
 | `sm`   | `true`     | `text-white-50` |
 
 `sm`에는 tracking 유틸리티를 붙이지 않는다. Figma의 `text-xs` 스타일이 letter-spacing `0`이기 때문이다.
+
+### 공통 `Button` 덮어쓰기
+
+`PaginationButton`은 공통 `Button`을 렌더하고 `className`으로 Button의 기본 스타일을 덮어쓴다. Button은 전달된 `className`을 cva 뒤에 붙이고 `cn`(tailwind-merge)으로 합치므로, 충돌하는 유틸리티는 Pagination 쪽이 이긴다. `hierarchy`·`size`는 Button 기본값(`primary`·`large`)을 그대로 두고 덮어쓴다.
+
+| Button 기본 스타일                              | 덮어쓰기                         | 위치                          |
+| ----------------------------------------------- | -------------------------------- | ----------------------------- |
+| 고정 `h-*` · `w-*`                              | `size-12` · `size-8`이 대체      | `paginationButtonVariants`    |
+| `rounded-full` · `px-[18px]` · `py-*` · `gap-1` | `rounded-*` · `px-0 py-0 gap-0`  | variants · `PaginationButton` |
+| `[&_svg]:size-6`                                | `[&_svg]:size-5` (화살표 20px)   | `PaginationButton`            |
+| `tracking-[-0.03em]` (`sm`에도 적용됨)          | `sm`에 `tracking-normal`         | `paginationButtonVariants`    |
+| `bg-primary-500 text-white-50`                  | 셀 배경·글자색이 대체            | `paginationButtonVariants`    |
+| `hover:bg-secondary-600`                        | 활성 셀 `hover:bg-primary`       | `PaginationButton`            |
+| `disabled:bg-[#bbbbbb]`                         | 비활성 셀 `disabled:bg-slate-50` | `PaginationButton`            |
+
+Button은 `children`을 `<span className="truncate">`로 감싼다. 셀 내용(숫자 · 아이콘)은 셀보다 작아 잘리지 않는다. 생략·스켈레톤 셀은 클릭 대상이 아니므로 Button을 쓰지 않고 `paginationButtonVariants`만 공유한다.
+
+> Button의 기본 스타일이 바뀌면 이 표의 덮어쓰기도 함께 확인해야 한다.
 
 ## 디자인 토큰 매핑
 
