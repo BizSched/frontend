@@ -50,7 +50,8 @@
 
 ## 문서 목록
 
-| 경로                                 | 컴포넌트                                                | 상태                  |
-| ------------------------------------ | ------------------------------------------------------- | --------------------- |
-| [modal/README.md](./modal/README.md) | Modal — compound 모달, Confirm 프리셋, overlay-kit 연동 | 설계 완료 · 구현 예정 |
-| [pagination/README.md](./pagination/README.md) | Pagination — 평면 props, size 반응형 판정, 슬롯 계산 훅 | 설계 완료 · 구현 예정 |
+| 경로                                           | 컴포넌트                                                                             | 상태                  |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------ | --------------------- |
+| [modal/README.md](./modal/README.md)           | Modal — compound 모달, Confirm 프리셋, overlay-kit 연동                              | 설계 완료 · 구현 예정 |
+| [pagination/README.md](./pagination/README.md) | Pagination — 평면 props, size 반응형 판정, 슬롯 계산 훅                              | 설계 완료 · 구현 예정 |
+| [TextButton/README.md](./TextButton/README.md) | TextButton — `size` variant, `state`는 hover pseudo-class, Button의 sibling 컴포넌트 | 설계 완료 · 구현 예정 |
