@@ -31,15 +31,15 @@ design 캔버스 전수 조사 결과 인스턴스는 **26개(desktop 11 · tabl
 
 ## 설계 결정 요약
 
-| 결정     | 선택                                                        | 근거                                                                                                                                                                                      |
-| -------- | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| API 형태 | **compound 아님. 평면 props**                               | Figma 26개 인스턴스의 구조가 전부 동일해 슬롯을 열 이유가 없다. `page` · `totalPages` · `onPageChange` 세 개로 전부 표현된다. Modal과 달리 조합의 자유도가 요구되지 않는다                |
-| 범위     | primitive + 계산 훅까지                                     | page 상태와 데이터 조회는 호출부(도메인) 소유. [ui-component.md](../../convention/ui-component.md)의 _"공통 컴포넌트에 특정 페이지의 API·비즈니스 로직을 넣지 않는다"_                    |
-| 시작점   | **`shadcn add pagination` 실행 후 `_common/`에서 재구성**   | 생성물(`_common/ui/pagination.tsx`)의 `nav` / `ul` / `li` 시맨틱과 `aria-current` 배선을 그대로 쓴다. Modal이 `_common/ui/dialog.tsx`를 두고 `_common/Modal/`에서 재구성한 것과 같은 구조 |
-| 요소     | `<button type="button">`                                    | page 상태가 콜백으로 호출부에 올라간다. 생성물의 `PaginationLink`는 `<a>` 기반이라 쓰지 않는다                                                                                            |
-| 아이콘   | lucide `ChevronLeft` · `ChevronRight` · `Ellipsis`          | `components.json`의 `iconLibrary: "lucide"`, `lucide-react` 설치 완료. 글리프가 Figma와 1:1 대응해 에셋 커밋이 불필요하다                                                                 |
-| 반응형   | **`size`를 JS로 판정** (SSR `lg` → 마운트 후 교정)          | 아래 "반응형 전략" 참고                                                                                                                                                                   |
-| 토큰     | **그림자 1종만 신설, 나머지는 기존 토큰·Tailwind 유틸리티** | 아래 "디자인 토큰 매핑" 참고                                                                                                                                                              |
+| 결정     | 선택                                                          | 근거                                                                                                                                                                                      |
+| -------- | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API 형태 | **compound 아님. 평면 props**                                 | Figma 26개 인스턴스의 구조가 전부 동일해 슬롯을 열 이유가 없다. `page` · `totalPages` · `onPageChange` 세 개로 전부 표현된다. Modal과 달리 조합의 자유도가 요구되지 않는다                |
+| 범위     | primitive + 계산 훅까지                                       | page 상태와 데이터 조회는 호출부(도메인) 소유. [ui-component.md](../../convention/ui-component.md)의 _"공통 컴포넌트에 특정 페이지의 API·비즈니스 로직을 넣지 않는다"_                    |
+| 시작점   | **`shadcn add pagination` 실행 후 `_common/`에서 재구성**     | 생성물(`_common/ui/pagination.tsx`)의 `nav` / `ul` / `li` 시맨틱과 `aria-current` 배선을 그대로 쓴다. Modal이 `_common/ui/dialog.tsx`를 두고 `_common/Modal/`에서 재구성한 것과 같은 구조 |
+| 요소     | `<button type="button">`                                      | page 상태가 콜백으로 호출부에 올라간다. 생성물의 `PaginationLink`는 `<a>` 기반이라 쓰지 않는다                                                                                            |
+| 아이콘   | lucide `ChevronLeft` · `ChevronRight` · `Ellipsis`            | `components.json`의 `iconLibrary: "lucide"`, `lucide-react` 설치 완료. 글리프가 Figma와 1:1 대응해 에셋 커밋이 불필요하다                                                                 |
+| 반응형   | **`size`를 JS로 판정** (SSR `lg` → 마운트 후 교정)            | 아래 "반응형 전략" 참고                                                                                                                                                                   |
+| 토큰     | **전역 토큰 신설 없음. 기존 토큰·Tailwind 유틸리티 + 임의값** | 아래 "디자인 토큰 매핑" 참고                                                                                                                                                              |
 
 ## `shadcn add pagination` 적용 시 주의
 
@@ -184,12 +184,12 @@ usePaginationRange({ page, totalPages, visibleCount }): PaginationSlot[]
 
 셀 골격이 숫자·화살표·생략에서 동일하므로 `paginationButtonVariants` 하나를 공유한다. [ui-component.md](../../convention/ui-component.md)에 따라 반복되는 디자인 차이만 축으로 만든다.
 
-| 축         | 값      | 매핑                                                               |
-| ---------- | ------- | ------------------------------------------------------------------ |
-| `size`     | `lg`    | `size-12 rounded-[1rem] text-sm tracking-[-0.03em]`                |
-|            | `sm`    | `size-8 rounded-md text-xs`                                        |
-| `isActive` | `true`  | `bg-primary font-semibold shadow-pagination`                       |
-|            | `false` | `bg-slate-50 text-muted-foreground font-medium hover:bg-slate-100` |
+| 축         | 값      | 매핑                                                                      |
+| ---------- | ------- | ------------------------------------------------------------------------- |
+| `size`     | `lg`    | `size-12 rounded-[1rem] text-sm tracking-[-0.03em]`                       |
+|            | `sm`    | `size-8 rounded-md text-xs`                                               |
+| `isActive` | `true`  | `bg-primary font-semibold shadow-[0_0.625rem_2.5rem_rgb(255_158_89/0.3)]` |
+|            | `false` | `bg-slate-50 text-muted-foreground font-medium hover:bg-slate-100`        |
 
 활성 글자색은 `size`에 따라 다르므로 `compoundVariants`로 처리한다.
 
@@ -215,15 +215,15 @@ usePaginationRange({ page, totalPages, visibleCount }): PaginationSlot[]
 | 간격 `10px` · `4px`      | `gap-2.5` · `gap-1`                  |
 | 아이콘 `20px` · `24px`   | `size-5` · `size-6`                  |
 
-### 신설
+### 그림자 (임의값)
 
-| 토큰                  | 값                                        | 위치                          |
-| --------------------- | ----------------------------------------- | ----------------------------- |
-| `--shadow-pagination` | `0 0.625rem 2.5rem rgb(255 158 89 / 0.3)` | `theme.css`의 `@theme inline` |
+| Figma           | 적용                                             |
+| --------------- | ------------------------------------------------ |
+| `shadow-orange` | `shadow-[0_0.625rem_2.5rem_rgb(255_158_89/0.3)]` |
 
 Figma 이펙트는 `DROP_SHADOW / #FF9E594D / offset (0, 10) / radius 40`이다. **`box-shadow`의 blur는 40px을 그대로 쓴다.** (CSS `filter: drop-shadow()`는 blur를 표준편차로 해석해 절반 값을 쓰지만, 여기서는 `box-shadow`다.)
 
-그림자 외에는 전역 토큰을 추가하지 않는다.
+**전역 스타일 파일(`theme.css`·`colors.css`)을 건드리지 않기로 했으므로** 전용 토큰을 만들지 않고 `PaginationButton`의 cva에 임의값으로 직접 입력한다. 다른 컴포넌트에서 같은 그림자를 쓰게 되면 그때 토큰화를 검토한다.
 
 ### 불일치 (코드 토큰으로 고정)
 
@@ -305,12 +305,12 @@ test/components/_common/Pagination/pagination.test.tsx
 
 GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-started/about-stacked-prs)로 진행한다. 각 브랜치는 바로 아래 브랜치를 base로 하고, 맨 아래만 `dev`를 향한다. 작업은 `git worktree`로 브랜치별 독립 디렉터리에서 진행한다.
 
-| 순서 | 브랜치                        | base                          | 내용                                                                                             |
-| ---- | ----------------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------ |
-| 1    | `feat/common-pagination`      | `dev`                         | **이 설계 문서** + `docs/README.md` · `docs/component/README.md` 인덱스 갱신                     |
-| 2    | `feat/common-pagination-ui`   | `feat/common-pagination`      | `shadcn add pagination` + `--shadow-pagination` 토큰 + `PaginationButton` · `PaginationEllipsis` |
-| 3    | `feat/common-pagination-hook` | `feat/common-pagination-ui`   | `usePaginationRange` · `usePaginationSize` + `Pagination` 조립                                   |
-| 4    | `feat/common-pagination-test` | `feat/common-pagination-hook` | vitest setup + 테스트                                                                            |
+| 순서 | 브랜치                        | base                          | 내용                                                                         |
+| ---- | ----------------------------- | ----------------------------- | ---------------------------------------------------------------------------- |
+| 1    | `feat/common-pagination`      | `dev`                         | **이 설계 문서** + `docs/README.md` · `docs/component/README.md` 인덱스 갱신 |
+| 2    | `feat/common-pagination-ui`   | `feat/common-pagination`      | `shadcn add pagination` + `PaginationButton` · `PaginationEllipsis`          |
+| 3    | `feat/common-pagination-hook` | `feat/common-pagination-ui`   | `usePaginationRange` · `usePaginationSize` + `Pagination` 조립               |
+| 4    | `feat/common-pagination-test` | `feat/common-pagination-hook` | vitest setup + 테스트                                                        |
 
 아래부터 Squash Merge하면 남은 PR의 base가 자동 리타깃된다.
 
