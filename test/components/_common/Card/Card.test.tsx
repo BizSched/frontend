@@ -56,4 +56,10 @@ describe('Card', () => {
 
     expect(screen.getByTestId('card')).toHaveClass('mt-6', 'p-0');
   });
+  it('호출부 className을 병합한다', () => {
+    render(<Card data-testid="card" className="mt-6 p-0" />);
+    const card = screen.getByTestId('card');
+    expect(card).not.toHaveClass('p-6');
+    expect(card).toHaveClass('mt-6', 'p-0');
+  });
 });
