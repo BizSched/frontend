@@ -132,13 +132,13 @@ test/components/_common/Button/Button.test.tsx
 
 Figma의 나머지 버튼 그룹(아이콘 전용·텍스트 전용·드롭다운 트리거·select)은 `Button`과 별도 컴포넌트로 분리하고, 컴포넌트별 stacked PR로 순차 진행한다. 각 컴포넌트도 위와 같이 구현/테스트 PR을 나눈다.
 
-| 순서 | 컴포넌트(가칭)        | Figma 레이어                                                                    | 상태                 |
-| ---- | --------------------- | ------------------------------------------------------------------------------- | -------------------- |
-| 1    | `Button`              | hierarchy × size (27 instances)                                                 | 구현 완료, 병합 대기 |
-| 2    | `IconButton`          | `btn_social`, `btn_notification`, `btn_action-...`, `btn_read_more`, `btn_d...` | 확인 필요            |
-| 3    | `TextButton`          | `btn_text`                                                                      | 확인 필요            |
-| 4    | 드롭다운 트리거(가칭) | `btn_change_month`                                                              | 확인 필요            |
-| 5    | `SelectButton`(가칭)  | `btn_select`                                                                    | 확인 필요            |
+| 순서 | 컴포넌트(가칭)                          | Figma 레이어                                                                    | 상태                 |
+| ---- | --------------------------------------- | ------------------------------------------------------------------------------- | -------------------- |
+| 1    | `Button`                                | hierarchy × size (27 instances)                                                 | 구현 완료, 병합 대기 |
+| 2    | `IconButton`                            | `btn_social`, `btn_notification`, `btn_action-...`, `btn_read_more`, `btn_d...` | 확인 필요            |
+| 3    | [`TextButton`](../TextButton/README.md) | `btn_text`                                                                      | 설계 완료            |
+| 4    | 드롭다운 트리거(가칭)                   | `btn_change_month`                                                              | 확인 필요            |
+| 5    | `SelectButton`(가칭)                    | `btn_select`                                                                    | 확인 필요            |
 
 정확한 컴포넌트명·variant 범위·PR 순서는 확정된 게 아니라 "확인 필요" 4번 항목에 남긴다.
 
