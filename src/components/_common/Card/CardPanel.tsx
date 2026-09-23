@@ -1,3 +1,4 @@
+import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '@lib/utilities/cn';
@@ -7,6 +8,7 @@ const cardVariants = cva('flex w-full flex-col overflow-clip', {
     radius: {
       lg: 'rounded-[24px]',
       xl: 'rounded-[28px]',
+      '2xl': 'rounded-[32px]',
     },
     padding: {
       none: 'p-0',
@@ -22,7 +24,7 @@ const cardVariants = cva('flex w-full flex-col overflow-clip', {
     },
     interactive: {
       false: '',
-      true: 'transition-colors hover:bg-white-50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none motion-reduce:transition-none',
+      true: 'transition-shadow hover:shadow-[0_0_20px_rgba(0,0,0,0.1)] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none motion-reduce:transition-none',
     },
   },
   defaultVariants: {
@@ -36,9 +38,12 @@ const cardVariants = cva('flex w-full flex-col overflow-clip', {
 interface CardPanelProps
   extends
     React.ComponentPropsWithRef<'div'>,
-    VariantProps<typeof cardVariants> {}
+    VariantProps<typeof cardVariants> {
+  asChild?: boolean;
+}
 
 function CardPanel({
+  asChild = false,
   radius,
   padding,
   tone,
@@ -46,8 +51,10 @@ function CardPanel({
   className,
   ...props
 }: CardPanelProps) {
+  const Component = asChild ? Slot : 'div';
+
   return (
-    <div
+    <Component
       data-slot="card"
       className={cn(
         cardVariants({ radius, padding, tone, interactive }),

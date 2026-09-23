@@ -10,13 +10,14 @@ Figma에는 별도의 Card 컴포넌트가 없지만, 실제 화면에서는 같
 
 ## 설계 결정 요약
 
-| 결정        | 선택                                                                                                  | 근거                                                                    |
-| ----------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| 범위        | Card primitive + compound 슬롯                                                                        | 화면별 카드 내용은 다르지만 외곽 표면과 슬롯 구조는 반복된다            |
-| 배치        | `src/components/_common/Card/`                                                                        | 프로젝트 공통 컴포넌트는 `_common/` 하위 컴포넌트 폴더에서 관리한다     |
-| API         | `Card`, `Card.Header`, `Card.Title`, `Card.Description`, `Card.Content`, `Card.Footer`, `Card.Action` | shadcn Card와 유사한 구조라 학습 비용이 낮고, 도메인 조합을 막지 않는다 |
-| variant     | `cva`로 `radius`, `padding`, `tone`, `interactive`만 정의                                             | 도메인별 의미를 primitive에 넣지 않고 반복되는 시각 차이만 축으로 둔다  |
-| 도메인 카드 | 별도 구현                                                                                             | `SummaryCard`, `EmployeeCard`, `TableCard` 등은 각 feature 책임이다     |
+| 결정        | 선택                                                                                                  | 근거                                                                               |
+| ----------- | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| 범위        | Card primitive + compound 슬롯                                                                        | 화면별 카드 내용은 다르지만 외곽 표면과 슬롯 구조는 반복된다                       |
+| 배치        | `src/components/_common/Card/`                                                                        | 프로젝트 공통 컴포넌트는 `_common/` 하위 컴포넌트 폴더에서 관리한다                |
+| API         | `Card`, `Card.Header`, `Card.Title`, `Card.Description`, `Card.Content`, `Card.Footer`, `Card.Action` | shadcn Card와 유사한 구조라 학습 비용이 낮고, 도메인 조합을 막지 않는다            |
+| variant     | `cva`로 `radius`, `padding`, `tone`, `interactive`만 정의                                             | 도메인별 의미를 primitive에 넣지 않고 반복되는 시각 차이만 축으로 둔다             |
+| 루트 변경   | `asChild` 지원 (`@radix-ui/react-slot`)                                                               | 링크 카드, 시맨틱 태그 변경 등 다양한 사용처에 유연하게 대응하고 범용성을 확보한다 |
+| 도메인 카드 | 별도 구현                                                                                             | `SummaryCard`, `EmployeeCard`, `TableCard` 등은 각 feature 책임이다                |
 
 ## 레이어 구조
 
@@ -67,6 +68,28 @@ src/components/_common/Card/
 </Card>
 ```
 
+### 루트 요소 변경 (`asChild`)
+
+카드 컴포넌트 구현에서 범용성을 위해 `asChild`를 사용했다. 기본 `div`나 `h2`뿐만 아니라 링크 카드(`<a>`), 버튼(`button`), 시맨틱 컨테이너(`<article>`, `<section>`) 등 호출부의 다양한 태그 및 마크업 요구에 유연하게 대응할 수 있도록 `@radix-ui/react-slot`의 `Slot`을 적용했다.
+
+- `Card`와 `Card.Title`에 `asChild`를 지원한다.
+- `asChild`에는 정확히 하나의 React 요소를 단일 자식으로 전달하며, 스타일·DOM 속성·ref가 해당 자식 요소로 위임된다.
+- variant와 충돌하는 스타일을 변경할 때는 자식 요소가 아닌 `Card` 컴포넌트의 `className`에 전달한다 (`Slot`은 양쪽 className을 병합하지만 Tailwind 충돌까지 정리하지 않으므로, 컴포넌트 내부의 `cn` 유틸을 통해 우선순위가 관리되도록 한다).
+- Base UI primitive 자체를 합성할 때는 해당 라이브러리의 `render` prop을 사용하며, 프로젝트에서 직접 작성한 컴포넌트에 한해 `asChild` 패턴을 사용한다.
+
+```tsx
+<Card asChild radius="2xl" padding="lg" interactive>
+  <a href="/sales">
+    <Card.Header>
+      <Card.Title asChild>
+        <h3>매출 현황</h3>
+      </Card.Title>
+    </Card.Header>
+    <Card.Content>매출 상세 보기</Card.Content>
+  </a>
+</Card>
+```
+
 ### 슬롯 책임
 
 | 슬롯               | 책임                                          | 비고                                |
@@ -83,20 +106,21 @@ src/components/_common/Card/
 
 [ui-component.md](../../convention/ui-component.md)에 따라 반복되는 디자인 차이만 `cva`로 정의한다.
 
-| 축            | 값          | 매핑                    | Figma 근거                     |
-| ------------- | ----------- | ----------------------- | ------------------------------ |
-| `radius`      | `lg`        | `rounded-[24px]`        | 아르바이트생 목록 카드         |
-|               | `xl`        | `rounded-[28px]`        | 대시보드 패널 카드             |
-| `padding`     | `none`      | `p-0`                   | 직접 내부 레이아웃을 잡는 경우 |
-|               | `sm`        | `p-4`                   | 중첩 섹션 카드                 |
-|               | `md`        | `p-6`                   | 오늘의 업무 카드               |
-|               | `lg`        | `p-8`                   | 차트·테이블 카드 내부          |
-|               | `employee`  | `px-[38px] pb-8 pt-7`   | 아르바이트생 목록 카드         |
-| `tone`        | `default`   | `bg-white-50`           | 대부분의 카드                  |
-|               | `muted`     | `bg-slate-50`           | 필요 시 보조 표면              |
-|               | `highlight` | `bg-primary-100`        | TO DO 섹션                     |
-| `interactive` | `false`     | 기본                    | 정적 패널                      |
-|               | `true`      | hover/focus 스타일 추가 | 클릭 가능한 목록 카드          |
+| 축            | 값          | 매핑                                     | Figma 근거                     |
+| ------------- | ----------- | ---------------------------------------- | ------------------------------ |
+| `radius`      | `lg`        | `rounded-[24px]`                         | 아르바이트생 목록 카드         |
+|               | `xl`        | `rounded-[28px]`                         | 대시보드 패널 카드             |
+|               | `2xl`       | `rounded-[32px]`                         | 매출 요약·차트 카드            |
+| `padding`     | `none`      | `p-0`                                    | 직접 내부 레이아웃을 잡는 경우 |
+|               | `sm`        | `p-4`                                    | 중첩 섹션 카드                 |
+|               | `md`        | `p-6`                                    | 오늘의 업무 카드               |
+|               | `lg`        | `p-8`                                    | 차트·테이블 카드 내부          |
+|               | `employee`  | `px-[38px] pb-8 pt-7`                    | 아르바이트생 목록 카드         |
+| `tone`        | `default`   | `bg-white-50`                            | 대부분의 카드                  |
+|               | `muted`     | `bg-slate-50`                            | 필요 시 보조 표면              |
+|               | `highlight` | `bg-primary-100`                         | TO DO 섹션                     |
+| `interactive` | `false`     | 기본                                     | 정적 패널                      |
+|               | `true`      | hover 그림자 / focus-visible 스타일 추가 | 클릭 가능한 목록 카드          |
 
 `radius`와 `padding`은 별도 축으로 둔다. 같은 radius라도 카드 목적에 따라 padding이 달라지고, 같은 padding이라도 중첩 카드와 외곽 카드의 radius가 다르기 때문이다.
 
@@ -118,21 +142,26 @@ src/components/_common/Card/
 | ---------------- | ---------------------- | ----------------------------------------------------- |
 | `rounded-[24px]` | 목록 카드              | 현재 radius scale로 정확히 표현되지 않는다            |
 | `rounded-[28px]` | 대시보드 패널          | 현재 radius scale로 정확히 표현되지 않는다            |
+| `rounded-[32px]` | 매출 요약·차트 카드    | 현재 radius scale로 정확히 표현되지 않는다            |
 | `px-[38px]`      | 아르바이트생 목록 카드 | Figma 카드의 좌우 padding이 토큰 스케일과 맞지 않는다 |
 
 radius 임의값이 Modal, Pagination에서도 반복되고 있다. 컴포넌트마다 임의값이 계속 늘어나면 전역 radius scale 재정의를 별도로 검토한다.
 
+Figma의 [`sales_card`](https://www.figma.com/design/0UAYWaDS9UNjigV73HWcPZ/BizSched?node-id=147-233738)와 [`sales_chart_card`](https://www.figma.com/design/0UAYWaDS9UNjigV73HWcPZ/BizSched?node-id=180-163366)는 외곽 radius가 32px이며, 이를 `radius="2xl"`로 제공한다.
+
 ### 그림자
 
-대부분의 카드에는 명확한 shadow가 없고 흰색 표면과 배경 대비로 구분된다. 카드 primitive의 기본값에는 shadow를 넣지 않는다.
+Figma의 `sales_card`와 `sales_chart_card`에는 `0 0 30px rgba(0,0,0,0.05)` 그림자가 있다. Card primitive의 기본값에는 shadow를 넣지 않는다. 현재 구현의 `interactive=true` hover 그림자는 `0 0 20px rgba(0,0,0,0.1)`로, Figma의 정적 그림자와 다르다. 이 두 카드의 정적 상태를 그대로 재현하려면 도메인 조합에서 그림자를 별도로 적용해야 한다.
 
-Figma에서 확인된 shadow는 다음처럼 특수 목적에 가깝다.
+Figma에서 확인된 shadow의 적용 범위는 다음과 같다.
 
-| 사용처             | 값                          | 방침                     |
-| ------------------ | --------------------------- | ------------------------ |
-| 사이드바           | `0 0 30px rgba(0,0,0,0.05)` | Card primitive 범위 아님 |
-| Pagination 활성 셀 | orange shadow               | Pagination 문서에서 관리 |
-| 스케줄 칩          | 작은 drop shadow            | 도메인 컴포넌트에서 관리 |
+| 사용처                 | 값                          | 방침                                    |
+| ---------------------- | --------------------------- | --------------------------------------- |
+| 매출 요약·차트 카드    | `0 0 30px rgba(0,0,0,0.05)` | 기본값에서는 제외, 도메인 조합에서 적용 |
+| Card interactive hover | `0 0 20px rgba(0,0,0,0.1)`  | Card의 hover 피드백                     |
+| 사이드바               | `0 0 30px rgba(0,0,0,0.05)` | Card primitive 범위 아님                |
+| Pagination 활성 셀     | orange shadow               | Pagination 문서에서 관리                |
+| 스케줄 칩              | 작은 drop shadow            | 도메인 컴포넌트에서 관리                |
 
 ## 도메인 조합 기준
 
@@ -167,11 +196,19 @@ Figma에서 확인한 화면별 배치는 다음과 같다.
 
 ## 접근성
 
-- `Card` 자체는 landmark나 interactive role을 갖지 않는다.
-- 클릭 가능한 카드가 필요하면 호출부가 `<button>` 또는 `<a>`를 선택한다. `Card`는 `asChild` 지원 여부를 구현 시 검토한다.
+- 기본 `Card`는 `<div>`이며 landmark나 interactive role을 갖지 않는다.
+- 클릭 가능한 카드는 `Card asChild`에 의미에 맞는 `<a>` 또는 `<button>`을 단일 자식으로 전달한다. 링크 카드 안에 다른 버튼·링크를 중첩하지 않는다.
 - `interactive=true`인 경우 `focus-visible` 스타일을 반드시 제공한다.
-- 제목 계층은 페이지 문맥에 따라 달라질 수 있으므로 `Card.Title`은 기본 태그를 제공하되 `asChild` 또는 `as` 확장을 고려한다.
+- 제목 계층은 페이지 문맥에 맞춰 `Card.Title asChild`로 적절한 제목 태그를 전달한다. 기본 태그는 `h2`다.
 - `Card.Action` 내부 버튼은 명확한 접근성 이름을 가져야 한다. 아이콘 버튼은 `aria-label`을 호출부에서 제공한다.
+
+`interactive=true`는 hover/focus 스타일만 제공하며 클릭·키보드 동작을 추가하지 않는다. `Card asChild`로 전달한 `<a>` 또는 `<button>` 자체에 스타일이 적용되므로 해당 요소가 포커스를 받을 때 `focus-visible` 링도 표시된다.
+
+### Header/Footer 랜드마크 범위
+
+`Card.Header`와 `Card.Footer`는 각각 `<header>`, `<footer>`를 렌더한다. 카드가 `<main>`, `<section>`, `<article>`, `<aside>`, `<nav>` 밖에 놓이면 보조 기술에서 페이지의 `banner`/`contentinfo` 랜드마크로 인식될 수 있다. 카드를 사용할 때는 페이지 본문 `<main>` 안에 배치하고, 본문 밖의 독립 섹션이라면 적절한 `<section>` 또는 `<article>`로 감싼다. `<main>`이 페이지 어딘가에 존재하는 것만으로는 충분하지 않고 카드가 그 안에 있어야 한다.
+
+현재 `app/layout.tsx`에는 `<main>`이 없다. 추후 TanStack Query Provider를 배치하며 레이아웃을 수정할 때 공통 `<main>{children}</main>` 구조를 검토한다. 이 방식을 채택하면 페이지의 기존 `<main>`은 제거해 문서당 main 랜드마크가 하나만 남도록 한다. 그전에는 각 페이지에서 카드를 자신의 `<main>` 안에 배치한다.
 
 ## 렌더링 경계
 
@@ -191,17 +228,18 @@ Card는 로직보다 스타일 조합이 중심이므로 구현 PR에서는 최�
 test/components/_common/Card/Card.test.tsx
 ```
 
-| 대상           | 검증                                                                 |
-| -------------- | -------------------------------------------------------------------- |
-| 슬롯 렌더      | Header/Title/Description/Action/Content/Footer가 children을 렌더한다 |
-| variant        | `radius`, `padding`, `tone`, `interactive` 클래스가 적용된다         |
-| className 병합 | 호출부 className이 `cn`으로 병합된다                                 |
+| 대상           | 검증                                                                                               |
+| -------------- | -------------------------------------------------------------------------------------------------- |
+| 슬롯 렌더      | Header/Title/Description/Action/Content/Footer가 children을 렌더한다                               |
+| variant        | `radius`, `padding`, `tone`, `interactive` 클래스가 적용된다                                       |
+| className 병합 | Card와 모든 compound 슬롯에서 호출부 className이 `cn`으로 병합되며 충돌하는 기본 클래스는 대체된다 |
+| `asChild`      | Card와 Card.Title이 단일 자식 요소에 스타일과 DOM 속성을 전달한다                                  |
 
 시각 회귀 테스트는 아직 프로젝트 표준이 없으므로 추가하지 않는다.
 
 ## 단계별 PR 계획
 
-이 작업은 구현 범위가 작아 stacked PR까지는 필요하지 않다. 단, 문서와 구현을 분리하면 리뷰가 쉬우므로 2단계로 나눈다.
+원칙대로라면 PR을 여러 개로 나눠야 하지만, 구현 범위가 작아 1개 브랜치/PR로 진행했다.
 
 | 순서 | 브랜치                       | base                         | 내용                                       |
 | ---- | ---------------------------- | ---------------------------- | ------------------------------------------ |
@@ -209,14 +247,6 @@ test/components/_common/Card/Card.test.tsx
 | 2    | `feat/common-card-ui`        | `feat/common-card-component` | `_common/Card/Card.tsx` 구현 + 최소 테스트 |
 
 팀에서 PR 수를 줄이기로 하면 같은 브랜치에서 문서와 구현을 함께 올려도 된다. 이 경우 커밋은 문서와 구현을 분리한다.
-
-## 확인 필요
-
-아래 항목은 임의로 확정하지 않는다. 확인 후 이 문서에 반영한다.
-
-### 1. `asChild` 지원 여부
-
-클릭 가능한 카드나 제목 태그 변경을 위해 `asChild`를 제공할지 확인이 필요하다. 현재 설계에서는 확장 후보로만 둔다.
 
 ## 참고
 

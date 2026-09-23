@@ -1,3 +1,5 @@
+import { Slot } from '@radix-ui/react-slot';
+
 import { cn } from '@lib/utilities/cn';
 
 interface CardTitleProps extends Omit<
@@ -5,11 +7,14 @@ interface CardTitleProps extends Omit<
   'className'
 > {
   className?: string;
+  asChild?: boolean;
 }
 
-function CardTitle({ className, ...props }: CardTitleProps) {
+function CardTitle({ asChild = false, className, ...props }: CardTitleProps) {
+  const Component = asChild ? Slot : 'h2';
+
   return (
-    <h2
+    <Component
       data-slot="card-title"
       className={cn(
         'text-xl leading-[30px] font-semibold tracking-[-0.03em] text-slate-500',
