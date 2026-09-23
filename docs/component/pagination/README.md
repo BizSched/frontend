@@ -31,15 +31,16 @@ design 캔버스 전수 조사 결과 인스턴스는 **26개(desktop 11 · tabl
 
 ## 설계 결정 요약
 
-| 결정     | 선택                                                          | 근거                                                                                                                                                                                      |
-| -------- | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| API 형태 | **compound 아님. 평면 props**                                 | Figma 26개 인스턴스의 구조가 전부 동일해 슬롯을 열 이유가 없다. `page` · `totalPages` · `onPageChange` 세 개로 전부 표현된다. Modal과 달리 조합의 자유도가 요구되지 않는다                |
-| 범위     | primitive + 계산 훅까지                                       | page 상태와 데이터 조회는 호출부(도메인) 소유. [ui-component.md](../../convention/ui-component.md)의 _"공통 컴포넌트에 특정 페이지의 API·비즈니스 로직을 넣지 않는다"_                    |
-| 시작점   | **`shadcn add pagination` 실행 후 `_common/`에서 재구성**     | 생성물(`_common/ui/pagination.tsx`)의 `nav` / `ul` / `li` 시맨틱과 `aria-current` 배선을 그대로 쓴다. Modal이 `_common/ui/dialog.tsx`를 두고 `_common/Modal/`에서 재구성한 것과 같은 구조 |
-| 요소     | `<button type="button">`                                      | page 상태가 콜백으로 호출부에 올라간다. 생성물의 `PaginationLink`는 `<a>` 기반이라 쓰지 않는다                                                                                            |
-| 아이콘   | lucide `ChevronLeft` · `ChevronRight` · `Ellipsis`            | `components.json`의 `iconLibrary: "lucide"`, `lucide-react` 설치 완료. 글리프가 Figma와 1:1 대응해 에셋 커밋이 불필요하다                                                                 |
-| 반응형   | **`size`를 JS로 판정** (SSR `lg` → 마운트 후 교정)            | 아래 "반응형 전략" 참고                                                                                                                                                                   |
-| 토큰     | **전역 토큰 신설 없음. 기존 토큰·Tailwind 유틸리티 + 임의값** | 아래 "디자인 토큰 매핑" 참고                                                                                                                                                              |
+| 결정      | 선택                                                                       | 근거                                                                                                                                                                              |
+| --------- | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| API 형태  | **compound 아님. 평면 props**                                              | Figma 26개 인스턴스의 구조가 전부 동일해 슬롯을 열 이유가 없다. `currentPage` · `totalPages` · `onPageChange` 세 개로 전부 표현된다. Modal과 달리 조합의 자유도가 요구되지 않는다 |
+| 범위      | primitive + 계산 훅 + URL 연동 훅                                          | 데이터 조회는 호출부(도메인) 소유. [ui-component.md](../../convention/ui-component.md)의 _"공통 컴포넌트에 특정 페이지의 API·비즈니스 로직을 넣지 않는다"_                        |
+| page 상태 | **URL Search Params `?page=`** — `usePageSearchParam` 훅                   | 새로고침·공유·뒤로가기에서 페이지가 유지되어야 한다. 컴포넌트는 URL을 모르고, 훅이 URL ↔ props를 연결한다. 아래 "URL 연동" 참고                                                   |
+| 시작점    | **`shadcn add pagination` 생성물을 `_common/Pagination/`에 기능별로 분리** | 생성물의 `nav` / `ul` / `li` 시맨틱을 `PaginationRoot` · `PaginationContent` · `PaginationItem`으로 옮기고 `_common/ui/pagination.tsx`는 남기지 않는다                            |
+| 요소      | `<button type="button">`                                                   | page 상태가 콜백으로 호출부에 올라간다. 생성물의 `PaginationLink`는 `<a>` 기반이라 쓰지 않는다                                                                                    |
+| 아이콘    | lucide `ChevronLeft` · `ChevronRight` · `Ellipsis`                         | `components.json`의 `iconLibrary: "lucide"`, `lucide-react` 설치 완료. 글리프가 Figma와 1:1 대응해 에셋 커밋이 불필요하다                                                         |
+| 반응형    | **`size`를 JS로 판정** (SSR `lg` → 마운트 후 교정)                         | 아래 "반응형 전략" 참고                                                                                                                                                           |
+| 토큰      | **전역 토큰 신설 없음. 기존 토큰·Tailwind 유틸리티 + 임의값**              | 아래 "디자인 토큰 매핑" 참고                                                                                                                                                      |
 
 ## `shadcn add pagination` 적용 시 주의
 
@@ -50,18 +51,18 @@ design 캔버스 전수 조사 결과 인스턴스는 **26개(desktop 11 · tabl
 3. `import { cn } from "cn"` — 이 저장소는 `@lib/utilities/cn` 재export를 단일 출처로 쓴다.
 4. `PaginationPrevious` / `PaginationNext`가 쓰는 `sm:block`은 **이 프로젝트에 없는 breakpoint다.** `breakpoints.css`가 `--breakpoint-*: initial`로 Tailwind 기본 breakpoint를 전부 제거하고 `mobile` · `tablet` · `desktop`만 정의한다.
 
-생성물에서 **실제로 쓰는 것은 세 개**다. 나머지는 Button 의존을 끊기 위해 `_common/ui/pagination.tsx`에서 제거하고, 필요한 것은 `_common/Pagination/`에서 직접 만든다.
+생성물에서 **실제로 쓰는 것은 세 개**다. 이 세 개는 `_common/Pagination/`에 한 파일씩 옮기고, 나머지는 Button 의존을 끊기 위해 버린다. 필요한 것은 `_common/Pagination/`에서 직접 만든다.
 
 | 생성물                        | 사용 | 비고                                                                         |
 | ----------------------------- | ---- | ---------------------------------------------------------------------------- |
-| `Pagination` (`<nav>`)        | ○    | `role="navigation"` + `aria-label`                                           |
+| `Pagination` (`<nav>`)        | ○    | `PaginationRoot`로 이름 변경. `role="navigation"` + `aria-label`             |
 | `PaginationContent` (`<ul>`)  | ○    | gap만 교체                                                                   |
 | `PaginationItem` (`<li>`)     | ○    | 그대로                                                                       |
 | `PaginationLink`              | ✕    | `<a>` + Button variant 기반. Figma는 `<button>`에 전용 스타일                |
 | `PaginationPrevious` / `Next` | ✕    | "Previous" / "Next" 텍스트 라벨을 붙인다. Figma는 아이콘 전용                |
 | `PaginationEllipsis`          | ✕    | 배경 없는 맨 `span`에 아이콘 16px. Figma는 다른 셀과 같은 배경에 아이콘 24px |
 
-`_common/ui/pagination.tsx`의 `Pagination`과 이 문서의 공개 컴포넌트 이름이 겹치므로, 조립부에서 `Pagination as PaginationNav`로 별칭 import 한다.
+생성물의 `Pagination`은 `PaginationRoot`로 이름을 바꿔 공개 컴포넌트 `Pagination`과 겹치지 않게 한다.
 
 ## 반응형 전략
 
@@ -85,39 +86,41 @@ design 캔버스 전수 조사 결과 인스턴스는 **26개(desktop 11 · tabl
 ## 레이어 구조
 
 ```
-① 생성물   src/components/_common/ui/pagination.tsx   shadcn 원본 (import 경로·아이콘만 정리)
-② 구현     src/components/_common/Pagination/          Figma 스타일 · 평면 API
-③ 계산     src/hooks/pagination/                       슬롯 배열 · size 판정
+① 구현     src/components/_common/Pagination/   Figma 스타일 · 평면 API (shadcn 생성물 분리 포함)
+② 훅       src/hooks/pagination/                슬롯 배열 · size 판정 · URL 연동
+③ 유틸     src/lib/utilities/                   슬롯 생성 헬퍼
 ```
 
-[ui-component.md](../../convention/ui-component.md)의 배치 기준과 기존 Modal 구조(`_common/ui/dialog.tsx` + `_common/Modal/`)를 그대로 따른다.
+[ui-component.md](../../convention/ui-component.md)의 배치 기준을 따른다. 처음에는 Modal처럼 `_common/ui/pagination.tsx`를 두려 했으나, 쓰는 생성물이 세 개뿐이라 `_common/Pagination/`에 기능별 파일로 흡수했다.
 
 ### 파일 구성
 
 ```
-src/components/_common/ui/
-└── pagination.tsx              # shadcn 생성물
-
 src/components/_common/Pagination/
 ├── Pagination.tsx              # 공개 컴포넌트. 평면 props 조립
+├── PaginationRoot.tsx          # <nav> (shadcn 생성물)
+├── PaginationContent.tsx       # <ul> (shadcn 생성물)
+├── PaginationItem.tsx          # <li> (shadcn 생성물)
 ├── PaginationButton.tsx        # 셀 버튼 (숫자·화살표 공용) + cva
-└── PaginationEllipsis.tsx      # 생략 셀
+├── PaginationEllipsis.tsx      # 생략 셀
+└── PaginationSkeleton.tsx      # 로딩 fallback
 
 src/hooks/pagination/
 ├── usePaginationRange.ts       # 슬롯 배열 계산 (순수)
-└── usePaginationSize.ts        # lg / sm 판정
+├── usePaginationSize.ts        # lg / sm 판정 + PaginationSize 타입
+└── usePageSearchParam.ts       # ?page= ↔ currentPage
 
-src/hooks/types/
-└── pagination.ts               # PaginationSize, PaginationSlot
+src/lib/utilities/
+└── createPageSlots.ts          # 연속 페이지 슬롯 생성 + PaginationSlot 타입
 ```
 
-타입 위치는 [folder-structure.md](../../architecture/folder-structure.md#타입-정의-파일-위치)의 _"`interface`는 각 레이어 폴더 하위의 `types/`에 분리"_ 를 따른다. 각 파일은 named export를 유지하고 배럴 `index.ts`를 만들지 않는다([code-style.md](../../convention/code-style.md)).
+타입은 별도 `types/` 폴더 대신 **그 타입을 만드는 파일에 함께 둔다.** `PaginationSize`는 `usePaginationSize.ts`, `PaginationSlot`은 `createPageSlots.ts`가 단일 출처이고, 컴포넌트는 여기서 가져온다. 각 파일은 named export를 유지하고 배럴 `index.ts`를 만들지 않는다([code-style.md](../../convention/code-style.md)).
 
 ## API
 
 ```tsx
 interface PaginationProps {
-  page: number;
+  currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
   size?: PaginationSize;
@@ -127,12 +130,12 @@ interface PaginationProps {
 ```
 
 ```tsx
-const [page, setPage] = useState(1);
+const { currentPage, setCurrentPage } = usePageSearchParam();
 
 <Pagination
-  page={page}
+  currentPage={currentPage}
   totalPages={9}
-  onPageChange={setPage}
+  onPageChange={setCurrentPage}
   label="매출 내역 페이지"
 />;
 ```
@@ -140,18 +143,81 @@ const [page, setPage] = useState(1);
 `size`를 생략하면 뷰포트로 판정하고, 명시하면 고정한다.
 
 ```tsx
-<Pagination page={page} totalPages={9} onPageChange={setPage} size="sm" />
+<Pagination
+  currentPage={currentPage}
+  totalPages={9}
+  onPageChange={setCurrentPage}
+  size="sm"
+/>
 ```
 
-| prop           | 기본값      | 설명                                                |
-| -------------- | ----------- | --------------------------------------------------- |
-| `page`         | —           | 현재 페이지 (1-based)                               |
-| `totalPages`   | —           | 전체 페이지 수. `1` 이하면 아무것도 렌더하지 않는다 |
-| `onPageChange` | —           | 숫자·화살표 클릭 시 이동할 페이지 번호를 전달       |
-| `size`         | 뷰포트 판정 | `lg` \| `sm`                                        |
-| `label`        | `"페이지"`  | `<nav>`의 `aria-label`                              |
+| prop           | 기본값      | 설명                                                                                     |
+| -------------- | ----------- | ---------------------------------------------------------------------------------------- |
+| `currentPage`  | —           | 현재 페이지 (1-based)                                                                    |
+| `totalPages`   | —           | 전체 페이지 수. `1` 이하면 아무것도 렌더하지 않는다                                      |
+| `onPageChange` | —           | 숫자·화살표 클릭 시 이동할 페이지 번호를 전달. 현재 페이지를 다시 누르면 호출하지 않는다 |
+| `size`         | 뷰포트 판정 | `lg` \| `sm`                                                                             |
+| `label`        | `"페이지"`  | `<nav>`의 `aria-label`                                                                   |
 
-호출부가 `page` 상태를 소유한다. `useState`로 둘지 URL Search Params로 둘지는 [state-management.md](../../architecture/state-management.md) 기준에 따라 **화면마다 판단**하며, 이 컴포넌트는 관여하지 않는다.
+컴포넌트 자체는 URL을 모른다. page 상태는 아래 `usePageSearchParam`으로 URL에 둔다.
+
+## URL 연동 — `usePageSearchParam`
+
+[state-management.md](../../architecture/state-management.md)의 _"URL로 관리해야 하는 상태 → URL Search Params"_ 에 따라 **목록 페이지 번호는 URL `?page=`로 관리한다.**
+
+```ts
+usePageSearchParam(paramKey = 'page'): { currentPage: number; setCurrentPage: (page: number) => void }
+```
+
+| 결정          | 선택                               | 근거                                                                                     |
+| ------------- | ---------------------------------- | ---------------------------------------------------------------------------------------- |
+| 위치          | **별도 훅** (Pagination 내부 아님) | 공통 컴포넌트를 라우터에 묶지 않는다. 테스트·Storybook에서 props만으로 렌더할 수 있다    |
+| 1페이지 표기  | **생략** — `?page` 제거            | URL을 하나로 정규화한다. `/sales`와 `/sales?page=1`이 따로 생기지 않는다                 |
+| 잘못된 값     | `1`로 해석                         | 없음 · `abc` · `0` · 음수 · 소수                                                         |
+| 히스토리      | **`router.push`**                  | 뒤로가기로 이전 페이지 번호로 돌아간다. 같은 페이지로의 이동은 무시해 중복 항목을 막는다 |
+| 다른 쿼리     | 유지                               | `?sort=` 등 다른 Search Params는 건드리지 않는다                                         |
+| 스크롤        | **Next 기본값 (`scroll: true`)**   | 페이지 이동 후 맨 위로 올려 새 페이지를 처음부터 보여준다                                |
+| 파라미터 이름 | 기본 `page`, 인자로 변경           | 한 화면에 목록이 둘이면 `usePageSearchParam('salesPage')`처럼 키를 나눈다                |
+
+`totalPages`를 넘는 값(`?page=99`)은 훅이 알 수 없으므로 보정하지 않는다. 필요하면 목록 데이터를 받은 도메인 쪽에서 처리한다.
+
+`useSearchParams`를 쓰므로 **이 훅을 호출하는 컴포넌트(도메인 목록)를 그 부모에서 `<Suspense>`로 감싼다.** 정적 렌더 라우트에서 경계가 없으면 Next 빌드가 실패한다. `Pagination`은 URL을 읽지 않으므로 여기에 경계를 두지 않는다.
+
+```tsx
+// page.tsx
+<Suspense fallback={<SalesTableSkeleton />}>
+  <SalesList />
+</Suspense>;
+
+// SalesList.tsx
+const { currentPage, setCurrentPage } = usePageSearchParam();
+// currentPage로 목록 조회 + <Pagination currentPage={currentPage} ... />
+```
+
+## 로딩 — `PaginationSkeleton`
+
+`totalPages`는 목록 조회 결과에서 오므로 Pagination은 목록과 **같은 Suspense 경계**에서 기다린다. Pagination 안에 경계를 두어도 부모(목록)가 기다리는 것은 잡지 못한다. 그래서 경계는 호출부에 두고, 공통 컴포넌트는 **fallback용 스켈레톤만** 제공한다.
+
+```tsx
+<Suspense
+  fallback={
+    <>
+      <SalesTableSkeleton />
+      <PaginationSkeleton />
+    </>
+  }
+>
+  <SalesList />
+</Suspense>
+```
+
+| 결정       | 선택                                                       | 근거                                                                                                           |
+| ---------- | ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| 칸 수      | **꽉 찬 모양 고정** — `visibleCount + 2` (`lg` 9 · `sm` 7) | layout shift 최소화. 폭이 Figma와 같다(`lg` 476px · `sm` 260px). 실제 페이지가 적을 때만 도착 시 폭이 줄어든다 |
+| 셀 골격    | `paginationButtonVariants` 재사용                          | 도착 전후 셀 크기·radius·간격이 같다                                                                           |
+| 크기       | `usePaginationSize`                                        | Pagination과 같은 판정. `size`를 명시하면 고정                                                                 |
+| 애니메이션 | `animate-pulse` + `motion-reduce:animate-none`             | Figma에 스켈레톤 상태가 없어 구현 제안값이다 (확인 필요 1)                                                     |
+| 접근성     | 바깥 `div`에 `aria-hidden="true"`, `<nav>` 사용 안 함      | 내용 없는 자리표시자라 접근성 트리에서 제외한다                                                                |
 
 ## 슬롯 계산 — `usePaginationRange`
 
@@ -160,7 +226,7 @@ type PaginationSlot =
   | { type: 'page'; page: number }
   | { type: 'ellipsis'; position: 'start' | 'end' };
 
-usePaginationRange({ page, totalPages, visibleCount }): PaginationSlot[]
+usePaginationRange({ currentPage, totalPages, visibleCount }): PaginationSlot[]
 ```
 
 규칙은 세 줄이다.
@@ -178,7 +244,7 @@ usePaginationRange({ page, totalPages, visibleCount }): PaginationSlot[]
 | 9 / 9        | `1 … 5 6 7 8 9`          | `1 … 7 8 9`              |
 | 3 / 3        | `1 2 3`                  | `1 2 3`                  |
 
-`1 / 9` 행이 Figma 원본과 일치한다. 브라우저 API를 쓰지 않는 순수 계산이라 단독 단위 테스트가 가능하다.
+`1 / 9` 행이 Figma 원본과 일치한다. 브라우저 API를 쓰지 않는 순수 계산이라 단독 단위 테스트가 가능하다. 연속 구간 생성은 `@lib/utilities/createPageSlots`를 쓴다.
 
 ## variant (cva)
 
@@ -248,6 +314,7 @@ Figma 컴포넌트에 **상태 변형이 정의되어 있지 않다**(`size` 속
 | ----------------- | -------------------------------------------------------------------------- |
 | hover (비활성 셀) | `hover:bg-slate-100`                                                       |
 | hover (활성 셀)   | 변화 없음 — 현재 페이지라 이동 대상이 아니다                               |
+| click (활성 셀)   | `onPageChange`를 호출하지 않는다                                           |
 | focus-visible     | `focus-visible:ring-ring focus-visible:ring-2 focus-visible:ring-offset-2` |
 | disabled (화살표) | `disabled:pointer-events-none disabled:opacity-40`                         |
 | 전환              | `transition-colors`                                                        |
@@ -270,12 +337,15 @@ Figma 컴포넌트에 **상태 변형이 정의되어 있지 않다**(`size` 속
 
 `"use client"`는 트리거가 실제로 필요한 말단 파일에만 둔다([rendering.md](../../architecture/rendering.md)).
 
-| 파일                        | `"use client"` | 트리거                     |
-| --------------------------- | -------------- | -------------------------- |
-| `Pagination.tsx`            | ○              | 1 (`useSyncExternalStore`) |
-| `PaginationButton.tsx`      | ○              | 3 (`onClick`)              |
-| `PaginationEllipsis.tsx`    | ✕              | 없음                       |
-| `_common/ui/pagination.tsx` | ✕              | 없음 — 순수 마크업         |
+| 파일                                  | `"use client"` | 트리거                     |
+| ------------------------------------- | -------------- | -------------------------- |
+| `Pagination.tsx`                      | ○              | 1 (`useSyncExternalStore`) |
+| `PaginationButton.tsx`                | ○              | 3 (`onClick`)              |
+| `PaginationEllipsis.tsx`              | ✕              | 없음                       |
+| `PaginationSkeleton.tsx`              | ○              | 1 (`useSyncExternalStore`) |
+| `PaginationRoot` · `Content` · `Item` | ✕              | 없음 — 순수 마크업         |
+| `usePaginationSize.ts`                | ○              | `useSyncExternalStore`     |
+| `usePageSearchParam.ts`               | ○              | `next/navigation` 훅       |
 
 같은 문서의 규칙 4에 따라, Server Component인 `page.tsx`가 `<Pagination>`을 렌더해도 부모는 클라이언트가 되지 않는다.
 
@@ -285,19 +355,22 @@ Figma 컴포넌트에 **상태 변형이 정의되어 있지 않다**(`size` 속
 
 ```
 test/hooks/pagination/usePaginationRange.test.ts
+test/hooks/pagination/usePageSearchParam.test.ts
 test/components/_common/Pagination/pagination.test.tsx
 ```
 
 현재 `test/` 디렉터리가 비어 있고 `vitest.config.ts`에 `setupFiles`가 없다. **`@testing-library/jest-dom` setup을 테스트 PR에서 함께 추가한다.**
 
-| 대상                 | 검증                                                                                       |
-| -------------------- | ------------------------------------------------------------------------------------------ |
-| `usePaginationRange` | 위 슬롯 표 4케이스 + `totalPages <= visibleCount` + `totalPages === 1`                     |
-| 렌더                 | `totalPages <= 1`이면 아무것도 렌더하지 않는다                                             |
-| 경계                 | 1페이지에서 이전 `disabled`, 마지막에서 다음 `disabled`                                    |
-| 상호작용             | 숫자 클릭 시 `onPageChange(n)`, 화살표 클릭 시 `±1`, 생략 클릭 무반응                      |
-| 접근성               | `role="navigation"`, `aria-current="page"`가 활성 셀에만, 생략 표시가 접근성 트리에서 제외 |
-| variant              | `size` `lg` / `sm` 클래스 적용                                                             |
+| 대상                 | 검증                                                                                                                  |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `usePaginationRange` | 위 슬롯 표 4케이스 + `totalPages <= visibleCount` + `totalPages === 1`                                                |
+| 렌더                 | `totalPages <= 1`이면 아무것도 렌더하지 않는다                                                                        |
+| 경계                 | 1페이지에서 이전 `disabled`, 마지막에서 다음 `disabled`                                                               |
+| 상호작용             | 숫자 클릭 시 `onPageChange(n)`, 화살표 클릭 시 `±1`, 생략·활성 셀 클릭 무반응                                         |
+| `usePageSearchParam` | 잘못된 값 → `1`, 1페이지 이동 시 `?page` 제거, 다른 쿼리 유지, 같은 페이지 이동 시 push 없음 (`next/navigation` 모킹) |
+| 접근성               | `role="navigation"`, `aria-current="page"`가 활성 셀에만, 생략 표시가 접근성 트리에서 제외                            |
+| variant              | `size` `lg` / `sm` 클래스 적용                                                                                        |
+| `PaginationSkeleton` | `size` `lg` 9칸 · `sm` 7칸, `aria-hidden`                                                                             |
 
 `usePaginationSize`는 `matchMedia` 모킹이 필요하므로, 반응형 판정은 `size`를 명시한 렌더 테스트로 대체한다.
 
@@ -305,12 +378,12 @@ test/components/_common/Pagination/pagination.test.tsx
 
 GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-started/about-stacked-prs)로 진행한다. 각 브랜치는 바로 아래 브랜치를 base로 하고, 맨 아래만 `dev`를 향한다. 작업은 `git worktree`로 브랜치별 독립 디렉터리에서 진행한다.
 
-| 순서 | 브랜치                        | base                          | 내용                                                                         |
-| ---- | ----------------------------- | ----------------------------- | ---------------------------------------------------------------------------- |
-| 1    | `feat/common-pagination`      | `dev`                         | **이 설계 문서** + `docs/README.md` · `docs/component/README.md` 인덱스 갱신 |
-| 2    | `feat/common-pagination-ui`   | `feat/common-pagination`      | `shadcn add pagination` + `PaginationButton` · `PaginationEllipsis`          |
-| 3    | `feat/common-pagination-hook` | `feat/common-pagination-ui`   | `usePaginationRange` · `usePaginationSize` + `Pagination` 조립               |
-| 4    | `feat/common-pagination-test` | `feat/common-pagination-hook` | vitest setup + 테스트                                                        |
+| 순서 | 브랜치                        | base                          | 내용                                                                                  |
+| ---- | ----------------------------- | ----------------------------- | ------------------------------------------------------------------------------------- |
+| 1    | `feat/common-pagination`      | `dev`                         | **이 설계 문서** + `docs/README.md` · `docs/component/README.md` 인덱스 갱신          |
+| 2    | `feat/common-pagination-ui`   | `feat/common-pagination`      | `shadcn add pagination` + `PaginationButton` · `PaginationEllipsis`                   |
+| 3    | `feat/common-pagination-hook` | `feat/common-pagination-ui`   | `usePaginationRange` · `usePaginationSize` · `usePageSearchParam` + `Pagination` 조립 |
+| 4    | `feat/common-pagination-test` | `feat/common-pagination-hook` | vitest setup + 테스트                                                                 |
 
 아래부터 Squash Merge하면 남은 PR의 base가 자동 리타깃된다.
 
@@ -320,7 +393,7 @@ GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-star
 
 ### 1. 상호작용 상태 시각값
 
-Figma에 hover·focus·disabled 정의가 없다. 위 "상호작용 상태"의 값은 **구현 제안**이므로 디자이너 확인이 필요하다.
+Figma에 hover·focus·disabled·로딩 정의가 없다. 위 "상호작용 상태"와 스켈레톤 애니메이션 값은 **구현 제안**이므로 디자이너 확인이 필요하다.
 
 ### 2. `size` 판정 방식
 
