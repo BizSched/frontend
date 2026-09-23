@@ -21,7 +21,7 @@
 
 ## 타입 정의 파일 위치
 
-`interface`는 각 레이어 폴더(`hooks`, `lib`, `provider`, `store`) 하위의 `types/`에 분리해서 선언한다. (`components`는 내부에서 관리)
+`interface`는 각 레이어 폴더(`hooks`, `lib`, `providers`, `stores`) 하위의 `types/`에 분리해서 선언한다. (`components`는 내부에서 관리)
 
 ## app/ 구조
 
@@ -36,9 +36,9 @@
 도메인(기능)별로 하위 폴더를 둔다.
 
 - `components/`: `_common/`(하위 `ui/`는 Shadcn/ui 기본 UI 전용 — [ui-component.md](../convention/ui-component.md) 참고), `auth/`(`form/`), `dashboard/`, `landing/`, `partTime/`(`schedule/`, `staff/`), `sales/`(`chart/`, `table/`, `form/`, `category/`), `task/`(`calendar/`, `form/`, `detail/`)
-- `hooks/`: `types/`, `api/`
-- `lib/`: `utility/`, `api/`, `types/`
-- `providers/`: `auth/`, `partTime/`, `sales/`, `task/`
+- `hooks/`: `types/`, `api/`, `modal/`, `overlay/`
+- `lib/`: `utilities/`, `api/`, `types/`
+- `providers/`: `types/`, `auth/`, `partTime/`, `sales/`, `task/`, `modal/`, `overlay/`
 - `stores/`: `auth/`, `partTime/`, `sales/`, `task/`
 - `assets/`: `styles/` (전역 CSS 토큰: `breakpoints`, `colors`, `theme`, `typography`)
 

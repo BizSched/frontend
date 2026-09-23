@@ -46,6 +46,7 @@ Figma 디자인에는 모달 전용 컴포넌트 페이지가 없고 화면별 �
 | 시작점          | 레지스트리는 참조만 하고 직접 작성                  | `shadcn add dialog`를 실행해 대조한 결과 재구성 후 남는 것이 없어 생성물을 두지 않는다. 아래 "`shadcn add dialog` 검증 결과" 참고                                 |
 | 열기/닫기       | `overlay-kit`                                       | `openAsync`로 Confirm 호출부가 한 줄이 된다                                                                                                                       |
 | 중첩 모달       | overlay-kit 경로로 통일 + append index 기반 z-index | 트리 중첩과 혼용하면 같은 동작이 두 방식으로 갈린다. 아래 "중첩 모달" 참고                                                                                        |
+| 오버레이 스코프 | modal·toast를 도메인별 스코프로 분리 (미구현)       | 전역 스코프를 공유하면 toast가 모달 `stackIndex`를 오염시켜 딤이 사라진다. 아래 "오버레이 스코프 분리" 참고                                                       |
 | 비동기 Body     | **보류** (`@suspensive/react` 미도입)               | 실사용례가 생기는 시점에 도입. 아래 "비동기 Body 전략" 참고                                                                                                       |
 | 모바일 바텀시트 | Panel의 variant                                     | Figma상 바텀시트는 Form 계열 1개뿐이라 별도 컴포넌트로 분리할 근거가 부족                                                                                         |
 
@@ -96,7 +97,7 @@ shadcn은 의존성이 아니라 코드 생성기다. 생성된 파일은 그 �
 ```
 ① Primitive  src/components/_common/Modal/         Base UI Dialog 래핑 · 도메인 무지 · compound
 ② Preset     src/components/_common/Modal/         ConfirmModal (Figma Confirm 계열 고정 조합)
-③ Launcher   src/lib/utilities/overlay/            overlay-kit 호출 API + Provider
+③ Launcher   src/components/_common/Modal/         overlay 어댑터 + 호출 API (Provider는 providers/overlay/)
 ```
 
 `_common/ui/`는 **shadcn/ui CLI가 생성한 파일 전용**이다. 직접 작성·재구성한 컴포넌트는 `_common/Modal/`처럼 `_common/` 바로 아래 컴포넌트 폴더에 둔다. 따라서 primitive와 preset이 같은 폴더를 쓰며, `ConfirmModal`은 문구·버튼 구성이 서비스 맥락을 갖는다는 점만 파일 이름으로 구분된다.
@@ -114,7 +115,9 @@ src/components/_common/Modal/
 ├── ModalCloseButton.tsx  # Dialog.Close — 기본 X 아이콘 버튼, render로 위임 가능
 ├── ModalBody.tsx         # 자유 슬롯 (스크롤 영역)
 ├── ModalFooter.tsx       # cva: layout
-└── ConfirmModal.tsx      # Confirm 계열 프리셋
+├── ConfirmModal.tsx      # Confirm 계열 프리셋
+├── ConfirmModalController.tsx  # 프리셋의 overlay-kit 어댑터 (stackIndex 계산)
+└── openConfirmModal.tsx  # overlay.openAsync 호출 API
 
 src/providers/modal/
 └── ModalProvider.tsx     # stackIndex 컨텍스트
@@ -125,9 +128,9 @@ src/providers/types/
 src/hooks/modal/
 └── useModalContext.ts    # 컨텍스트 소비 훅
 
-src/lib/utilities/overlay/
+src/providers/overlay/
 ├── OverlayProvider.tsx   # overlay-kit Provider 래핑
-└── openConfirmModal.tsx  # overlay.openAsync 기반 호출 API
+└── modalOverlay.ts       # (예정) modal 전용 스코프 — 아래 "오버레이 스코프 분리"
 
 src/hooks/overlay/
 └── useOverlayStackIndex.ts   # 중첩 z-index 계산
@@ -135,9 +138,18 @@ src/hooks/overlay/
 
 각 파일은 개별 named export를 유지하고, `Modal.tsx`는 dot-notation만 **추가로** 제공한다. 서브컴포넌트를 직접 import할 수도 있으므로 [code-style.md](../../convention/code-style.md)의 배럴 `index.ts` 금지 규칙에 걸리지 않는다.
 
-> **확인 필요**: [folder-structure.md](../../architecture/folder-structure.md)는 `lib/` 하위를 `utility/`, `api/`, `types/`로 적고 있으나 **실제 폴더는 `utilities/`** 다(`src/lib/utilities/cn.ts`). 문서의 오타를 바로잡고 `utilities/overlay/`를 목록에 추가해야 한다.
+`OverlayProvider`는 `src/providers/overlay/`에 둔다(확정). Context·Provider는 `providers/`, 소비 훅은 `hooks/`에 두는 규칙을 따른다.
 
-> **확인 필요**: `OverlayProvider`는 이름과 역할상 `src/providers/` 쪽 성격에 가깝다. 현재는 호출 API와의 응집을 우선해 `lib/utilities/overlay/`에 함께 둔다. Provider만 `src/providers/overlay/`로 옮길지 확인이 필요하다.
+### 컨트롤러·launcher를 `_common/Modal/`에 두는 이유 (확정)
+
+`ConfirmModalController`와 `openConfirmModal`은 처음에 `lib/utilities/overlay/`에 있었으나 **프리셋 폴더로 옮겼다.** 근거는 두 가지다.
+
+- 둘 다 `ConfirmModal`을 쓰는 하나의 방법, 즉 프리셋의 일부다. primitive와 preset은 어차피 같은 폴더를 쓴다(위 "레이어 구조"). 프리셋 하나가 UI·어댑터·호출 API 세 파일로 한자리에 모인다.
+- `lib/utilities/`는 `cn.ts` 같은 순수 함수가 있는 자리다. 훅을 호출하는 React 컴포넌트와 특정 컴포넌트 전용 API가 섞이지 않게 한다.
+
+**overlay-kit에 의존하지 않아야 하는 것은 폴더가 아니라 primitive 파일**(`ModalRoot`·`ModalPanel` 등)이며, 이 배치에서도 그대로 지켜진다. `openConfirmModal.tsx`는 컴포넌트가 아니므로 [folder-structure.md](../../architecture/folder-structure.md)의 "기타 utility·핸들러 파일명은 `camelCase`" 규칙을 따라 camelCase를 쓴다.
+
+새 프리셋에 launcher를 붙일 때도 같은 형태를 따른다 — `XxxModal.tsx` · `XxxModalController.tsx` · `openXxxModal.tsx`.
 
 ## Compound API
 
@@ -235,6 +247,10 @@ PR 2 구현본을 임시 프리뷰 화면으로 렌더한 결과다. 프리뷰 �
 | ----------------------------------------------- | --------------------------------------------------- |
 | ![Upload 계열 모달](./preview/modal-upload.png) | ![모바일 바텀시트](./preview/modal-form-mobile.png) |
 
+`ConfirmModal` 프리셋(PR 3)은 Body가 없을 때 `pt-16`·`gap-10` 규칙이 적용된다. 실측 결과 `width 456px`, `padding-top 64px`, `row-gap 40px`로 위 "Confirm 프리셋" 표와 일치한다.
+
+![ConfirmModal 프리셋](./preview/confirm-modal.png)
+
 ## 중첩 모달
 
 모달 위에 모달을 띄우는 경우 **overlay-kit 경로로 통일한다.** 쌓임 순서는 overlay-kit의 append 순서를 z-index에 반영해 명시적으로 제어한다.
@@ -284,7 +300,7 @@ popup     z-index = --z-modal-base + stackIndex * 10 + 1
 export const useOverlayStackIndex = (overlayId?: string) => {
   const overlayData = useOverlayData();
 
-  if (overlayId == null) {
+  if (overlayId === undefined) {
     return 0;
   }
 
@@ -294,7 +310,9 @@ export const useOverlayStackIndex = (overlayId?: string) => {
 };
 ```
 
-`overlayId`는 overlay-kit이 컨트롤러에 넘겨주는 값이다. **훅 호출은 launcher가 하고, primitive에는 계산된 숫자만 내려간다.** launcher가 `<Modal stackIndex={useOverlayStackIndex(overlayId)}>`로 전달하면 `ModalRoot`가 `ModalProvider`로 컨텍스트에 싣고 `Modal.Panel`이 `useModalContext()`로 읽는다. primitive가 overlay-kit에 직접 의존하지 않도록 이 방향을 유지한다. overlay-kit을 거치지 않고 직접 `<Modal>`을 쓰면 `stackIndex`는 기본값 `0`이다.
+`overlayId`는 overlay-kit이 컨트롤러에 넘겨주는 값이다. **훅 호출은 컨트롤러가 하고, primitive에는 계산된 숫자만 내려간다.** `ConfirmModalController`가 `<Modal stackIndex={useOverlayStackIndex(overlayId)}>`로 전달하면 `ModalRoot`가 `ModalProvider`로 컨텍스트에 싣고 `Modal.Panel`이 `useModalContext()`로 읽는다. primitive가 overlay-kit에 직접 의존하지 않도록 이 방향을 유지한다. overlay-kit을 거치지 않고 직접 `<Modal>`을 쓰면 `stackIndex`는 기본값 `0`이다.
+
+> **주의**: 이 계산은 오버레이 목록에 모달만 들어 있다는 전제 위에 있다. toast가 같은 스코프를 쓰면 전제가 깨진다 — 아래 "오버레이 스코프 분리" 참고.
 
 ### 딤 중복
 
@@ -331,13 +349,28 @@ const handleClose = async () => {
 };
 ```
 
-### 중첩 관련 확인 필요 (구현 PR에서 검증)
+### 중첩 동작 검증 결과 (PR 3에서 확인)
 
-- 형제 관계인 모달 두 개가 각각 포커스 트랩과 스크롤 락을 걸 때 충돌하지 않는지
-- 자식 모달이 닫힌 뒤 포커스가 부모 모달로 복귀하는지
-- ESC가 최상위 모달만 닫는지 (형제 구조에서는 Base UI가 보장하지 않을 수 있다)
-- `overlayId`를 **고정값으로 넘기지 않는다.** 같은 id로 두 번 열면 overlay-kit이 오류를 던지고(`You can't open the multiple overlays with the same overlayId`), 재사용된 id는 `overlayData`상 위치가 갱신되지 않아 `stackIndex`가 어긋난다. 자동 생성 id를 그대로 쓴다.
-- 중첩 깊이 상한을 둘지 (현재는 두지 않음)
+`openConfirmModal`로 모달 두 개를 연 상태를 브라우저에서 실측했다.
+
+| 확인 항목                  | 결과                                                                            |
+| -------------------------- | ------------------------------------------------------------------------------- |
+| 쌓임 순서                  | panel z-index가 `1001` → `1011`로 분리된다                                      |
+| 딤 중복                    | 2번째 backdrop이 `rgba(0, 0, 0, 0)`이 되어 겹치지 않는다                        |
+| 포커스 트랩·스크롤 락 충돌 | 충돌 없음. `body`가 `overflow: hidden`을 유지하고 **모두 닫힌 뒤에만** 해제된다 |
+| 포커스 복귀                | 자식이 닫히면 포커스가 부모 모달 안으로 돌아온다                                |
+| ESC 전파                   | ESC 1회에 최상위 모달만 닫히고, 부모는 열린 상태로 남는다                       |
+| launcher resolve           | ESC·취소로 닫으면 `false`로 resolve된다                                         |
+
+`overlayId`는 **고정값으로 넘기지 않는다.** 같은 id로 두 번 열면 overlay-kit이 오류를 던지고(`You can't open the multiple overlays with the same overlayId`), 재사용된 id는 `overlayData`상 위치가 갱신되지 않아 `stackIndex`가 어긋난다. 자동 생성 id를 그대로 쓴다. 중첩 깊이 상한은 두지 않는다.
+
+### 경로를 섞으면 안 되는 이유 (실측)
+
+부모를 `useState`로 직접 열고 자식만 `openConfirmModal`로 열면, 자식은 overlay-kit 기준 **첫 번째 오버레이라서 `stackIndex`가 `0`이 된다.** 그 결과 두 panel의 z-index가 `1001`로 같아지고 딤이 두 번 겹쳐 `0.84`가 된다.
+
+![중첩 경로를 섞었을 때 딤이 겹치는 화면](./preview/nested-dim-overlap.png)
+
+**모달 위에 모달을 띄울 때는 부모도 반드시 overlay-kit으로 연다.**
 
 ## 디자인 토큰 매핑
 
@@ -394,19 +427,41 @@ Body가 없을 때 상단 여백을 키워 시각 중심을 맞춘 것이다. �
 
 ## overlay-kit 연동
 
+`stackIndex`를 구하려면 훅을 호출해야 하므로, 컨트롤러를 컴포넌트로 한 겹 감싼다. 훅 호출이 컨트롤러에 머무르고 `ConfirmModal`은 숫자만 받는다. 컨트롤러와 launcher는 프리셋과 같은 폴더에 **파일을 나눠** 둔다.
+
 ```tsx
-// src/lib/utilities/overlay/openConfirmModal.tsx
-export const openConfirmModal = (props: ConfirmModalProps) =>
-  overlay.openAsync<boolean>(({ isOpen, close, unmount }) => (
+// src/components/_common/Modal/ConfirmModalController.tsx
+function ConfirmModalController({
+  overlayId,
+  isOpen,
+  close,
+  unmount,
+  ...content
+}) {
+  const stackIndex = useOverlayStackIndex(overlayId);
+
+  return (
     <ConfirmModal
-      {...props}
+      {...content}
+      stackIndex={stackIndex}
       open={isOpen}
       onOpenChange={(open) => !open && close(false)}
       onConfirm={() => close(true)}
       onExitComplete={unmount}
     />
+  );
+}
+```
+
+```tsx
+// src/components/_common/Modal/openConfirmModal.tsx
+const openConfirmModal = (content: ConfirmModalContent) =>
+  overlay.openAsync<boolean>((controller) => (
+    <ConfirmModalController {...content} {...controller} />
   ));
 ```
+
+overlay-kit이 컨트롤러 콜백에 넘기는 `{ overlayId, isOpen, close, unmount }`가 `ConfirmModalController`의 props 이름과 그대로 맞으므로 launcher는 스프레드 한 줄로 끝난다.
 
 ```tsx
 // 호출부 — isOpen 상태가 필요 없다
@@ -421,9 +476,93 @@ if (isConfirmed) {
 }
 ```
 
-`src/lib/utilities/overlay/OverlayProvider.tsx`(`"use client"`)를 `app/layout.tsx`에 마운트한다.
+`src/providers/overlay/OverlayProvider.tsx`(`"use client"`)를 `app/layout.tsx`의 `<body>` 안에 마운트한다. `layout.tsx` 자체는 Server Component로 남는다.
 
 > **제약**: 오버레이는 Provider가 선언된 위치에 렌더된다. 따라서 Provider보다 **하위 트리의 Context에는 접근할 수 없다.** 모달에 넘길 값은 props로 전달한다. `QueryClientProvider`처럼 최상위에 있는 Context는 정상 동작한다.
+
+## 오버레이 스코프 분리
+
+> **상태**: 설계 확정 · **미구현**. 별도 브랜치에서 진행한다. 아래 "단계별 PR 계획" 참고.
+
+toast도 overlay-kit으로 구현할 예정이므로, modal과 toast가 **같은 오버레이 목록을 공유하지 않도록** 스코프를 나눈다.
+
+### 문제 — toast가 모달 `stackIndex`를 오염시킨다
+
+`useOverlayStackIndex`는 `useOverlayData()`가 돌려주는 목록에서 인덱스를 센다. overlay-kit이 기본 export하는 `overlay`는 **단일 전역 스코프**라, 같은 API로 연 toast가 그 목록에 함께 들어간다.
+
+```
+useOverlayStackIndex.ts   Object.keys(overlayData).indexOf(overlayId)
+ModalPanel.tsx            backdrop ?? (stackIndex === 0 ? 'dim' : 'transparent')
+```
+
+그 결과 위 "딤 중복" 표의 전제가 깨진다.
+
+| 상황                                   | 기대           | 전역 스코프 공유 시                              |
+| -------------------------------------- | -------------- | ------------------------------------------------ |
+| toast가 떠 있는 상태에서 모달을 연다   | `stackIndex 0` | `stackIndex 1` → **딤 없이 뜬다**, z-index `+10` |
+| 모달이 열려 있는 동안 toast가 사라진다 | 변화 없음      | 인덱스가 밀려 **살아있는 모달의 딤이 켜진다**    |
+
+위 "경로를 섞으면 안 되는 이유"에 기록된 오염과 같은 종류이지만, 이번에는 **호출 규약을 지켜도** 발생한다. 모달 쪽 코드만으로는 막을 수 없다.
+
+### 결정 — 도메인별 오버레이 스코프
+
+overlay-kit의 `experimental_createOverlayContext()`는 `{ overlay, OverlayProvider, useCurrentOverlay, useOverlayData }`를 한 세트로 돌려준다. 이 세트끼리는 서로의 오버레이 목록을 보지 못한다.
+
+```ts
+// src/providers/overlay/modalOverlay.ts
+const {
+  overlay: modalOverlay,
+  OverlayProvider: ModalOverlayProvider,
+  useOverlayData: useModalOverlayData,
+} = experimental_createOverlayContext();
+
+export { modalOverlay, ModalOverlayProvider, useModalOverlayData };
+```
+
+`OverlayProvider.tsx`는 스코프별 Provider를 합성하는 자리가 된다. toast 단계에서 `toastOverlay.ts`를 같은 형태로 추가하고 Provider를 한 겹 더 감싼다.
+
+이로써 **overlay-kit을 import하는 파일이 `src/providers/overlay/` 안으로 한정된다.** 모달을 여는 지점도 `providers/overlay/`로 명시된다.
+
+### 영향 범위
+
+| 파일                                                | 현재                        | 변경 후                      |
+| --------------------------------------------------- | --------------------------- | ---------------------------- |
+| `src/providers/overlay/modalOverlay.ts`             | 없음                        | 신설 — overlay-kit 유일 접점 |
+| `src/providers/overlay/OverlayProvider.tsx`         | `OverlayProvider` 직접 래핑 | 스코프 Provider 합성         |
+| `src/components/_common/Modal/openConfirmModal.tsx` | `overlay.openAsync`         | `modalOverlay.openAsync`     |
+| `src/hooks/overlay/useOverlayStackIndex.ts`         | `useOverlayData`            | `useModalOverlayData`        |
+
+`ConfirmModalController`·`ConfirmModal`·primitive 파일은 **바뀌지 않는다.** 컨트롤러가 훅을 부르고 primitive에 숫자만 내려보내는 방향(위 "중첩 모달")이 그대로 유지된다.
+
+`useOverlayStackIndex`는 modal 스코프 전용이 되므로, 이름과 위치를 `hooks/modal/`로 옮길지는 구현 시점에 판단한다. toast는 자체 레이아웃으로 쌓이므로 stack index가 필요 없을 전망이다.
+
+### 검증 결과 (vitest 실측)
+
+설계 확정 전에 두 방향을 모두 측정했다.
+
+| 확인 항목                                        | 결과                                                     |
+| ------------------------------------------------ | -------------------------------------------------------- |
+| 전역 스코프에서 toast → 모달 순으로 열기         | 모달 `stackIndex = 1`, backdrop이 `transparent`로 계산됨 |
+| 전역 스코프에서 `useOverlayStackIndex` 직접 호출 | 동일하게 `0`이 아닌 값 반환 — 훅 레벨에서 재현           |
+| 스코프 2개 분리 후 toast 스코프에 3개 열기       | modal 스코프 `useOverlayData`는 **0개**                  |
+| 그 상태에서 모달 열기                            | modal 스코프 기준 `stackIndex = 0` 유지                  |
+
+### 함께 검토했다 기각한 안
+
+| 안                                          | 기각 사유                                                                                                                                                                                                                                                                           |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 단일 스코프 + `overlayId` 프리픽스로 필터링 | 문자열 규약에 의존하고, 위 "중첩 동작 검증 결과"의 고정 id 금지 규칙과 충돌하기 쉽다. 스코프 격리보다 보장이 약하다                                                                                                                                                                 |
+| `useModalContext`에 `openModal`을 싣는다    | `ModalContext`는 `Modal.Panel`이 읽는 primitive 채널이라 overlay-kit 파생 값을 넣으면 "primitive는 overlay-kit에 의존하지 않는다"가 깨진다. `useModalContext`는 `<Modal>` 밖에서 throw하므로 첫 모달을 여는 경로를 덮지 못하고, **무엇보다 위 `stackIndex` 오염을 해결하지 못한다** |
+
+호출부가 overlay-kit을 모르게 하는 목적은 스코프 분리로 이미 달성된다. 주입이 필요한 호출부가 실제로 생기면 그때 `useModalLauncher()` 훅을 한 겹 얹는다. 지금은 두지 않는다.
+
+### 위험
+
+`experimental_createOverlayContext`는 이름 그대로 실험적 API로, 향후 시그니처가 바뀔 수 있다. 노출 지점을 `modalOverlay.ts` 한 파일로 제한해 교체 비용을 가둔다.
+
+### 이번 범위에서 제외
+
+overlay-kit import를 `src/providers/overlay/` 밖에서 금지하는 eslint `no-restricted-imports` 규칙은 **넣지 않는다.** 컨벤션 변경이라 별도로 논의한다.
 
 ## 비동기 Body 전략 (보류)
 
@@ -461,7 +600,8 @@ Base UI `Dialog`가 포커스 트랩, ESC 닫기, 스크롤 락, `aria-labelledb
 ```
 test/components/_common/Modal/modal.test.tsx
 test/components/_common/Modal/confirmModal.test.tsx
-test/lib/utilities/overlay/openConfirmModal.test.tsx
+test/components/_common/Modal/confirmModalController.test.tsx
+test/components/_common/Modal/openConfirmModal.test.tsx
 ```
 
 | 대상      | 검증                                                                                                                                 |
@@ -477,12 +617,13 @@ test/lib/utilities/overlay/openConfirmModal.test.tsx
 
 GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-started/about-stacked-prs)로 진행한다. 각 브랜치는 바로 아래 브랜치를 base로 하고, 맨 아래만 `dev`를 향한다. 아래부터 Squash Merge하면 남은 PR의 base가 자동으로 리타깃된다.
 
-| 순서 | 브랜치                      | base                        | 내용                                                     |
-| ---- | --------------------------- | --------------------------- | -------------------------------------------------------- |
-| 1    | `feat/common-modal`         | `dev`                       | **이 설계 문서** + docs 인덱스 · AGENTS.md 갱신          |
-| 2    | `feat/common-modal-ui`      | `feat/common-modal`         | 토큰 3종 추가 + Modal compound 구현                      |
-| 3    | `feat/common-modal-overlay` | `feat/common-modal-ui`      | overlay-kit 도입 + `ConfirmModal` + Provider + 중첩 검증 |
-| 4    | `feat/common-modal-test`    | `feat/common-modal-overlay` | Vitest 테스트                                            |
+| 순서 | 브랜치                      | base                        | 내용                                                               |
+| ---- | --------------------------- | --------------------------- | ------------------------------------------------------------------ |
+| 1    | `feat/common-modal`         | `dev`                       | **이 설계 문서** + docs 인덱스 · AGENTS.md 갱신                    |
+| 2    | `feat/common-modal-ui`      | `dev`                       | 토큰 4종 추가 + Modal compound 구현 (PR #27)                       |
+| 3    | `feat/common-modal-overlay` | `feat/common-modal-ui`      | overlay-kit 도입 + `ConfirmModal` + Provider + 중첩 검증 (진행 중) |
+| 4    | `feat/common-modal-test`    | `feat/common-modal-overlay` | Vitest 테스트                                                      |
+| 5    | (미정)                      | (미정)                      | 오버레이 스코프 분리 — 위 "오버레이 스코프 분리"                   |
 
 중간 브랜치를 수정하면 `gh stack rebase --upstack`으로 위쪽에 전파한다.
 
@@ -496,19 +637,13 @@ GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-star
 
 ### 1. Button 컴포넌트 의존
 
-`Modal.Footer`와 `Modal.CloseButton`의 `render`는 Button을 받는다. Button은 아직 설계되지 않았으므로 PR 2에서 임시 버튼이 필요할 수 있다. Button 설계 PR과의 순서를 확인해야 한다.
+`Modal.Footer`와 `Modal.CloseButton`의 `render`는 Button을 받는다. Button이 아직 없어 **`ConfirmModal`은 임시로 `<button>`에 Figma 값(`rounded-full`, `py-3`, `text-lg`)을 직접 넣어 두었다.** Button 설계가 끝나면 이 두 자리를 교체한다.
 
 ### 2. 바텀시트 상호작용 범위
 
 Figma에는 모바일 Form 모달이 하단 앵커로만 그려져 있고 **드래그로 닫기·스냅 포인트 같은 제스처는 정의되어 있지 않다.** 스크롤 가능한 패널로만 구현할지 확인이 필요하다.
 
-### 3. `lib/` 폴더명과 Provider 위치
-
-"파일 구성"의 확인 필요 2건 — [folder-structure.md](../../architecture/folder-structure.md)의 `utility/` 표기를 실제 폴더명 `utilities/`로 정정, `OverlayProvider`를 `src/providers/`로 옮길지 여부. `src/hooks/overlay/`도 같은 문서에 추가해야 한다.
-
-### 4. 중첩 모달 검증 항목
-
-"중첩 관련 확인 필요"의 5건 — 포커스 트랩·스크롤 락 충돌, 포커스 복귀, ESC 전파, `overlayId` 고정 금지, 깊이 상한.
+Provider 위치와 중첩 동작, `folder-structure.md` 갱신은 확정·반영됐다 — "중첩 동작 검증 결과"와 "파일 구성"을 참고한다.
 
 ## 참고
 
