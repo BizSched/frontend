@@ -14,7 +14,7 @@ const paginationButtonVariants = cva(
         sm: 'size-8 rounded-md text-xs',
       },
       isActive: {
-        true: 'bg-primary font-semibold shadow-pagination',
+        true: 'bg-primary font-semibold shadow-[0_0.625rem_2.5rem_rgb(255_158_89/0.3)]',
         false:
           'bg-slate-50 font-medium text-muted-foreground hover:bg-slate-100',
       },

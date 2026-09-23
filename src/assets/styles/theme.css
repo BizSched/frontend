@@ -41,7 +41,6 @@
   --radius-4xl: calc(var(--radius) * 2.6);
   --radius-modal: 2.5rem;
   --shadow-modal: 0 0 30px rgba(0, 0, 0, 0.05);
-  --shadow-pagination: 0 0.625rem 2.5rem rgb(255 158 89 / 0.3);
 }
 
 :root {
