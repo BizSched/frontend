@@ -96,7 +96,7 @@ shadcn은 의존성이 아니라 코드 생성기다. 생성된 파일은 그 �
 ```
 ① Primitive  src/components/_common/Modal/         Base UI Dialog 래핑 · 도메인 무지 · compound
 ② Preset     src/components/_common/Modal/         ConfirmModal (Figma Confirm 계열 고정 조합)
-③ Launcher   src/lib/utilities/overlay/            overlay-kit 호출 API + Provider
+③ Launcher   src/components/_common/Modal/         overlay 어댑터 + 호출 API (Provider는 providers/overlay/)
 ```
 
 `_common/ui/`는 **shadcn/ui CLI가 생성한 파일 전용**이다. 직접 작성·재구성한 컴포넌트는 `_common/Modal/`처럼 `_common/` 바로 아래 컴포넌트 폴더에 둔다. 따라서 primitive와 preset이 같은 폴더를 쓰며, `ConfirmModal`은 문구·버튼 구성이 서비스 맥락을 갖는다는 점만 파일 이름으로 구분된다.
@@ -114,7 +114,9 @@ src/components/_common/Modal/
 ├── ModalCloseButton.tsx  # Dialog.Close — 기본 X 아이콘 버튼, render로 위임 가능
 ├── ModalBody.tsx         # 자유 슬롯 (스크롤 영역)
 ├── ModalFooter.tsx       # cva: layout
-└── ConfirmModal.tsx      # Confirm 계열 프리셋
+├── ConfirmModal.tsx      # Confirm 계열 프리셋
+├── ConfirmModalController.tsx  # 프리셋의 overlay-kit 어댑터 (stackIndex 계산)
+└── openConfirmModal.tsx  # overlay.openAsync 호출 API
 
 src/providers/modal/
 └── ModalProvider.tsx     # stackIndex 컨텍스트
@@ -125,9 +127,8 @@ src/providers/types/
 src/hooks/modal/
 └── useModalContext.ts    # 컨텍스트 소비 훅
 
-src/lib/utilities/overlay/
-├── OverlayProvider.tsx   # overlay-kit Provider 래핑
-└── openConfirmModal.tsx  # overlay.openAsync 기반 호출 API
+src/providers/overlay/
+└── OverlayProvider.tsx   # overlay-kit Provider 래핑
 
 src/hooks/overlay/
 └── useOverlayStackIndex.ts   # 중첩 z-index 계산
@@ -135,9 +136,18 @@ src/hooks/overlay/
 
 각 파일은 개별 named export를 유지하고, `Modal.tsx`는 dot-notation만 **추가로** 제공한다. 서브컴포넌트를 직접 import할 수도 있으므로 [code-style.md](../../convention/code-style.md)의 배럴 `index.ts` 금지 규칙에 걸리지 않는다.
 
-> **확인 필요**: [folder-structure.md](../../architecture/folder-structure.md)는 `lib/` 하위를 `utility/`, `api/`, `types/`로 적고 있으나 **실제 폴더는 `utilities/`** 다(`src/lib/utilities/cn.ts`). 문서의 오타를 바로잡고 `utilities/overlay/`를 목록에 추가해야 한다.
+`OverlayProvider`는 `src/providers/overlay/`에 둔다(확정). Context·Provider는 `providers/`, 소비 훅은 `hooks/`에 두는 규칙을 따른다.
 
-> **확인 필요**: `OverlayProvider`는 이름과 역할상 `src/providers/` 쪽 성격에 가깝다. 현재는 호출 API와의 응집을 우선해 `lib/utilities/overlay/`에 함께 둔다. Provider만 `src/providers/overlay/`로 옮길지 확인이 필요하다.
+### 컨트롤러·launcher를 `_common/Modal/`에 두는 이유 (확정)
+
+`ConfirmModalController`와 `openConfirmModal`은 처음에 `lib/utilities/overlay/`에 있었으나 **프리셋 폴더로 옮겼다.** 근거는 두 가지다.
+
+- 둘 다 `ConfirmModal`을 쓰는 하나의 방법, 즉 프리셋의 일부다. primitive와 preset은 어차피 같은 폴더를 쓴다(위 "레이어 구조"). 프리셋 하나가 UI·어댑터·호출 API 세 파일로 한자리에 모인다.
+- `lib/utilities/`는 `cn.ts` 같은 순수 함수가 있는 자리다. 훅을 호출하는 React 컴포넌트와 특정 컴포넌트 전용 API가 섞이지 않게 한다.
+
+**overlay-kit에 의존하지 않아야 하는 것은 폴더가 아니라 primitive 파일**(`ModalRoot`·`ModalPanel` 등)이며, 이 배치에서도 그대로 지켜진다. `openConfirmModal.tsx`는 컴포넌트가 아니므로 [folder-structure.md](../../architecture/folder-structure.md)의 "기타 utility·핸들러 파일명은 `camelCase`" 규칙을 따라 camelCase를 쓴다.
+
+새 프리셋에 launcher를 붙일 때도 같은 형태를 따른다 — `XxxModal.tsx` · `XxxModalController.tsx` · `openXxxModal.tsx`.
 
 ## Compound API
 
@@ -235,6 +245,10 @@ PR 2 구현본을 임시 프리뷰 화면으로 렌더한 결과다. 프리뷰 �
 | ----------------------------------------------- | --------------------------------------------------- |
 | ![Upload 계열 모달](./preview/modal-upload.png) | ![모바일 바텀시트](./preview/modal-form-mobile.png) |
 
+`ConfirmModal` 프리셋(PR 3)은 Body가 없을 때 `pt-16`·`gap-10` 규칙이 적용된다. 실측 결과 `width 456px`, `padding-top 64px`, `row-gap 40px`로 위 "Confirm 프리셋" 표와 일치한다.
+
+![ConfirmModal 프리셋](./preview/confirm-modal.png)
+
 ## 중첩 모달
 
 모달 위에 모달을 띄우는 경우 **overlay-kit 경로로 통일한다.** 쌓임 순서는 overlay-kit의 append 순서를 z-index에 반영해 명시적으로 제어한다.
@@ -294,7 +308,7 @@ export const useOverlayStackIndex = (overlayId?: string) => {
 };
 ```
 
-`overlayId`는 overlay-kit이 컨트롤러에 넘겨주는 값이다. **훅 호출은 launcher가 하고, primitive에는 계산된 숫자만 내려간다.** launcher가 `<Modal stackIndex={useOverlayStackIndex(overlayId)}>`로 전달하면 `ModalRoot`가 `ModalProvider`로 컨텍스트에 싣고 `Modal.Panel`이 `useModalContext()`로 읽는다. primitive가 overlay-kit에 직접 의존하지 않도록 이 방향을 유지한다. overlay-kit을 거치지 않고 직접 `<Modal>`을 쓰면 `stackIndex`는 기본값 `0`이다.
+`overlayId`는 overlay-kit이 컨트롤러에 넘겨주는 값이다. **훅 호출은 컨트롤러가 하고, primitive에는 계산된 숫자만 내려간다.** `ConfirmModalController`가 `<Modal stackIndex={useOverlayStackIndex(overlayId)}>`로 전달하면 `ModalRoot`가 `ModalProvider`로 컨텍스트에 싣고 `Modal.Panel`이 `useModalContext()`로 읽는다. primitive가 overlay-kit에 직접 의존하지 않도록 이 방향을 유지한다. overlay-kit을 거치지 않고 직접 `<Modal>`을 쓰면 `stackIndex`는 기본값 `0`이다.
 
 ### 딤 중복
 
@@ -331,13 +345,28 @@ const handleClose = async () => {
 };
 ```
 
-### 중첩 관련 확인 필요 (구현 PR에서 검증)
+### 중첩 동작 검증 결과 (PR 3에서 확인)
 
-- 형제 관계인 모달 두 개가 각각 포커스 트랩과 스크롤 락을 걸 때 충돌하지 않는지
-- 자식 모달이 닫힌 뒤 포커스가 부모 모달로 복귀하는지
-- ESC가 최상위 모달만 닫는지 (형제 구조에서는 Base UI가 보장하지 않을 수 있다)
-- `overlayId`를 **고정값으로 넘기지 않는다.** 같은 id로 두 번 열면 overlay-kit이 오류를 던지고(`You can't open the multiple overlays with the same overlayId`), 재사용된 id는 `overlayData`상 위치가 갱신되지 않아 `stackIndex`가 어긋난다. 자동 생성 id를 그대로 쓴다.
-- 중첩 깊이 상한을 둘지 (현재는 두지 않음)
+`openConfirmModal`로 모달 두 개를 연 상태를 브라우저에서 실측했다.
+
+| 확인 항목                  | 결과                                                                            |
+| -------------------------- | ------------------------------------------------------------------------------- |
+| 쌓임 순서                  | panel z-index가 `1001` → `1011`로 분리된다                                      |
+| 딤 중복                    | 2번째 backdrop이 `rgba(0, 0, 0, 0)`이 되어 겹치지 않는다                        |
+| 포커스 트랩·스크롤 락 충돌 | 충돌 없음. `body`가 `overflow: hidden`을 유지하고 **모두 닫힌 뒤에만** 해제된다 |
+| 포커스 복귀                | 자식이 닫히면 포커스가 부모 모달 안으로 돌아온다                                |
+| ESC 전파                   | ESC 1회에 최상위 모달만 닫히고, 부모는 열린 상태로 남는다                       |
+| launcher resolve           | ESC·취소로 닫으면 `false`로 resolve된다                                         |
+
+`overlayId`는 **고정값으로 넘기지 않는다.** 같은 id로 두 번 열면 overlay-kit이 오류를 던지고(`You can't open the multiple overlays with the same overlayId`), 재사용된 id는 `overlayData`상 위치가 갱신되지 않아 `stackIndex`가 어긋난다. 자동 생성 id를 그대로 쓴다. 중첩 깊이 상한은 두지 않는다.
+
+### 경로를 섞으면 안 되는 이유 (실측)
+
+부모를 `useState`로 직접 열고 자식만 `openConfirmModal`로 열면, 자식은 overlay-kit 기준 **첫 번째 오버레이라서 `stackIndex`가 `0`이 된다.** 그 결과 두 panel의 z-index가 `1001`로 같아지고 딤이 두 번 겹쳐 `0.84`가 된다.
+
+![중첩 경로를 섞었을 때 딤이 겹치는 화면](./preview/nested-dim-overlap.png)
+
+**모달 위에 모달을 띄울 때는 부모도 반드시 overlay-kit으로 연다.**
 
 ## 디자인 토큰 매핑
 
@@ -394,19 +423,41 @@ Body가 없을 때 상단 여백을 키워 시각 중심을 맞춘 것이다. �
 
 ## overlay-kit 연동
 
+`stackIndex`를 구하려면 훅을 호출해야 하므로, 컨트롤러를 컴포넌트로 한 겹 감싼다. 훅 호출이 컨트롤러에 머무르고 `ConfirmModal`은 숫자만 받는다. 컨트롤러와 launcher는 프리셋과 같은 폴더에 **파일을 나눠** 둔다.
+
 ```tsx
-// src/lib/utilities/overlay/openConfirmModal.tsx
-export const openConfirmModal = (props: ConfirmModalProps) =>
-  overlay.openAsync<boolean>(({ isOpen, close, unmount }) => (
+// src/components/_common/Modal/ConfirmModalController.tsx
+function ConfirmModalController({
+  overlayId,
+  isOpen,
+  close,
+  unmount,
+  ...content
+}) {
+  const stackIndex = useOverlayStackIndex(overlayId);
+
+  return (
     <ConfirmModal
-      {...props}
+      {...content}
+      stackIndex={stackIndex}
       open={isOpen}
       onOpenChange={(open) => !open && close(false)}
       onConfirm={() => close(true)}
       onExitComplete={unmount}
     />
+  );
+}
+```
+
+```tsx
+// src/components/_common/Modal/openConfirmModal.tsx
+const openConfirmModal = (content: ConfirmModalContent) =>
+  overlay.openAsync<boolean>((controller) => (
+    <ConfirmModalController {...content} {...controller} />
   ));
 ```
+
+overlay-kit이 컨트롤러 콜백에 넘기는 `{ overlayId, isOpen, close, unmount }`가 `ConfirmModalController`의 props 이름과 그대로 맞으므로 launcher는 스프레드 한 줄로 끝난다.
 
 ```tsx
 // 호출부 — isOpen 상태가 필요 없다
@@ -421,7 +472,7 @@ if (isConfirmed) {
 }
 ```
 
-`src/lib/utilities/overlay/OverlayProvider.tsx`(`"use client"`)를 `app/layout.tsx`에 마운트한다.
+`src/providers/overlay/OverlayProvider.tsx`(`"use client"`)를 `app/layout.tsx`의 `<body>` 안에 마운트한다. `layout.tsx` 자체는 Server Component로 남는다.
 
 > **제약**: 오버레이는 Provider가 선언된 위치에 렌더된다. 따라서 Provider보다 **하위 트리의 Context에는 접근할 수 없다.** 모달에 넘길 값은 props로 전달한다. `QueryClientProvider`처럼 최상위에 있는 Context는 정상 동작한다.
 
@@ -461,7 +512,8 @@ Base UI `Dialog`가 포커스 트랩, ESC 닫기, 스크롤 락, `aria-labelledb
 ```
 test/components/_common/Modal/modal.test.tsx
 test/components/_common/Modal/confirmModal.test.tsx
-test/lib/utilities/overlay/openConfirmModal.test.tsx
+test/components/_common/Modal/confirmModalController.test.tsx
+test/components/_common/Modal/openConfirmModal.test.tsx
 ```
 
 | 대상      | 검증                                                                                                                                 |
@@ -477,12 +529,12 @@ test/lib/utilities/overlay/openConfirmModal.test.tsx
 
 GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-started/about-stacked-prs)로 진행한다. 각 브랜치는 바로 아래 브랜치를 base로 하고, 맨 아래만 `dev`를 향한다. 아래부터 Squash Merge하면 남은 PR의 base가 자동으로 리타깃된다.
 
-| 순서 | 브랜치                      | base                        | 내용                                                     |
-| ---- | --------------------------- | --------------------------- | -------------------------------------------------------- |
-| 1    | `feat/common-modal`         | `dev`                       | **이 설계 문서** + docs 인덱스 · AGENTS.md 갱신          |
-| 2    | `feat/common-modal-ui`      | `feat/common-modal`         | 토큰 3종 추가 + Modal compound 구현                      |
-| 3    | `feat/common-modal-overlay` | `feat/common-modal-ui`      | overlay-kit 도입 + `ConfirmModal` + Provider + 중첩 검증 |
-| 4    | `feat/common-modal-test`    | `feat/common-modal-overlay` | Vitest 테스트                                            |
+| 순서 | 브랜치                      | base                        | 내용                                                               |
+| ---- | --------------------------- | --------------------------- | ------------------------------------------------------------------ |
+| 1    | `feat/common-modal`         | `dev`                       | **이 설계 문서** + docs 인덱스 · AGENTS.md 갱신                    |
+| 2    | `feat/common-modal-ui`      | `dev`                       | 토큰 4종 추가 + Modal compound 구현 (PR #27)                       |
+| 3    | `feat/common-modal-overlay` | `feat/common-modal-ui`      | overlay-kit 도입 + `ConfirmModal` + Provider + 중첩 검증 (진행 중) |
+| 4    | `feat/common-modal-test`    | `feat/common-modal-overlay` | Vitest 테스트                                                      |
 
 중간 브랜치를 수정하면 `gh stack rebase --upstack`으로 위쪽에 전파한다.
 
@@ -496,19 +548,13 @@ GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-star
 
 ### 1. Button 컴포넌트 의존
 
-`Modal.Footer`와 `Modal.CloseButton`의 `render`는 Button을 받는다. Button은 아직 설계되지 않았으므로 PR 2에서 임시 버튼이 필요할 수 있다. Button 설계 PR과의 순서를 확인해야 한다.
+`Modal.Footer`와 `Modal.CloseButton`의 `render`는 Button을 받는다. Button이 아직 없어 **`ConfirmModal`은 임시로 `<button>`에 Figma 값(`rounded-full`, `py-3`, `text-lg`)을 직접 넣어 두었다.** Button 설계가 끝나면 이 두 자리를 교체한다.
 
 ### 2. 바텀시트 상호작용 범위
 
 Figma에는 모바일 Form 모달이 하단 앵커로만 그려져 있고 **드래그로 닫기·스냅 포인트 같은 제스처는 정의되어 있지 않다.** 스크롤 가능한 패널로만 구현할지 확인이 필요하다.
 
-### 3. `lib/` 폴더명과 Provider 위치
-
-"파일 구성"의 확인 필요 2건 — [folder-structure.md](../../architecture/folder-structure.md)의 `utility/` 표기를 실제 폴더명 `utilities/`로 정정, `OverlayProvider`를 `src/providers/`로 옮길지 여부. `src/hooks/overlay/`도 같은 문서에 추가해야 한다.
-
-### 4. 중첩 모달 검증 항목
-
-"중첩 관련 확인 필요"의 5건 — 포커스 트랩·스크롤 락 충돌, 포커스 복귀, ESC 전파, `overlayId` 고정 금지, 깊이 상한.
+Provider 위치와 중첩 동작, `folder-structure.md` 갱신은 확정·반영됐다 — "중첩 동작 검증 결과"와 "파일 구성"을 참고한다.
 
 ## 참고
 
