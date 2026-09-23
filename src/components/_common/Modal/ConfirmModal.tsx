@@ -34,7 +34,7 @@ function ConfirmModal({
   stackIndex = 0,
   children,
 }: ConfirmModalProps) {
-  const hasBody = children != null;
+  const hasBody = children !== null && children !== undefined;
 
   return (
     <Modal
@@ -50,7 +50,7 @@ function ConfirmModal({
       <Modal.Panel size="sm" className={cn(hasBody ? 'gap-4' : 'gap-10 pt-16')}>
         <Modal.Header align="center">
           <Modal.Title>{title}</Modal.Title>
-          {description != null && (
+          {description !== undefined && (
             <Modal.Description>{description}</Modal.Description>
           )}
         </Modal.Header>

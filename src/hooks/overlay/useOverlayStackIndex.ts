@@ -5,7 +5,7 @@ import { useOverlayData } from 'overlay-kit';
 const useOverlayStackIndex = (overlayId?: string) => {
   const overlayData = useOverlayData();
 
-  if (overlayId == null) {
+  if (overlayId === undefined) {
     return 0;
   }
 
