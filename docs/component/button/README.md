@@ -104,7 +104,7 @@ Server Component가 `<Button>`을 렌더링해도 부모는 Client Component가 
 
 ## 테스트 전략
 
-[test.md](../../convention/test.md)에 따라 `test/`가 `src/` 구조를 미러링한다. 구현(`design/common-button`)과 분리해 `feat/common-button-test` 브랜치에서 별도 PR로 진행한다("단계별 PR 계획" 참고).
+[test.md](../../convention/test.md)에 따라 `test/`가 `src/` 구조를 미러링한다. 구현(`feat/common-button`)과 분리해 `feat/common-button-test` 브랜치에서 별도 PR로 진행한다("단계별 PR 계획" 참고).
 
 ```
 test/components/_common/Button/Button.test.tsx
@@ -121,26 +121,36 @@ test/components/_common/Button/Button.test.tsx
 
 ### `Button` 자체 단계
 
-설계 문서와 구현(`hierarchy × size`)은 같은 PR로 묶되, 테스트는 별도 PR로 분리한다. `design/common-button`(1/2)이 `dev`에 머지된 뒤, `feat/common-button-test`(2/2)는 그 시점의 `dev`를 기준으로 새로 분기한다. 이는 [pr-flow.md](../../collaboration/pr-flow.md)의 기본 Feat Workflow(머지 후 분기)를 두 차례 순서대로 적용하는 **순차(sequential) 전략**이며, 아래 "버튼 계열 컴포넌트 분리"의 stacked PR과는 다른 방식이다 — 테스트가 설계/구현 완료를 전제로 하므로 병렬 진행할 이유가 없어 순차로 정했다.
+설계 문서와 구현(`hierarchy × size`)은 같은 PR로 묶되, 테스트는 별도 PR로 분리한다. `feat/common-button`(1/2)이 `dev`에 머지된 뒤, `feat/common-button-test`(2/2)는 그 시점의 `dev`를 기준으로 새로 분기한다. 이는 [pr-flow.md](../../collaboration/pr-flow.md)의 기본 Feat Workflow(머지 후 분기)를 두 차례 순서대로 적용하는 **순차(sequential) 전략**이며, 아래 "버튼 계열 컴포넌트 분리"의 stacked PR과는 다른 방식이다 — 테스트가 설계/구현 완료를 전제로 하므로 병렬 진행할 이유가 없어 순차로 정했다.
 
 | 단계 | 브랜치                    | 내용                                | 상태                 |
 | ---- | ------------------------- | ----------------------------------- | -------------------- |
-| 1/2  | `design/common-button`    | 설계 문서 + `hierarchy`×`size` 구현 | 구현 완료, 병합 대기 |
+| 1/2  | `feat/common-button`      | 설계 문서 + `hierarchy`×`size` 구현 | 구현 완료, 병합 대기 |
 | 2/2  | `feat/common-button-test` | Vitest 테스트                       | 예정                 |
 
 ### 버튼 계열 컴포넌트 분리
 
-Figma의 나머지 버튼 그룹(아이콘 전용·텍스트 전용·드롭다운 트리거·select)은 `Button`과 별도 컴포넌트로 분리하고, 컴포넌트별 stacked PR로 순차 진행한다. 각 컴포넌트도 위와 같이 구현/테스트 PR을 나눈다.
+Figma 노드([btn_social](https://www.figma.com/design/0UAYWaDS9UNjigV73HWcPZ/BizSched?node-id=71-70829) 등 8개)를 확인한 결과, `btn_social`·`btn_notification`·`btn_read_more`·`btn_delete`는 겉보기엔 모두 "원형 단일 아이콘" 형태다. 다만 `get_design_context`로 실제 구조를 조회해보니 **공통점은 원형 shape뿐**이고, variant 축은 서로 겹치지 않는다(`social`: 아이콘 교체, `unread`: boolean + 배지 오버레이, `state`: 아이콘 교체 토글, `size`: 컨테이너·아이콘 비례 스케일). 그래서 하나의 `IconButton` 컴포넌트로 묶지 않고 `_common/IconButton/` 폴더 아래 `SocialButton`·`NotificationButton`·`ReadMoreButton`·`DeleteButton` 4개 독립 컴포넌트로 세분화한다(자세한 근거는 [IconButton/README.md](../IconButton/README.md) 참고). `btn_action-매출 카테고리, 오늘 매출 추가 액션`은 `active` 상태에서 여러 개의 하위 아이콘 버튼을 펼쳐 보여주는 복합 컴포넌트라(`state=기본`은 단일 `+` 버튼, `state=active`는 내부에 아이콘 버튼 5개를 세로로 렌더) 위 4개와 묶지 않고 별도 컴포넌트(`ActionButton`, 가칭)로 분리한다 — 문서 원안(표 2번)과 다른 부분이다. `Button`과 별도 컴포넌트로 분리하고, 각 컴포넌트도 위와 같이 구현/테스트 PR을 나눈다.
 
-| 순서 | 컴포넌트(가칭)        | Figma 레이어                                                                    | 상태                 |
-| ---- | --------------------- | ------------------------------------------------------------------------------- | -------------------- |
-| 1    | `Button`              | hierarchy × size (27 instances)                                                 | 구현 완료, 병합 대기 |
-| 2    | `IconButton`          | `btn_social`, `btn_notification`, `btn_action-...`, `btn_read_more`, `btn_d...` | 확인 필요            |
-| 3    | `TextButton`          | `btn_text`                                                                      | 확인 필요            |
-| 4    | 드롭다운 트리거(가칭) | `btn_change_month`                                                              | 확인 필요            |
-| 5    | `SelectButton`(가칭)  | `btn_select`                                                                    | 확인 필요            |
+| 순서 | 컴포넌트(가칭)               | Figma 노드                                                                                           | 비고                                                                                                                                                        | 상태                 |
+| ---- | ---------------------------- | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| 1    | `Button`                     | hierarchy × size (27 instances)                                                                      | -                                                                                                                                                           | 구현 완료, 병합 대기 |
+| 2    | `IconButton/` (4개 컴포넌트) | `btn_social`(71:70829)·`btn_notification`(71:70836)·`btn_read_more`(71:70824)·`btn_delete`(71:70849) | 원형 shape만 공유, variant 축은 서로 다름. `SocialButton`·`NotificationButton`·`ReadMoreButton`·`DeleteButton`으로 세분화. `ActionButton`이 내부에서 재사용 | 설계 완료            |
+| 3    | `TextButton`                 | `btn_text`(105:196628)                                                                               | state × size                                                                                                                                                | 확인 필요            |
+| 4    | `SelectButton`(가칭)         | `btn_select`(358:153200)                                                                             | 토글형 선택 버튼(`select` true/false)                                                                                                                       | 확인 필요            |
+| 5    | 드롭다운 트리거(가칭)        | `btn_change_month`(147:233325)                                                                       | size variant만 존재                                                                                                                                         | 확인 필요            |
+| 6    | `ActionButton`(가칭)         | `btn_action-매출 카테고리, 오늘 매출 추가 액션`(114:211449)                                          | 펼침(`active`) 시 `IconButton` 여러 개를 렌더하는 복합 컴포넌트                                                                                             | 확인 필요            |
 
-정확한 컴포넌트명·variant 범위·PR 순서는 확정된 게 아니라 "확인 필요" 4번 항목에 남긴다.
+컴포넌트명·variant 축 세부 설계는 아직 미정이라 "확인 필요" 4번에 남기되, 분리 범위(6개)와 가칭은 위 표로 확정한다.
+
+### 버튼 계열 브랜치 전략
+
+`ActionButton`이 `IconButton`을 내부에서 재사용하는 의존 관계 외에는 나머지 컴포넌트가 서로 독립적이라, 전부를 stacked PR로 묶지 않고 아래처럼 진행한다.
+
+- **1차 (병렬, `dev`에서 각자 분기)**: `IconButton`, `TextButton`, `SelectButton`, 드롭다운 트리거. 서로 의존이 없어 동시에 작업 가능하며, 완료되는 대로 각자 `dev`에 머지한다.
+- **2차 (`IconButton` 머지 후 착수)**: `ActionButton`. 내부에서 쓰는 `IconButton`이 실제로 존재해야 구현 가능하므로, `IconButton` 구현 PR이 `dev`에 머지된 시점의 `dev`를 기준으로 새로 분기한다 — `Button` 자체 단계와 동일한 순차 전략이며, stacked PR(머지 전 분기)은 쓰지 않는다.
+
+각 컴포넌트는 위 `Button`과 동일하게 구현 PR + 테스트 PR로 나눈다.
 
 ## 확인 필요
 
@@ -160,7 +170,7 @@ Figma에서 조회된 `spacing-xxs` 값(2)과 코드의 `gap-1`(4px)이 일치�
 
 ### 4. 아이콘 전용/텍스트 전용/드롭다운/select 버튼의 컴포넌트 분리 범위
 
-Figma의 `btn_social`·`btn_notification`·`btn_action-...`·`btn_read_more`·`btn_d...`·`btn_text`·`btn_change_month`·`btn_select` 그룹을 몇 개의 컴포넌트로 나눌지, 각 컴포넌트 이름·variant 축·PR 순서가 아직 미정이다("단계별 PR 계획" 참고). `button-group`(취소/확인 쌍)은 기존 `Button`을 그대로 배치한 것으로 보여 별도 컴포넌트가 필요 없어 보이지만, 이 판단도 확인이 필요하다.
+Figma의 8개 버튼 그룹을 몇 개의 컴포넌트로 나눌지와 가칭은 "단계별 PR 계획 → 버튼 계열 컴포넌트 분리"에서 6개(`IconButton`·`TextButton`·`SelectButton`·드롭다운 트리거·`ActionButton`, `Button` 제외)로 확정했다. `IconButton`은 [IconButton/README.md](../IconButton/README.md)에서 `SocialButton`·`NotificationButton`·`ReadMoreButton`·`DeleteButton` 4개로 세부 설계까지 완료했다. 나머지 `TextButton`·`SelectButton`·드롭다운 트리거·`ActionButton`은 정확한 variant 축·prop 설계가 아직 미정이라, `Button`·`IconButton` 때처럼 컴포넌트별로 구현 전에 별도 설계 문서화가 필요하다. `button-group`(취소/확인 쌍)은 기존 `Button`을 그대로 배치한 것으로 보여 별도 컴포넌트가 필요 없어 보이지만, 이 판단도 확인이 필요하다.
 
 ## 참고
 
