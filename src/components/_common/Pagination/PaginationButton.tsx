@@ -3,6 +3,8 @@
 import { cva, type VariantProps } from 'class-variance-authority';
 import type { ComponentPropsWithRef } from 'react';
 
+import type { PaginationSize } from '@hooks/pagination/usePaginationSize';
+
 import { cn } from '@lib/utilities/cn';
 
 const paginationButtonVariants = cva(
@@ -12,7 +14,7 @@ const paginationButtonVariants = cva(
       size: {
         lg: 'size-12 rounded-[1rem] text-sm tracking-[-0.03em]',
         sm: 'size-8 rounded-md text-xs',
-      },
+      } satisfies Record<PaginationSize, string>,
       isActive: {
         true: 'bg-primary font-semibold shadow-[0_0.625rem_2.5rem_rgb(255_158_89/0.3)]',
         false:
@@ -29,10 +31,6 @@ const paginationButtonVariants = cva(
     },
   },
 );
-
-type PaginationSize = NonNullable<
-  VariantProps<typeof paginationButtonVariants>['size']
->;
 
 interface PaginationButtonProps
   extends
@@ -61,4 +59,4 @@ function PaginationButton({
 }
 
 export { PaginationButton, paginationButtonVariants };
-export type { PaginationButtonProps, PaginationSize };
+export type { PaginationButtonProps };
