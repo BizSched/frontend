@@ -1,0 +1,34 @@
+#!/usr/bin/env sh
+
+BOLD='\033[1m'
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[0;33m'
+CYAN='\033[0;36m'
+RESET='\033[0m'
+
+print_line() {
+  printf '%b\n' "$1"
+}
+
+print_line ""
+print_line "${CYAN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+print_line "${CYAN}${BOLD}  🔍 Pre-commit Check                             ${RESET}"
+print_line "${CYAN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+print_line ""
+
+print_line "${YELLOW}${BOLD}[1/1] Running lint-staged...${RESET}"
+print_line "${CYAN}──────────────────────────────────────────────────${RESET}"
+
+if pnpm exec lint-staged; then
+  print_line ""
+  print_line "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+  print_line "${GREEN}${BOLD}  ✅ Pre-commit check passed!                    ${RESET}"
+  print_line "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+  print_line ""
+else
+  print_line ""
+  print_line "${RED}${BOLD}✖ Pre-commit check failed — commit aborted${RESET}"
+  print_line ""
+  exit 1
+fi
