@@ -9,10 +9,12 @@ on:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -20,7 +22,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 22.x
+          cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -29,7 +32,43 @@ jobs:
         run: pnpm lint
 
       - name: Test
-        run: pnpm test --run
+        run: pnpm exec vitest run --passWithNoTests
 
       - name: Build
         run: pnpm build
+
+      - name: Notify Discord on CI failure
+        if: failure()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          if [ -z "$DISCORD_WEBHOOK_URL" ]; then
+            echo "DISCORD_WEBHOOK_URL is not set. Skipping Discord notification."
+            exit 0
+          fi
+
+          python - <<'PY'
+          import json
+          import os
+
+          with open("discord-payload.json", "w", encoding="utf-8") as payload:
+              json.dump(
+                  {
+                      "content": (
+                          f"CI 실패: {os.environ['PR_TITLE']}\n"
+                          f"PR: {os.environ['PR_URL']}\n"
+                          f"Actions: {os.environ['RUN_URL']}"
+                      )
+                  },
+                  payload,
+                  ensure_ascii=False,
+              )
+          PY
+
+          curl \
+            -H "Content-Type: application/json" \
+            --data @discord-payload.json \
+            "$DISCORD_WEBHOOK_URL" || echo "Discord notification failed."

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 BOLD='\033[1m'
 GREEN='\033[0;32m'
 RED='\033[0;31m'
@@ -6,42 +6,46 @@ YELLOW='\033[0;33m'
 CYAN='\033[0;36m'
 RESET='\033[0m'
 
-echo ""
-echo -e "${CYAN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo -e "${CYAN}${BOLD}  📝 Commit Convention Check                      ${RESET}"
-echo -e "${CYAN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo ""
+print_line() {
+  printf '%b\n' "$1"
+}
+
+print_line ""
+print_line "${CYAN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+print_line "${CYAN}${BOLD}  📝 Commit Convention Check                      ${RESET}"
+print_line "${CYAN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+print_line ""
 
 COMMIT_MSG=$(cat "$1")
-PATTERN='^(feat|fix|design|refactor|test|docs|chore|ci/cd): .+( #[0-9]+)?$'
+PATTERN='^(feat|fix|design|refactor|test|docs|chore|ci/cd): .+( #[0-9]+)$'
 
-echo -e "${YELLOW}${BOLD}[1/1] Checking commit message format...${RESET}"
-echo -e "${CYAN}──────────────────────────────────────────────────${RESET}"
-echo -e "  ${BOLD}Message:${RESET} $(echo "$COMMIT_MSG" | head -1)"
-echo ""
+print_line "${YELLOW}${BOLD}[1/1] Checking commit message format...${RESET}"
+print_line "${CYAN}──────────────────────────────────────────────────${RESET}"
+print_line "  ${BOLD}Message:${RESET} $(printf '%s\n' "$COMMIT_MSG" | head -1)"
+print_line ""
 
-if echo "$COMMIT_MSG" | head -1 | grep -qE "$PATTERN"; then
-  echo -e "${GREEN}${BOLD}✔ Commit message format is valid${RESET}"
+if printf '%s\n' "$COMMIT_MSG" | head -1 | grep -qE "$PATTERN"; then
+  print_line "${GREEN}${BOLD}✔ Commit message format is valid${RESET}"
 else
-  echo -e "${RED}${BOLD}✖ Invalid commit message format — commit aborted${RESET}"
-  echo ""
-  echo -e "${YELLOW}  올바른 형식:${RESET}"
-  echo -e "  ${BOLD}타입: 설명 #이슈번호${RESET}"
-  echo ""
-  echo -e "${YELLOW}  사용 가능한 타입:${RESET}"
-  echo "  feat, fix, design, refactor, test, docs, chore, ci/cd"
-  echo ""
-  echo -e "${YELLOW}  예시:${RESET}"
-  echo "  feat: add login page #12"
-  echo "  fix: resolve null pointer exception #34"
-  echo "  docs: update README #45"
-  echo "  ci/cd: add github actions workflow #56"
-  echo ""
+  print_line "${RED}${BOLD}✖ Invalid commit message format — commit aborted${RESET}"
+  print_line ""
+  print_line "${YELLOW}  올바른 형식:${RESET}"
+  print_line "  ${BOLD}타입: 설명 #이슈번호${RESET}"
+  print_line ""
+  print_line "${YELLOW}  사용 가능한 타입:${RESET}"
+  print_line "  feat, fix, design, refactor, test, docs, chore, ci/cd"
+  print_line ""
+  print_line "${YELLOW}  예시:${RESET}"
+  print_line "  feat: add login page #12"
+  print_line "  fix: resolve null pointer exception #34"
+  print_line "  docs: update README #45"
+  print_line "  ci/cd: add github actions workflow #56"
+  print_line ""
   exit 1
 fi
 
-echo ""
-echo -e "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo -e "${GREEN}${BOLD}  ✅ Convention check passed! Committing...      ${RESET}"
-echo -e "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo ""
+print_line ""
+print_line "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+print_line "${GREEN}${BOLD}  ✅ Convention check passed! Committing...      ${RESET}"
+print_line "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+print_line ""
