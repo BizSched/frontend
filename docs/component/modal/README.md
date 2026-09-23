@@ -46,6 +46,7 @@ Figma 디자인에는 모달 전용 컴포넌트 페이지가 없고 화면별 �
 | 시작점          | 레지스트리는 참조만 하고 직접 작성                  | `shadcn add dialog`를 실행해 대조한 결과 재구성 후 남는 것이 없어 생성물을 두지 않는다. 아래 "`shadcn add dialog` 검증 결과" 참고                                 |
 | 열기/닫기       | `overlay-kit`                                       | `openAsync`로 Confirm 호출부가 한 줄이 된다                                                                                                                       |
 | 중첩 모달       | overlay-kit 경로로 통일 + append index 기반 z-index | 트리 중첩과 혼용하면 같은 동작이 두 방식으로 갈린다. 아래 "중첩 모달" 참고                                                                                        |
+| 오버레이 스코프 | modal·toast를 도메인별 스코프로 분리 (미구현)       | 전역 스코프를 공유하면 toast가 모달 `stackIndex`를 오염시켜 딤이 사라진다. 아래 "오버레이 스코프 분리" 참고                                                       |
 | 비동기 Body     | **보류** (`@suspensive/react` 미도입)               | 실사용례가 생기는 시점에 도입. 아래 "비동기 Body 전략" 참고                                                                                                       |
 | 모바일 바텀시트 | Panel의 variant                                     | Figma상 바텀시트는 Form 계열 1개뿐이라 별도 컴포넌트로 분리할 근거가 부족                                                                                         |
 
@@ -128,7 +129,8 @@ src/hooks/modal/
 └── useModalContext.ts    # 컨텍스트 소비 훅
 
 src/providers/overlay/
-└── OverlayProvider.tsx   # overlay-kit Provider 래핑
+├── OverlayProvider.tsx   # overlay-kit Provider 래핑
+└── modalOverlay.ts       # (예정) modal 전용 스코프 — 아래 "오버레이 스코프 분리"
 
 src/hooks/overlay/
 └── useOverlayStackIndex.ts   # 중첩 z-index 계산
@@ -298,7 +300,7 @@ popup     z-index = --z-modal-base + stackIndex * 10 + 1
 export const useOverlayStackIndex = (overlayId?: string) => {
   const overlayData = useOverlayData();
 
-  if (overlayId == null) {
+  if (overlayId === undefined) {
     return 0;
   }
 
@@ -309,6 +311,8 @@ export const useOverlayStackIndex = (overlayId?: string) => {
 ```
 
 `overlayId`는 overlay-kit이 컨트롤러에 넘겨주는 값이다. **훅 호출은 컨트롤러가 하고, primitive에는 계산된 숫자만 내려간다.** `ConfirmModalController`가 `<Modal stackIndex={useOverlayStackIndex(overlayId)}>`로 전달하면 `ModalRoot`가 `ModalProvider`로 컨텍스트에 싣고 `Modal.Panel`이 `useModalContext()`로 읽는다. primitive가 overlay-kit에 직접 의존하지 않도록 이 방향을 유지한다. overlay-kit을 거치지 않고 직접 `<Modal>`을 쓰면 `stackIndex`는 기본값 `0`이다.
+
+> **주의**: 이 계산은 오버레이 목록에 모달만 들어 있다는 전제 위에 있다. toast가 같은 스코프를 쓰면 전제가 깨진다 — 아래 "오버레이 스코프 분리" 참고.
 
 ### 딤 중복
 
@@ -476,6 +480,90 @@ if (isConfirmed) {
 
 > **제약**: 오버레이는 Provider가 선언된 위치에 렌더된다. 따라서 Provider보다 **하위 트리의 Context에는 접근할 수 없다.** 모달에 넘길 값은 props로 전달한다. `QueryClientProvider`처럼 최상위에 있는 Context는 정상 동작한다.
 
+## 오버레이 스코프 분리
+
+> **상태**: 설계 확정 · **미구현**. 별도 브랜치에서 진행한다. 아래 "단계별 PR 계획" 참고.
+
+toast도 overlay-kit으로 구현할 예정이므로, modal과 toast가 **같은 오버레이 목록을 공유하지 않도록** 스코프를 나눈다.
+
+### 문제 — toast가 모달 `stackIndex`를 오염시킨다
+
+`useOverlayStackIndex`는 `useOverlayData()`가 돌려주는 목록에서 인덱스를 센다. overlay-kit이 기본 export하는 `overlay`는 **단일 전역 스코프**라, 같은 API로 연 toast가 그 목록에 함께 들어간다.
+
+```
+useOverlayStackIndex.ts   Object.keys(overlayData).indexOf(overlayId)
+ModalPanel.tsx            backdrop ?? (stackIndex === 0 ? 'dim' : 'transparent')
+```
+
+그 결과 위 "딤 중복" 표의 전제가 깨진다.
+
+| 상황                                   | 기대           | 전역 스코프 공유 시                              |
+| -------------------------------------- | -------------- | ------------------------------------------------ |
+| toast가 떠 있는 상태에서 모달을 연다   | `stackIndex 0` | `stackIndex 1` → **딤 없이 뜬다**, z-index `+10` |
+| 모달이 열려 있는 동안 toast가 사라진다 | 변화 없음      | 인덱스가 밀려 **살아있는 모달의 딤이 켜진다**    |
+
+위 "경로를 섞으면 안 되는 이유"에 기록된 오염과 같은 종류이지만, 이번에는 **호출 규약을 지켜도** 발생한다. 모달 쪽 코드만으로는 막을 수 없다.
+
+### 결정 — 도메인별 오버레이 스코프
+
+overlay-kit의 `experimental_createOverlayContext()`는 `{ overlay, OverlayProvider, useCurrentOverlay, useOverlayData }`를 한 세트로 돌려준다. 이 세트끼리는 서로의 오버레이 목록을 보지 못한다.
+
+```ts
+// src/providers/overlay/modalOverlay.ts
+const {
+  overlay: modalOverlay,
+  OverlayProvider: ModalOverlayProvider,
+  useOverlayData: useModalOverlayData,
+} = experimental_createOverlayContext();
+
+export { modalOverlay, ModalOverlayProvider, useModalOverlayData };
+```
+
+`OverlayProvider.tsx`는 스코프별 Provider를 합성하는 자리가 된다. toast 단계에서 `toastOverlay.ts`를 같은 형태로 추가하고 Provider를 한 겹 더 감싼다.
+
+이로써 **overlay-kit을 import하는 파일이 `src/providers/overlay/` 안으로 한정된다.** 모달을 여는 지점도 `providers/overlay/`로 명시된다.
+
+### 영향 범위
+
+| 파일                                                | 현재                        | 변경 후                      |
+| --------------------------------------------------- | --------------------------- | ---------------------------- |
+| `src/providers/overlay/modalOverlay.ts`             | 없음                        | 신설 — overlay-kit 유일 접점 |
+| `src/providers/overlay/OverlayProvider.tsx`         | `OverlayProvider` 직접 래핑 | 스코프 Provider 합성         |
+| `src/components/_common/Modal/openConfirmModal.tsx` | `overlay.openAsync`         | `modalOverlay.openAsync`     |
+| `src/hooks/overlay/useOverlayStackIndex.ts`         | `useOverlayData`            | `useModalOverlayData`        |
+
+`ConfirmModalController`·`ConfirmModal`·primitive 파일은 **바뀌지 않는다.** 컨트롤러가 훅을 부르고 primitive에 숫자만 내려보내는 방향(위 "중첩 모달")이 그대로 유지된다.
+
+`useOverlayStackIndex`는 modal 스코프 전용이 되므로, 이름과 위치를 `hooks/modal/`로 옮길지는 구현 시점에 판단한다. toast는 자체 레이아웃으로 쌓이므로 stack index가 필요 없을 전망이다.
+
+### 검증 결과 (vitest 실측)
+
+설계 확정 전에 두 방향을 모두 측정했다.
+
+| 확인 항목                                        | 결과                                                     |
+| ------------------------------------------------ | -------------------------------------------------------- |
+| 전역 스코프에서 toast → 모달 순으로 열기         | 모달 `stackIndex = 1`, backdrop이 `transparent`로 계산됨 |
+| 전역 스코프에서 `useOverlayStackIndex` 직접 호출 | 동일하게 `0`이 아닌 값 반환 — 훅 레벨에서 재현           |
+| 스코프 2개 분리 후 toast 스코프에 3개 열기       | modal 스코프 `useOverlayData`는 **0개**                  |
+| 그 상태에서 모달 열기                            | modal 스코프 기준 `stackIndex = 0` 유지                  |
+
+### 함께 검토했다 기각한 안
+
+| 안                                          | 기각 사유                                                                                                                                                                                                                                                                           |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 단일 스코프 + `overlayId` 프리픽스로 필터링 | 문자열 규약에 의존하고, 위 "중첩 동작 검증 결과"의 고정 id 금지 규칙과 충돌하기 쉽다. 스코프 격리보다 보장이 약하다                                                                                                                                                                 |
+| `useModalContext`에 `openModal`을 싣는다    | `ModalContext`는 `Modal.Panel`이 읽는 primitive 채널이라 overlay-kit 파생 값을 넣으면 "primitive는 overlay-kit에 의존하지 않는다"가 깨진다. `useModalContext`는 `<Modal>` 밖에서 throw하므로 첫 모달을 여는 경로를 덮지 못하고, **무엇보다 위 `stackIndex` 오염을 해결하지 못한다** |
+
+호출부가 overlay-kit을 모르게 하는 목적은 스코프 분리로 이미 달성된다. 주입이 필요한 호출부가 실제로 생기면 그때 `useModalLauncher()` 훅을 한 겹 얹는다. 지금은 두지 않는다.
+
+### 위험
+
+`experimental_createOverlayContext`는 이름 그대로 실험적 API로, 향후 시그니처가 바뀔 수 있다. 노출 지점을 `modalOverlay.ts` 한 파일로 제한해 교체 비용을 가둔다.
+
+### 이번 범위에서 제외
+
+overlay-kit import를 `src/providers/overlay/` 밖에서 금지하는 eslint `no-restricted-imports` 규칙은 **넣지 않는다.** 컨벤션 변경이라 별도로 논의한다.
+
 ## 비동기 Body 전략 (보류)
 
 [rendering.md](../../architecture/rendering.md)는 **모달 내부 데이터를 prefetch 대상에서 제외**한다. 따라서 모달 Body가 서버 데이터를 읽는 경우 pending·error 상태가 반드시 생긴다.
@@ -535,6 +623,7 @@ GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-star
 | 2    | `feat/common-modal-ui`      | `dev`                       | 토큰 4종 추가 + Modal compound 구현 (PR #27)                       |
 | 3    | `feat/common-modal-overlay` | `feat/common-modal-ui`      | overlay-kit 도입 + `ConfirmModal` + Provider + 중첩 검증 (진행 중) |
 | 4    | `feat/common-modal-test`    | `feat/common-modal-overlay` | Vitest 테스트                                                      |
+| 5    | (미정)                      | (미정)                      | 오버레이 스코프 분리 — 위 "오버레이 스코프 분리"                   |
 
 중간 브랜치를 수정하면 `gh stack rebase --upstack`으로 위쪽에 전파한다.
 
