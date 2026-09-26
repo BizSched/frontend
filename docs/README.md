@@ -55,6 +55,8 @@ docs/
 | [component/card/README.md](./component/card/README.md)             | Card — 공통 surface primitive, compound 슬롯, variant 축            |
 | [component/modal/README.md](./component/modal/README.md)           | Modal — compound 슬롯, variant, 토큰 매핑, overlay-kit 연동         |
 | [component/pagination/README.md](./component/pagination/README.md) | Pagination — 평면 props API, size 반응형 판정, 슬롯 계산, 토큰 매핑 |
+| [component/radio/README.md](./component/radio/README.md) | Radio — RadioGroup(compound), Base UI Radio 기반, 토큰 매핑 |
+| [component/checkbox/README.md](./component/checkbox/README.md) | Checkbox — 단일 원자, variant(solid/subtle) 2종, Base UI Checkbox 기반 |
 
 ## feature/
 

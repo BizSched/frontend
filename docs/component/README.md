@@ -50,8 +50,10 @@
 
 ## 문서 목록
 
-| 경로                                           | 컴포넌트                                                 | 상태                  |
-| ---------------------------------------------- | -------------------------------------------------------- | --------------------- |
+| 경로                                 | 컴포넌트                                                | 상태                  |
+| ------------------------------------ | ------------------------------------------------------- | --------------------- |
 | [card/README.md](./card/README.md)             | Card — 공통 surface primitive, compound 슬롯, variant 축 | 구현 완료             |
-| [modal/README.md](./modal/README.md)           | Modal — compound 모달, Confirm 프리셋, overlay-kit 연동  | 설계 완료 · 구현 예정 |
-| [pagination/README.md](./pagination/README.md) | Pagination — 평면 props, size 반응형 판정, 슬롯 계산 훅  | 설계 완료 · 구현 예정 |
+| [modal/README.md](./modal/README.md) | Modal — compound 모달, Confirm 프리셋, overlay-kit 연동 | 설계 완료 · 구현 예정 |
+| [pagination/README.md](./pagination/README.md) | Pagination — 평면 props, size 반응형 판정, 슬롯 계산 훅 | 설계 완료 · 구현 예정 |
+| [radio/README.md](./radio/README.md) | Radio — RadioGroup(compound), Base UI Radio 기반 | 설계 완료 · 구현 예정 |
+| [checkbox/README.md](./checkbox/README.md) | Checkbox — 단일 원자, variant(solid/subtle) 2종, Base UI Checkbox 기반 | 설계 완료 · 구현 예정 |
