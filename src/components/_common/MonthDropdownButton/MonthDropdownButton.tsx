@@ -36,7 +36,7 @@ function MonthDropdownButton({
       className={cn(monthDropdownButtonVariants({ size, className }))}
       {...props}
     >
-      <span className="sr-only">월 선택, </span>
+      <span className="sr-only">월 선택: </span>
       {children}
       <ChevronDownIcon aria-hidden="true" />
     </ButtonPrimitive>

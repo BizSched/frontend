@@ -119,7 +119,7 @@ letter-spacing은 Figma 값이 `0`이라 `tracking-*`를 두지 않는다(`Butto
 - Base UI `Button`이 네이티브 `button`의 역할·`disabled` 동작을 담당한다.
 - `Menu.Trigger`로 조합되면 `aria-haspopup="menu"`, `aria-expanded`가 Base UI에 의해 붙는다. 단독 렌더 시에는 붙지 않으므로, 팝업 없이 쓰는 경우는 상정하지 않는다.
 - 아이콘은 장식이므로 `aria-hidden="true"`.
-- 버튼 안에 `<span className="sr-only">월 선택, </span>`을 라벨 앞에 렌더해 접근 가능한 이름을 `"월 선택, 9월"`로 만든다. `aria-label="월 선택"`을 직접 쓰면 라벨 텍스트를 덮어써 현재 선택된 월이 읽히지 않고, 보이는 텍스트가 이름에 포함되어야 한다는 WCAG 2.5.3(Label in Name)도 어기게 되어 이 방식을 택했다.
+- 버튼 안에 `<span className="sr-only">월 선택: </span>`을 라벨 앞에 렌더해 접근 가능한 이름을 `"월 선택: 9월"`로 만든다. `aria-label="월 선택"`을 직접 쓰면 라벨 텍스트를 덮어써 현재 선택된 월이 읽히지 않고, 보이는 텍스트가 이름에 포함되어야 한다는 WCAG 2.5.3(Label in Name)도 어기게 되어 이 방식을 택했다.
 - 포커스 표시는 `Button`과 동일한 `focus-visible:ring-3 focus-visible:ring-ring/50`.
 
 ## 렌더링 경계
@@ -139,7 +139,7 @@ test/components/_common/MonthDropdownButton/MonthDropdownButton.test.tsx
 | 렌더    | `children` 라벨 노출, 아이콘 렌더 + `aria-hidden`                                         |
 | variant | `size` `large`/`small`에 따른 클래스 적용, 기본값 `large`                                 |
 | 열림    | `data-popup-open` 부여 시 아이콘 회전 클래스 적용                                         |
-| 접근성  | 접근 가능한 이름이 `"월 선택, {라벨}"`, `role="button"`, `disabled` 시 클릭 이벤트 미발생 |
+| 접근성  | 접근 가능한 이름이 `"월 선택: {라벨}"`, `role="button"`, `disabled` 시 클릭 이벤트 미발생 |
 
 `Dropdown`과의 조합(열림/닫힘·`aria-expanded`)은 `Dropdown`이 병합된 뒤 Dropdown 테스트 쪽에서 다룬다.
 
@@ -169,7 +169,7 @@ Dropdown 설계 문서는 이 브랜치에 없고 `design/common-dropdown` 브�
 | 3   | 열림 상태 표현         | `data-popup-open` 기반 아이콘 180° 회전                                                                                              |
 | 4   | large 너비             | Figma의 84px 고정 대신 `min-w-[5.25rem]`(최소 84px). `10월`~`12월`은 라벨에 맞춰 넓어진다                                            |
 | 5   | Dropdown 스택과의 순서 | 이 PR 우선 병합, Dropdown 월 변경 단계가 이 브랜치를 base로 작업 ("단계별 PR 계획" 참고)                                             |
-| 6   | 접근 가능한 이름       | `"월 선택"` 라벨 부여. `sr-only` 접두어로 구현해 `"월 선택, 9월"`로 읽힌다("접근성" 참고)                                            |
+| 6   | 접근 가능한 이름       | `"월 선택"` 라벨 부여. `sr-only` 접두어(`월 선택: `)로 구현해 "라벨: 값" 형태인 `"월 선택: 9월"`로 읽힌다("접근성" 참고)             |
 
 ## 확인 필요
 
