@@ -49,12 +49,13 @@ docs/
 
 `src/components/_common/`에 들어가는 공통 컴포넌트의 설계 문서를 모은다. **앞으로 추가되는 공통 컴포넌트 설계는 `component/{컴포넌트}/README.md`에 작성한다.**
 
-| 경로                                                               | 내용                                                                |
-| ------------------------------------------------------------------ | ------------------------------------------------------------------- |
-| [component/README.md](./component/README.md)                       | 작성 규칙, `convention/`과의 차이, 문서 목록                        |
-| [component/card/README.md](./component/card/README.md)             | Card — 공통 surface primitive, compound 슬롯, variant 축            |
-| [component/modal/README.md](./component/modal/README.md)           | Modal — compound 슬롯, variant, 토큰 매핑, overlay-kit 연동         |
-| [component/pagination/README.md](./component/pagination/README.md) | Pagination — 평면 props API, size 반응형 판정, 슬롯 계산, 토큰 매핑 |
+| 경로                                                                     | 내용                                                                |
+| ------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| [component/README.md](./component/README.md)                             | 작성 규칙, `convention/`과의 차이, 문서 목록                        |
+| [component/card/README.md](./component/card/README.md)                   | Card — 공통 surface primitive, compound 슬롯, variant 축            |
+| [component/modal/README.md](./component/modal/README.md)                 | Modal — compound 슬롯, variant, 토큰 매핑, overlay-kit 연동         |
+| [component/pagination/README.md](./component/pagination/README.md)       | Pagination — 평면 props API, size 반응형 판정, 슬롯 계산, 토큰 매핑 |
+| [component/select-button/README.md](./component/select-button/README.md) | SelectButton — Toggle 기반 선택 상태, 고정 라벨 너비, 그림자 토큰   |
 
 ## feature/
 
