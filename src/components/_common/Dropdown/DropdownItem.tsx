@@ -2,6 +2,7 @@
 
 import { Menu } from '@base-ui/react/menu';
 import { cva, type VariantProps } from 'class-variance-authority';
+import { useEffect, useRef } from 'react';
 
 import { cn } from '@lib/utilities/cn';
 
@@ -28,6 +29,10 @@ const dropdownItemCellVariants = cva(
         large: 'rounded-[12px] p-[8px] text-[16px] leading-[24px]',
         small: 'rounded-[8px] px-[6px] py-[3px] text-[14px] leading-[20px]',
       },
+      isSelected: {
+        true: 'bg-primary-alpha-30 font-semibold',
+        false: '',
+      },
     },
     compoundVariants: [
       {
@@ -41,6 +46,7 @@ const dropdownItemCellVariants = cva(
     ],
     defaultVariants: {
       size: 'large',
+      isSelected: false,
     },
   },
 );
@@ -50,21 +56,51 @@ interface DropdownItemProps
     Omit<Menu.Item.Props, 'className'>,
     VariantProps<typeof dropdownItemVariants> {
   className?: string;
+  isSelected?: boolean;
 }
 
 function DropdownItem({
   size,
+  isSelected = false,
   className,
   children,
   ...props
 }: DropdownItemProps) {
+  const itemRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isSelected) return;
+
+    const item = itemRef.current;
+    const content = item?.closest<HTMLElement>(
+      '[data-slot="dropdown-content"]',
+    );
+    if (!item || !content) return;
+
+    const frame = requestAnimationFrame(() => {
+      const itemTop =
+        item.getBoundingClientRect().top -
+        content.getBoundingClientRect().top +
+        content.scrollTop;
+      content.scrollTop =
+        itemTop - (content.clientHeight - item.offsetHeight) / 2;
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [isSelected]);
+
   return (
     <Menu.Item
+      ref={itemRef}
       data-slot="dropdown-item"
+      data-selected={isSelected || undefined}
+      aria-current={isSelected || undefined}
       className={cn(dropdownItemVariants({ size }), className)}
       {...props}
     >
-      <span className={dropdownItemCellVariants({ size })}>{children}</span>
+      <span className={cn(dropdownItemCellVariants({ size, isSelected }))}>
+        {children}
+      </span>
     </Menu.Item>
   );
 }
