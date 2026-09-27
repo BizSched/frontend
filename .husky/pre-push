@@ -1,38 +1,65 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 BOLD='\033[1m'
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 YELLOW='\033[0;33m'
 CYAN='\033[0;36m'
 RESET='\033[0m'
+TEST_CHANGED_REMOTE="${TEST_CHANGED_REMOTE:-origin}"
+TEST_CHANGED_BRANCH="${TEST_CHANGED_BRANCH:-dev}"
+TEST_CHANGED_BASE="$TEST_CHANGED_REMOTE/$TEST_CHANGED_BRANCH"
 
-echo ""
-echo -e "${CYAN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo -e "${CYAN}${BOLD}  🚀 Pre-push Check                               ${RESET}"
-echo -e "${CYAN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo ""
+print_line() {
+  printf '%b\n' "$1"
+}
 
-STEPS=("type-check" "lint" "test --changed origin/dev")
-TOTAL=${#STEPS[@]}
+print_line ""
+print_line "${CYAN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+print_line "${CYAN}${BOLD}  🚀 Pre-push Check                               ${RESET}"
+print_line "${CYAN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+print_line ""
+
+TOTAL=3
 STEP=1
 
-for CMD in "${STEPS[@]}"; do
-  echo -e "${YELLOW}${BOLD}[$STEP/$TOTAL] Running pnpm run $CMD...${RESET}"
-  echo -e "${CYAN}──────────────────────────────────────────────────${RESET}"
+run_step() {
+  CMD="$*"
+  SCRIPT=$1
+  shift
 
-  if ! pnpm run "$CMD"; then
-    echo ""
-    echo -e "${RED}${BOLD}✖ '$CMD' failed — push aborted${RESET}"
-    echo ""
+  if [ "$SCRIPT" = "test" ]; then
+    print_line "${YELLOW}${BOLD}[$STEP/$TOTAL] Running vitest changed tests...${RESET}"
+  else
+    print_line "${YELLOW}${BOLD}[$STEP/$TOTAL] Running pnpm run $CMD...${RESET}"
+  fi
+  print_line "${CYAN}──────────────────────────────────────────────────${RESET}"
+
+  if [ "$SCRIPT" = "test" ]; then
+    git fetch "$TEST_CHANGED_REMOTE" "$TEST_CHANGED_BRANCH" --quiet
+    RUN_RESULT=0
+    pnpm exec vitest run --changed "$TEST_CHANGED_BASE" --passWithNoTests || RUN_RESULT=$?
+  else
+    RUN_RESULT=0
+    pnpm run "$SCRIPT" || RUN_RESULT=$?
+  fi
+
+  if [ "$RUN_RESULT" -ne 0 ]; then
+    print_line ""
+    print_line "${RED}${BOLD}✖ '$CMD' failed — push aborted${RESET}"
+    print_line ""
     exit 1
   fi
 
-  echo -e "${GREEN}✔ $CMD passed${RESET}"
-  echo ""
+  print_line "${GREEN}✔ $CMD passed${RESET}"
+  print_line ""
   STEP=$((STEP + 1))
-done
+}
 
-echo -e "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo -e "${GREEN}${BOLD}  ✅ All checks passed! Pushing...                ${RESET}"
-echo -e "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-echo ""
+run_step "type-check"
+run_step "lint"
+run_step test --changed "$TEST_CHANGED_BASE"
+
+print_line "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+print_line "${GREEN}${BOLD}  ✅ All checks passed! Pushing...                ${RESET}"
+print_line "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+print_line ""
