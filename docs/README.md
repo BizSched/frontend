@@ -57,6 +57,7 @@ docs/
 | [component/pagination/README.md](./component/pagination/README.md)                       | Pagination — 평면 props API, size 반응형 판정, 슬롯 계산, 토큰 매핑             |
 | [component/dropdown/README.md](./component/dropdown/README.md)                           | Dropdown — 팝업 리스트 평면 API, variant, 토큰 매핑, 월 변경·Form 드롭다운 설계 |
 | [component/month-dropdown-button/README.md](./component/month-dropdown-button/README.md) | MonthDropdownButton — 월 선택 드롭다운 트리거, size 축, 토큰 매핑               |
+| [component/month-select-dropdown/README.md](./component/month-select-dropdown/README.md) | MonthSelectDropdown — 월 선택 트리거 + 월 리스트 팝업 조합, 스크롤, controlled  |
 
 ## feature/
 
