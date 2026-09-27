@@ -11,7 +11,7 @@ import { cn } from '@lib/utilities/cn';
 import { InputIcon } from './InputIcon';
 
 const inputVariants = cva(
-  'flex w-full items-center border bg-white-50 tracking-[-0.02em] transition-colors outline-none placeholder:text-slate-300 focus:outline-none',
+  'flex w-full items-center border bg-white-50 tracking-[-0.02em] transition-colors focus-within:ring-2 focus-within:ring-primary-500',
   {
     variants: {
       size: {
@@ -100,7 +100,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         data-slot="input"
         disabled={isDisabled}
         aria-invalid={ariaInvalid ?? (resolvedStatus === 'error' || undefined)}
-        className="placeholder:inherit min-w-0 flex-1 bg-transparent outline-none"
+        className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-slate-500"
         {...rest}
       />
       {resolvedRightSlot && (
