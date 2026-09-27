@@ -365,7 +365,7 @@ describe('InputField', () => {
     expect(input.parentElement).toHaveClass('border-warning-500');
   });
 
-  it('label, 설명, 오류를 연결하고 기존 설명과 ref를 보존한다', () => {
+  it('오류가 있으면 안내 문구를 숨기고 label, 외부 설명, 오류와 ref를 보존한다', () => {
     const ref = createRef<HTMLInputElement>();
     render(
       <>
@@ -388,11 +388,14 @@ describe('InputField', () => {
     expect(input).toHaveAttribute('aria-invalid', 'true');
     expect(input).toHaveAttribute(
       'aria-describedby',
-      'external-help email-description email-error',
+      'external-help email-error',
     );
     expect(input).toHaveAccessibleDescription(
-      '회사 계정을 사용하세요 이메일 주소를 입력하세요 잘못된 이메일입니다',
+      '회사 계정을 사용하세요 잘못된 이메일입니다',
     );
+    expect(
+      screen.queryByText('이메일 주소를 입력하세요'),
+    ).not.toBeInTheDocument();
     expect(input.parentElement).toHaveClass('border-warning-500');
   });
 

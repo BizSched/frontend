@@ -262,6 +262,7 @@ radius 임의값이 Button, Card, Modal에서도 반복된다면 전역 radius s
 - placeholder를 label 대체로 쓰지 않는다. 보이는 label이 없는 경우 호출부가 `aria-label` 또는 `aria-labelledby`를 제공한다.
 - 보이지 않는 label이 필요하면 `display: none`이 아니라 `sr-only`를 사용한다.
 - 에러 메시지는 `InputField`가 `aria-describedby`로 연결하고, 에러 상태에서는 `aria-invalid`를 설정한다.
+- `errorMessage`가 있으면 `description`은 숨기고 `aria-describedby`에서도 제외한다. 호출부가 전달한 외부 설명 연결은 유지하며, 오류가 해제되면 `description`을 다시 표시하고 연결한다.
 - password 보기/숨김, clear 같은 버튼은 명확한 접근성 이름을 가져야 한다.
 - file input은 visible trigger와 숨겨진 input을 label 또는 id/htmlFor로 연결한다.
 - 검색 입력은 `Input variant="search"`와 `type="search"`로 사용하고, 검색 실행 방식은 호출부가 결정한다.
