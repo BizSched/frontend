@@ -51,7 +51,8 @@ docs/
 
 | 경로                                                               | 내용                                                                |
 | ------------------------------------------------------------------ | ------------------------------------------------------------------- |
-| [component/README.md](./component/README.md)                       | 작성 규칙, `convention/`과의 차이, 문서 목록                        |     |
+| [component/README.md](./component/README.md)                       | 작성 규칙, `convention/`과의 차이, 문서 목록                        |
+| [component/card/README.md](./component/card/README.md)             | Card — 공통 surface primitive, compound 슬롯, variant 축            |
 | [component/modal/README.md](./component/modal/README.md)           | Modal — compound 슬롯, variant, 토큰 매핑, overlay-kit 연동         |
 | [component/pagination/README.md](./component/pagination/README.md) | Pagination — 평면 props API, size 반응형 판정, 슬롯 계산, 토큰 매핑 |
 | [component/input/README.md](./component/input/README.md)           | Input — 입력 primitive, 검색·파일·이미지 입력 설계                  |
