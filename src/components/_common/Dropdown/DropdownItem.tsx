@@ -12,11 +12,17 @@ const dropdownItemVariants = cva(
     variants: {
       size: {
         large: 'p-[6px]',
+        medium: 'flex h-11 items-center p-[5px]',
         small: 'p-[5px]',
+      },
+      hasDivider: {
+        true: 'border-b border-slate-100 last:border-b-0',
+        false: '',
       },
     },
     defaultVariants: {
       size: 'large',
+      hasDivider: false,
     },
   },
 );
@@ -27,6 +33,8 @@ const dropdownItemCellVariants = cva(
     variants: {
       size: {
         large: 'rounded-[12px] p-[8px] text-[16px] leading-[24px]',
+        medium:
+          'flex-1 rounded-[8px] px-[6px] py-[3px] text-[14px] leading-[20px]',
         small: 'rounded-[8px] px-[6px] py-[3px] text-[14px] leading-[20px]',
       },
       isSelected: {
@@ -40,7 +48,7 @@ const dropdownItemCellVariants = cva(
         className: 'group-focus/dropdown-item:bg-slate-200',
       },
       {
-        size: 'small',
+        size: ['medium', 'small'],
         className: 'group-focus/dropdown-item:bg-primary-alpha-20',
       },
     ],
@@ -61,6 +69,7 @@ interface DropdownItemProps
 
 function DropdownItem({
   size,
+  hasDivider,
   isSelected = false,
   className,
   children,
@@ -95,7 +104,7 @@ function DropdownItem({
       data-slot="dropdown-item"
       data-selected={isSelected || undefined}
       aria-current={isSelected || undefined}
-      className={cn(dropdownItemVariants({ size }), className)}
+      className={cn(dropdownItemVariants({ size, hasDivider }), className)}
       {...props}
     >
       <span className={cn(dropdownItemCellVariants({ size, isSelected }))}>

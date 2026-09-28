@@ -30,7 +30,7 @@ const monthSelectDropdownContentVariants = cva(
 interface MonthSelectDropdownProps {
   value: number;
   onChange: (month: number) => void;
-  size?: DropdownSize;
+  size?: Exclude<DropdownSize, 'medium'>;
   className?: string;
 }
 

@@ -11,6 +11,7 @@ const dropdownContentVariants = cva(
     variants: {
       size: {
         large: 'w-100 rounded-[16px]',
+        medium: 'w-37.5 rounded-[12px]',
         small: 'w-25.5 rounded-[12px]',
       },
     },

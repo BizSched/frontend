@@ -6,7 +6,7 @@ import type { ReactElement } from 'react';
 import { DropdownContent } from './DropdownContent';
 import { DropdownItem } from './DropdownItem';
 
-type DropdownSize = 'large' | 'small';
+type DropdownSize = 'large' | 'medium' | 'small';
 
 interface DropdownOption {
   label: string;
@@ -19,6 +19,7 @@ interface DropdownProps {
   items: DropdownOption[];
   size?: DropdownSize;
   sideOffset?: number;
+  hasDivider?: boolean;
   className?: string;
 }
 
@@ -27,6 +28,7 @@ function Dropdown({
   items,
   size = 'large',
   sideOffset,
+  hasDivider,
   className,
 }: DropdownProps) {
   return (
@@ -41,6 +43,7 @@ function Dropdown({
           <DropdownItem
             key={`${item.label}-${index}`}
             size={size}
+            hasDivider={hasDivider}
             isSelected={item.isSelected}
             onClick={item.onSelect}
           >
