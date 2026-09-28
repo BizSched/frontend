@@ -12,7 +12,7 @@ function CalendarDayButton({
   return (
     <DayPickerDayButton
       className={cn(
-        'max-desktop:p-1.5 absolute inset-0 flex cursor-pointer items-start justify-start p-2 text-xs leading-4 text-slate-400 outline-none',
+        'max-tablet:p-1.5 absolute inset-0 flex cursor-pointer items-start justify-start p-2 text-xs leading-4 text-slate-400 outline-none',
         'focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-slate-500',
         className,
       )}

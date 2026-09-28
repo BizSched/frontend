@@ -47,11 +47,11 @@ function CalendarHeader({
   return (
     <header
       className={cn(
-        'max-desktop:px-4 flex items-center px-8 py-5',
+        'max-tablet:px-4 flex items-center px-8 py-5',
         headerSlot &&
-          'max-desktop:flex-col max-desktop:items-stretch justify-between gap-4',
+          'max-tablet:flex-col max-tablet:items-stretch justify-between gap-4',
         !headerSlot && 'justify-center',
-        'max-tablet:px-4 max-tablet:py-6',
+        'max-mobile:py-6',
       )}
     >
       {navigation}
