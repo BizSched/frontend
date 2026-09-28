@@ -50,10 +50,8 @@
 Shadcn 생성물을 기반으로 아래와 같이 구성한다. 문서 작성 단계에서 파일이나 의존성을 생성하지 않는다.
 
 ```text
-src/components/_common/ui/
-└── calendar.tsx             # Shadcn Calendar, DayPicker 연결·기본 접근성
-
 src/components/_common/Calendar/
+├── BaseCalendar.tsx         # Shadcn Calendar, DayPicker 연결·기본 접근성
 ├── Calendar.tsx             # 문자열 API 어댑터, Shadcn 조합·스타일
 ├── CalendarHeader.tsx       # 월 제목·화살표와 headerSlot 배치
 ├── CalendarDayCell.tsx      # Day 슬롯 확장, 날짜 버튼·일정·더보기 형제 배치
@@ -80,7 +78,7 @@ src/components/task/calendar/
 
 [Shadcn 공식 Calendar 문서](https://ui.shadcn.com/docs/components/base/calendar)에 따르면 Calendar는 React DayPicker 기반이며 단일 날짜 선택을 지원한다. [DayPicker의 커스텀 컴포넌트 가이드](https://daypicker.dev/guides/custom-components)는 날짜 셀 콘텐츠 추가와 기본 컴포넌트 조합을 지원한다. 이를 활용해 월간 일정 보드를 구성한다.
 
-- 저장소의 `base-nova` 설정으로 Calendar를 생성하고 `_common/ui/calendar.tsx`를 기반으로 사용한다. 서비스 공개 컴포넌트는 `_common/Calendar/Calendar.tsx`에 둔다.
+- 저장소의 `base-nova` 설정으로 Calendar를 생성하고 `_common/Calendar/BaseCalendar.tsx`를 기반으로 사용한다. 서비스 공개 컴포넌트는 같은 디렉터리의 `_common/Calendar/Calendar.tsx`에 둔다. 다른 공통 컴포넌트의 Shadcn 원시 파일은 여전히 `_common/ui/`를 따르며, Calendar는 `Calendar.tsx`와의 이름 충돌을 피하기 위한 예외다([folder-structure.md](../../architecture/folder-structure.md) 참고).
 - 단일 선택, 월요일 시작, 인접 월 날짜 표시, 4~6주 가변 행을 설정한다. 재선택 해제와 중복 변경 콜백은 공개 컴포넌트에서 막는다.
 - `month`·선택일·`today`는 공개 API에서 문자열로 유지한다. DayPicker가 요구하는 날짜 객체는 Client 내부 어댑터에서 `Asia/Seoul` 기준으로 변환하고, 콜백 결과는 날짜 문자열로 돌려준다. 날짜 객체를 Server → Client 경계에 전달하지 않는다.
 - `Day` 셀을 확장해 기본 날짜 버튼 옆에 일정 칩·점·`+N`을 넣는다. `DayButton` 안에 클릭 가능한 일정 버튼을 넣지 않는다. 기본 ref·ARIA·tabIndex·키보드 이벤트를 보존한다.
