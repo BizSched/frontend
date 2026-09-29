@@ -59,3 +59,5 @@
 | [month-dropdown-button/README.md](./month-dropdown-button/README.md) | MonthDropdownButton — 월 선택 드롭다운 트리거, size 축   | 구현 완료             |
 | [datepicker/README.md](./datepicker/README.md) | DatePicker — 버퍼링 선택(취소/확인), react-day-picker 셀 커스터마이징 | 설계 완료 · 구현 예정 |
 | [input/README.md](./input/README.md)                                 | Input — 입력 primitive, 검색·파일·이미지 입력 설계       | 설계 완료 · 구현 예정 |
+| [radio/README.md](./radio/README.md) | Radio — RadioGroup(compound), Base UI Radio 기반 | 설계 완료 · 구현 예정 |
+| [checkbox/README.md](./checkbox/README.md) | Checkbox — 단일 원자, variant(solid/subtle) 2종, Base UI Checkbox 기반 | 설계 완료 · 구현 예정 |
