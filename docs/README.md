@@ -62,6 +62,7 @@ docs/
 | [component/dropdown/README.md](./component/dropdown/README.md)                           | Dropdown — 팝업 리스트 평면 API, variant, 토큰 매핑, 월 변경·Form 드롭다운 설계 |
 | [component/month-dropdown-button/README.md](./component/month-dropdown-button/README.md) | MonthDropdownButton — 월 선택 드롭다운 트리거, size 축, 토큰 매핑               |
 | [component/month-select-dropdown/README.md](./component/month-select-dropdown/README.md) | MonthSelectDropdown — 월 선택 트리거 + 월 리스트 팝업 조합, 스크롤, controlled  |
+| [component/form-dropdown/README.md](./component/form-dropdown/README.md)                 | FormDropdown — Form 트리거 + 옵션 팝업 조합, medium size·구분선, controlled     |
 | [component/datepicker/README.md](./component/datepicker/README.md) | DatePicker — 버퍼링 선택(취소/확인), 셀 타입 매핑, 토큰 매핑        |
 | [component/input/README.md](./component/input/README.md)                                 | Input — 입력 primitive, 검색·파일·이미지 입력 설계  
 | [component/radio/README.md](./component/radio/README.md) | Radio — RadioGroup(compound), Base UI Radio 기반, 토큰 매핑 |

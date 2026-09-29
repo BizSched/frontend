@@ -30,7 +30,7 @@ Figma에서 지정된 4개 화면은 **"팝업 리스트"라는 같은 부품을
 | API 형태       | **compound 아님. 평면 props** — `items` 배열 + `children`(트리거)                        | [pagination](../pagination/README.md)과 동일한 이유. Figma 인스턴스 구조가 균일해 슬롯을 열 필요가 없다. 트리거만 임의 요소로 교체 가능하면 충분                                 |
 | 기반 primitive | Base UI `Menu`(`@base-ui/react/menu`)                                                    | 포커스 로빙·키보드 내비게이션(↑↓/Home/End/Esc)·anchor positioning을 제공. 직접 구현 시 [accessibility.md](../../convention/accessibility.md)의 WCAG 2.1 AA 목표 달성 비용이 크다 |
 | 시작점         | **생성물을 두지 않는다.** `@base-ui/react/menu`에 직접 의존해 `_common/Dropdown/`만 작성 | 아래 "`shadcn add dropdown-menu` 생성물 미사용 판단" 참고. Modal과 같은 기준 — 동작은 primitive가 전부 제공하고 디자인은 전부 다시 쓴다                                          |
-| ③④ 확장 방식   | **확인 필요** — 아래 "확인 필요" 참고                                                    | 팝업(`DropdownContent`)·리스트 셀(`DropdownItem`)은 그대로 재사용하지만, 트리거·선택 상태 관리를 하나의 compound로 묶을지 화면별 컴포넌트로 둘지는 결정하지 않는다               |
+| ③④ 확장 방식   | **확정** — 화면별 별도 컴포넌트(트리거 + 조합), controlled value/onChange                | 팝업(`DropdownContent`)·리스트 셀(`DropdownItem`)은 그대로 재사용하고, 트리거·선택 상태 연결은 화면별 컴포넌트가 맡는다. 아래 "확인 필요" 1번 참고                               |
 
 ## `shadcn add dropdown-menu` 생성물 미사용 판단
 
@@ -93,13 +93,14 @@ const items: DropdownOption[] = [
 </Dropdown>;
 ```
 
-| prop         | 기본값    | 설명                                          |
-| ------------ | --------- | --------------------------------------------- |
-| `children`   | —         | 트리거 요소. `Menu.Trigger`에 `render`로 위임 |
-| `items`      | —         | `DropdownOption[]`                            |
-| `size`       | `"large"` | `"large"` \| `"small"`                        |
-| `sideOffset` | —         | 트리거와 팝업 사이 간격(px). ③에서 추가       |
-| `className`  | —         | 팝업(`DropdownContent`)에 병합                |
+| prop         | 기본값    | 설명                                                        |
+| ------------ | --------- | ----------------------------------------------------------- |
+| `children`   | —         | 트리거 요소. `Menu.Trigger`에 `render`로 위임               |
+| `items`      | —         | `DropdownOption[]`                                          |
+| `size`       | `"large"` | `"large"` \| `"medium"` \| `"small"`. `medium`은 ④에서 추가 |
+| `sideOffset` | —         | 트리거와 팝업 사이 간격(px). ③에서 추가                     |
+| `hasDivider` | —         | 항목 사이 `border-b` 구분선(마지막 항목 제외). ④에서 추가   |
+| `className`  | —         | 팝업(`DropdownContent`)에 병합                              |
 
 `items`의 `isSelected`는 ③에서 추가됐다 — 아래 "DropdownItem 선택 상태" 참고.
 
@@ -132,10 +133,11 @@ const items: DropdownOption[] = [
 
 ### Dropdown (팝업 컨테이너)
 
-| 축     | 값      | 매핑                             |
-| ------ | ------- | -------------------------------- |
-| `size` | `large` | `w-100`(400px) `rounded-[16px]`  |
-|        | `small` | `w-25.5`(102px) `rounded-[12px]` |
+| 축     | 값       | 매핑                                          |
+| ------ | -------- | --------------------------------------------- |
+| `size` | `large`  | `w-100`(400px) `rounded-[16px]`               |
+|        | `medium` | `w-37.5`(150px) `rounded-[12px]` — ④에서 추가 |
+|        | `small`  | `w-25.5`(102px) `rounded-[12px]`              |
 
 공통: `drop-shadow-[0px_4px_8px_rgba(0,0,0,0.1)]`, `overflow-clip`.
 
@@ -152,10 +154,12 @@ const items: DropdownOption[] = [
 
 포커스(hover) 배경은 `size`에 따라 값이 달라 `compoundVariants`로 처리한다.
 
-| `size`  | 포커스 배경        |
-| ------- | ------------------ |
-| `large` | `#c6c5c5`          |
-| `small` | `#ffd377` 20% 알파 |
+| `size`             | 포커스 배경        |
+| ------------------ | ------------------ |
+| `large`            | `#c6c5c5`          |
+| `medium` / `small` | `#ffd377` 20% 알파 |
+
+`medium`(④에서 추가)은 셀·포커스 배경이 small과 같고, 항목 바깥을 `flex h-11 items-center`로 두어 높이만 44px로 늘린다. 구분선(`hasDivider`)은 `border-b border-slate-100 last:border-b-0` variant다. 자세한 값은 [form-dropdown/README.md](../form-dropdown/README.md) 참고.
 
 포커스 배경은 Base UI Menu의 roving-focus를 `group-focus/dropdown-item:` 셀렉터로 받아 적용한다. 마우스 hover도 Base UI가 포인터를 따라 DOM 포커스를 옮기므로 별도 `:hover` 규칙 없이 동일하게 동작한다.
 
@@ -194,6 +198,8 @@ Figma dropdown list에는 `state`가 `default`/`hover`뿐이고 **`selected`가 
 |      | `spread`(열림)  | 화살표 `chevron-up`, 트리거에 `shadow-[0px_2px_4px_rgba(0,0,0,0.08)]` 추가                          |
 
 `large`는 열렸을 때 팝업 리스트 항목 사이에 `border-b` 구분선(`slate/100`, `#dddcdc`)이 붙는다. ②·③·medium/small ④에는 구분선이 없다 — **large 전용 차이이므로 임의로 일반화하지 않는다.**
+
+> ④는 `FormDropdownButton` + `FormDropdown`으로 구현했다 — [form-dropdown/README.md](../form-dropdown/README.md). 구분선은 `Dropdown`의 `hasDivider` 옵션으로 두고 `FormDropdown`이 large에서만 켠다.
 
 ## 디자인 토큰 매핑
 
@@ -295,13 +301,13 @@ GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-star
 
 월 변경(③)과 Form 드롭다운(④)을 하나의 "Select" 계열 compound로 묶을지, 트리거별 별도 컴포넌트로 만들지. 값 선택 상태(controlled value/onChange)를 컴포넌트가 가질지 호출부가 가질지도 함께 확인한다.
 
-> ③은 **별도 컴포넌트 `MonthSelectDropdown`(controlled)** 으로 확정했다 — [month-select-dropdown/README.md](../month-select-dropdown/README.md). ④는 ④ 단계에서 확인한다.
+> **확정** — ③은 **별도 컴포넌트 `MonthSelectDropdown`(controlled)** — [month-select-dropdown/README.md](../month-select-dropdown/README.md). ④도 같은 구조로 **트리거 `FormDropdownButton` + 조합 `FormDropdown`(controlled)** — [form-dropdown/README.md](../form-dropdown/README.md). 하나의 Select compound로 묶지 않는다.
 
 ### 2. 그림자 토큰 4종
 
 "디자인 토큰 매핑 — 신설 필요"의 4개 그림자 값을 화면별 토큰으로 각각 만들지, 하나로 통합할지, 토큰화 없이 arbitrary value를 유지할지.
 
-> ③은 arbitrary value를 유지한다. 토큰 신설 여부는 ④까지 끝난 뒤 4종을 한 번에 검토한다.
+> ③④ 모두 arbitrary value를 유지했다. ④까지 구현이 끝났으므로 4종을 한 번에 검토할 차례이며, 결정 전까지는 arbitrary value를 유지한다.
 
 ### 3. 색상 불일치 매핑 방침
 
