@@ -55,4 +55,18 @@
 | [card/README.md](./card/README.md)                                   | Card — 공통 surface primitive, compound 슬롯, variant 축 | 구현 완료             |
 | [modal/README.md](./modal/README.md)                                 | Modal — compound 모달, Confirm 프리셋, overlay-kit 연동  | 설계 완료 · 구현 예정 |
 | [pagination/README.md](./pagination/README.md)                       | Pagination — 평면 props, size 반응형 판정, 슬롯 계산 훅  | 설계 완료 · 구현 예정 |
+| [dropdown/README.md](./dropdown/README.md)                           | Dropdown — 팝업 리스트 평면 API, 월 변경·Form 드롭다운 트리거 설계 | 설계 완료 · 구현 예정 |
+| [button/README.md](./button/README.md)         | Button — hierarchy × size variant, 버튼 계열 분리 계획                                    | 구현 완료 · 병합 대기   |
+| [IconButton/README.md](./IconButton/README.md) | IconButton — 원형 shape만 공유하는 4개 독립 컴포넌트(Social/Notification/ReadMore/Delete) | 구현 완료 · 테스트 예정 |
+| [TextButton/README.md](./TextButton/README.md) | TextButton — `size` variant, `state`는 hover pseudo-class, Button의 sibling 컴포넌트 | 설계 완료 · 구현 예정 |
+| [select-button/README.md](./select-button/README.md) | SelectButton — Base UI Toggle 기반 선택 버튼, `data-pressed` 스타일링 | 설계 완료 · 구현 예정 |
 | [month-dropdown-button/README.md](./month-dropdown-button/README.md) | MonthDropdownButton — 월 선택 드롭다운 트리거, size 축   | 구현 완료             |
+| [month-select-dropdown/README.md](./month-select-dropdown/README.md) | MonthSelectDropdown — 월 선택 트리거 + 월 리스트 팝업 조합, controlled | 설계 완료 · 구현 예정 |
+| [form-dropdown/README.md](./form-dropdown/README.md)                 | FormDropdown — Form 트리거(FormDropdownButton) + 옵션 팝업 조합, controlled | 설계 완료 · 구현 예정 |
+| [datepicker/README.md](./datepicker/README.md) | DatePicker — 버퍼링 선택(취소/확인), react-day-picker 셀 커스터마이징 | 설계 완료 · 구현 예정 |
+| [input/README.md](./input/README.md)                                 | Input — 입력 primitive, 검색·파일·이미지 입력 설계       | 설계 완료 · 구현 예정 |
+| [radio/README.md](./radio/README.md) | Radio — RadioGroup(compound), Base UI Radio 기반 | 설계 완료 · 구현 예정 |
+| [checkbox/README.md](./checkbox/README.md) | Checkbox — 단일 원자, variant(solid/subtle) 2종, Base UI Checkbox 기반 | 설계 완료 · 구현 예정 |
+| [pagination/README.md](./pagination/README.md) | Pagination — 평면 props, size 반응형 판정, 슬롯 계산 훅, URL `?page=` 연동 | 설계 완료 · 구현 완료 |
+| [chart/README.md](./chart/README.md)           | Chart — 누적 막대·도넛 compound, `config` 색 주입, 빈 상태·로딩 스켈레톤 슬롯 | 설계 완료 · 구현 예정 |
+| [calendar/README.md](./calendar/README.md)                           | Calendar — 단일 날짜 선택, 월 이동, 일정 칩·모바일 점, Dropdown 조합 | 설계 완료 · 구현 예정 |

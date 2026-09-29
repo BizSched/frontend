@@ -1,7 +1,6 @@
 # 공통 UI 규칙
 
-- Button·Input·Dialog 등 기본 UI는 Shadcn/ui 기반, `src/components/_common/ui/`에서 관리
-  (Composition pattern으로 선언적 구성)
+- ~~Button·Input·Dialog 등 기본 UI는 Shadcn/ui 기반, `src/components/_common/ui/`에서 관리 (Composition pattern으로 선언적 구성)~~ → Shadcn/ui 기반의 재구성한 컴포넌트를 `_common/<Component>/<Component>.tsx`에 둔다 (Composition pattern으로 선언적 구성)
 - 여러 화면에서 쓰는 서비스 컴포넌트는 `src/components/`, 특정 화면 전용은 해당 화면 근처에 배치
 - 공통 컴포넌트에 특정 페이지의 API·비즈니스 로직을 넣지 않는다 (→ `hooks/`로 분리)
 - 반복되는 디자인 차이는 `class-variance-authority(cva)`로 `variant`·`size`를 정의한다

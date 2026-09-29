@@ -11,8 +11,8 @@ App Router에서 `"use client"`가 없는 컴포넌트는 Server Component다. �
 
 다음 네 가지 중 **하나 이상**이 필요한 경우에만 `"use client"`를 추가한다.
 
-| 번호 | 트리거                 | 예시                                                                              |
-| ---- | ---------------------- | --------------------------------------------------------------------------------- |
+| 번호 | 트리거                 | 예시                                                                               |
+| ---- | ---------------------- | ---------------------------------------------------------------------------------- |
 | 1    | 상태·생명주기 훅       | `useState`, `useReducer`, `useEffect`, `useLayoutEffect`, `useRef`                 |
 | 2    | 브라우저 전용 API      | `window`, `document`, `localStorage`, `sessionStorage`, `IntersectionObserver`     |
 | 3    | DOM 이벤트 핸들러      | `onClick`, `onChange`, `onSubmit`, `onKeyDown`                                     |
