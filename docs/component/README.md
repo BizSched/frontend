@@ -67,3 +67,4 @@
 | [checkbox/README.md](./checkbox/README.md) | Checkbox — 단일 원자, variant(solid/subtle) 2종, Base UI Checkbox 기반 | 설계 완료 · 구현 예정 |
 | [pagination/README.md](./pagination/README.md) | Pagination — 평면 props, size 반응형 판정, 슬롯 계산 훅, URL `?page=` 연동 | 설계 완료 · 구현 완료 |
 | [chart/README.md](./chart/README.md)           | Chart — 누적 막대·도넛 compound, `config` 색 주입, 빈 상태·로딩 스켈레톤 슬롯 | 설계 완료 · 구현 예정 |
+| [calendar/README.md](./calendar/README.md)                           | Calendar — 단일 날짜 선택, 월 이동, 일정 칩·모바일 점, Dropdown 조합 | 설계 완료 · 구현 예정 |
