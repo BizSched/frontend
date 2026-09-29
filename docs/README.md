@@ -57,7 +57,8 @@ docs/
 | [component/pagination/README.md](./component/pagination/README.md)                       | Pagination — 평면 props API, size 반응형 판정, 슬롯 계산, 토큰 매핑 |
 | [component/button/README.md](./component/button/README.md)         | Button — hierarchy × size variant, 버튼 계열 컴포넌트 분리 계획                           |
 | [component/IconButton/README.md](./component/IconButton/README.md) | IconButton — 원형 shape만 공유하는 4개 독립 컴포넌트(Social/Notification/ReadMore/Delete) |
-| [component/TextButton/README.md](./component/TextButton/README.md) | TextButton — `size` variant, hover pseudo-class 방식 state, Button의 형제 컴포넌트 |
+| [component/TextButton/README.md](./component/TextButton/README.md) | TextButton — `size` variant, hover pseudo-class 방식 state, Button의 형제 컴포넌트 |\
+| [component/select-button/README.md](./component/select-button/README.md) | SelectButton — Toggle 기반 선택 상태, 고정 라벨 너비, 그림자 토큰   |
 | [component/dropdown/README.md](./component/dropdown/README.md)                           | Dropdown — 팝업 리스트 평면 API, variant, 토큰 매핑, 월 변경·Form 드롭다운 설계 |
 | [component/month-dropdown-button/README.md](./component/month-dropdown-button/README.md) | MonthDropdownButton — 월 선택 드롭다운 트리거, size 축, 토큰 매핑   |
 | [component/datepicker/README.md](./component/datepicker/README.md) | DatePicker — 버퍼링 선택(취소/확인), 셀 타입 매핑, 토큰 매핑        |

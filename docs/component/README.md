@@ -59,6 +59,7 @@
 | [button/README.md](./button/README.md)         | Button — hierarchy × size variant, 버튼 계열 분리 계획                                    | 구현 완료 · 병합 대기   |
 | [IconButton/README.md](./IconButton/README.md) | IconButton — 원형 shape만 공유하는 4개 독립 컴포넌트(Social/Notification/ReadMore/Delete) | 구현 완료 · 테스트 예정 |
 | [TextButton/README.md](./TextButton/README.md) | TextButton — `size` variant, `state`는 hover pseudo-class, Button의 sibling 컴포넌트 | 설계 완료 · 구현 예정 |
+| [select-button/README.md](./select-button/README.md) | SelectButton — Base UI Toggle 기반 선택 버튼, `data-pressed` 스타일링 | 설계 완료 · 구현 예정 |
 | [month-dropdown-button/README.md](./month-dropdown-button/README.md) | MonthDropdownButton — 월 선택 드롭다운 트리거, size 축   | 구현 완료             |
 | [datepicker/README.md](./datepicker/README.md) | DatePicker — 버퍼링 선택(취소/확인), react-day-picker 셀 커스터마이징 | 설계 완료 · 구현 예정 |
 | [input/README.md](./input/README.md)                                 | Input — 입력 primitive, 검색·파일·이미지 입력 설계       | 설계 완료 · 구현 예정 |
