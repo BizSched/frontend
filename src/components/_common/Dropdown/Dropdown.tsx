@@ -10,6 +10,7 @@ type DropdownSize = 'large' | 'small';
 
 interface DropdownOption {
   label: string;
+  isSelected?: boolean;
   onSelect?: () => void;
 }
 
@@ -17,6 +18,7 @@ interface DropdownProps {
   children: ReactElement;
   items: DropdownOption[];
   size?: DropdownSize;
+  sideOffset?: number;
   className?: string;
 }
 
@@ -24,16 +26,22 @@ function Dropdown({
   children,
   items,
   size = 'large',
+  sideOffset,
   className,
 }: DropdownProps) {
   return (
     <Menu.Root>
       <Menu.Trigger data-slot="dropdown-trigger" render={children} />
-      <DropdownContent size={size} className={className}>
+      <DropdownContent
+        size={size}
+        sideOffset={sideOffset}
+        className={className}
+      >
         {items.map((item, index) => (
           <DropdownItem
             key={`${item.label}-${index}`}
             size={size}
+            isSelected={item.isSelected}
             onClick={item.onSelect}
           >
             {item.label}

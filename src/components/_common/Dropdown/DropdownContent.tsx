@@ -25,12 +25,18 @@ interface DropdownContentProps
     Omit<Menu.Popup.Props, 'className'>,
     VariantProps<typeof dropdownContentVariants> {
   className?: string;
+  sideOffset?: number;
 }
 
-function DropdownContent({ size, className, ...props }: DropdownContentProps) {
+function DropdownContent({
+  size,
+  className,
+  sideOffset,
+  ...props
+}: DropdownContentProps) {
   return (
     <Menu.Portal>
-      <Menu.Positioner data-slot="dropdown-positioner">
+      <Menu.Positioner data-slot="dropdown-positioner" sideOffset={sideOffset}>
         <Menu.Popup
           data-slot="dropdown-content"
           className={cn(dropdownContentVariants({ size }), className)}
