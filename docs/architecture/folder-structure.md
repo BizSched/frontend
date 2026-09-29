@@ -21,7 +21,7 @@
 
 ## 타입 정의 파일 위치
 
-`interface`는 각 레이어 폴더(`hooks`, `lib`, `provider`, `store`) 하위의 `types/`에 분리해서 선언한다. (`components`는 내부에서 관리)
+`interface`는 각 레이어 폴더(`hooks`, `lib`, `providers`, `stores`) 하위의 `types/`에 분리해서 선언한다. (`components`는 내부에서 관리)
 
 ## app/ 구조
 
