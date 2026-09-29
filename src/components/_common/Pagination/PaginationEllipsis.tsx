@@ -1,12 +1,11 @@
 import { EllipsisIcon } from 'lucide-react';
 import type { ComponentPropsWithRef } from 'react';
 
+import type { PaginationSize } from '@hooks/pagination/usePaginationSize';
+
 import { cn } from '@lib/utilities/cn';
 
-import {
-  paginationButtonVariants,
-  type PaginationSize,
-} from './PaginationButton';
+import { paginationButtonVariants } from './PaginationButton';
 
 interface PaginationEllipsisProps extends Omit<
   ComponentPropsWithRef<'span'>,
