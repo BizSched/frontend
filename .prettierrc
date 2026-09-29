@@ -14,7 +14,7 @@
   "trailingComma": "all",
   "useTabs": false,
   "endOfLine": "lf",
-  "plugins": [
-    "prettier-plugin-tailwindcss"
-  ]
+  "tailwindStylesheet": "./app/globals.css",
+  "tailwindFunctions": ["cn", "cva"],
+  "plugins": ["prettier-plugin-tailwindcss"]
 }

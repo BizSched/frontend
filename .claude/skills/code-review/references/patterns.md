@@ -37,9 +37,9 @@ UI primitive의 클라이언트 경계는 전염되지 않는다 (같은 문서 
 ```tsx
 // page.tsx — Server Component
 <TaskCard
-  createdAt={new Date(dto.createdAt)}   // Date 인스턴스
-  onFormat={(v) => format(v)}           // 함수
-  index={new Map(entries)}              // Map
+  createdAt={new Date(dto.createdAt)} // Date 인스턴스
+  onFormat={(v) => format(v)} // 함수
+  index={new Map(entries)} // Map
 />
 ```
 
@@ -80,7 +80,10 @@ const tasks = await getTaskList();
 return <TaskList initialTasks={tasks} />;
 
 // TaskList.tsx — 클라이언트에서 별도 key로 다시 조회
-const { data } = useQuery({ queryKey: ['tasks', 'client'], queryFn: getTaskList });
+const { data } = useQuery({
+  queryKey: ['tasks', 'client'],
+  queryFn: getTaskList,
+});
 ```
 
 **왜 문제인가** — 같은 데이터가 캐시 키 두 벌로 존재한다. 갱신·무효화 시점이 어긋나 화면마다 다른 값이
@@ -123,7 +126,9 @@ export function TaskList() {
   useEffect(() => {
     fetch('/api/tasks')
       .then((r) => r.json())
-      .then((d) => setTasks(d.items.map((i) => ({ id: i.task_id, title: i.task_name }))));
+      .then((d) =>
+        setTasks(d.items.map((i) => ({ id: i.task_id, title: i.task_name }))),
+      );
   }, []);
 }
 ```
@@ -197,7 +202,7 @@ export default function TaskPage() {
   const [open, setOpen] = useState(false);
   return (
     <section>
-      <TaskSummary />            {/* 상태와 무관한데 클라이언트 번들에 포함 */}
+      <TaskSummary /> {/* 상태와 무관한데 클라이언트 번들에 포함 */}
       <button onClick={() => setOpen(true)}>필터</button>
     </section>
   );
@@ -219,12 +224,12 @@ export default function TaskPage() {
 
 ```tsx
 // ❌ 두 방향이 섞여 중첩 구간의 우선순위를 추적할 수 없다
-<div className="flex flex-col md:flex-row max-tablet:gap-4" />
+<div className="max-tablet:gap-4 flex flex-col md:flex-row" />
 ```
 
 ```tsx
 // ✅ desktop-first — 기본이 데스크톱, max-*로 좁혀 나간다
-<div className="flex flex-row gap-8 max-desktop:gap-6 max-tablet:flex-col max-tablet:gap-4" />
+<div className="max-desktop:gap-6 max-tablet:flex-col max-tablet:gap-4 flex flex-row gap-8" />
 ```
 
 **왜 문제인가** — 프로젝트 원칙은 desktop-first다. 접두사 없는 클래스가 데스크톱을 정의하고 `max-*`로
@@ -245,89 +250,115 @@ export default function TaskPage() {
 ## TypeScript
 
 ### `any`로 타입 검사 무력화
+
 ```ts
 const data = response as any;
 const value = (thing as any).nested.field;
 ```
+
 `any` 캐스팅은 이후 모든 타입 검사를 없앤다. `unknown` + 타입 가드나 정확한 타입을 쓴다.
 **예외** — 외부 라이브러리 타입 정의가 잘못돼 우회가 필요한 경우. 이유를 주석으로 남긴다.
 
 ### 검증 없는 non-null assertion
+
 ```ts
 const name = user!.profile!.name;
 ```
+
 가정이 깨지면 런타임 크래시다. 옵셔널 체이닝 + 가드로 바꾼다.
 **예외** — 바로 위에서 존재를 보장한 경우(가드 직후, 배열 길이 확인 직후 등).
 
 ## React
 
 ### `useEffect` stale closure
+
 ```ts
 useEffect(() => {
   setInterval(() => console.log(count), 1000);
 }, []); // count 누락
 ```
+
 초기값을 캡처한 채 갱신되지 않는다.
 
 ### cleanup 누락
+
 ```ts
 useEffect(() => {
   const id = setInterval(fn, 1000);
   // return () => clearInterval(id) 없음
 }, []);
 ```
+
 메모리 누수 + Strict Mode의 이중 마운트에서 중복 실행된다.
 
 ### 배열 인덱스를 `key`로 사용
+
 ```tsx
-{items.map((item, i) => <Card key={i} {...item} />)}
+{
+  items.map((item, i) => <Card key={i} {...item} />);
+}
 ```
+
 순서가 바뀌거나 필터링되면 재조정이 어긋나 상태와 DOM이 어긋난다.
 **예외** — 절대 재정렬·삽입·삭제되지 않는 정적 리스트.
 
 ### `useEffect` 콜백이 async 함수
+
 ```ts
 useEffect(async () => { ... }, []);
 ```
+
 async 함수는 Promise를 반환하므로 cleanup 계약이 깨진다. 내부 async 함수를 정의해 호출한다.
 
 ## Security
 
 ### 셸 명령 문자열 보간
+
 ```ts
 exec(`git log --author=${name}`);
 ```
+
 입력에 셸 메타문자가 있으면 명령 주입이다. 인자 배열로 넘긴다.
 
 ### 검증 없는 리다이렉트
+
 ```ts
 redirect(searchParams.get('next'));
 ```
+
 외부 도메인으로 열린 리다이렉트가 된다. 상대 경로 또는 허용 목록으로 제한한다.
 
 ### sanitize 없는 HTML 주입
+
 ```tsx
 element.innerHTML = userInput;
-<div dangerouslySetInnerHTML={{ __html: userInput }} />
+<div dangerouslySetInnerHTML={{ __html: userInput }} />;
 ```
+
 입력에 포함된 스크립트·이벤트 핸들러가 사용자 브라우저에서 실행된다.
 
 ## Docker / CI
 
 ### `RUN` 레이어에 남는 secret
+
 ```dockerfile
 RUN echo "API_KEY=abc123" > .env && npm run build && rm .env
 ```
+
 레이어가 이미지 히스토리에 남아 삭제해도 추출된다. BuildKit `--secret` 마운트를 쓴다.
 
 ### 이벤트 페이로드를 `run:`에 직접 보간
+
 ```yaml
 - run: echo "${{ github.event.issue.body }}"
 ```
+
 이슈 본문으로 셸 명령을 주입할 수 있다. `env:`로 넘겨 `$ENV_VAR`로 읽는다.
 
 ### 와일드카드 권한
+
 ```yaml
 permissions: write-all
 ```
+
 잡에 필요한 최소 권한만 부여한다.

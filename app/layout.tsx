@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
-import './globals.css';
 
+import './globals.css';
+import { QueryProvider } from '@providers/query/QueryProvider';
 import { OverlayProvider } from '@providers/overlay/OverlayProvider';
 
 const geistSans = Geist({
@@ -26,7 +27,11 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
-        <OverlayProvider>{children}</OverlayProvider>
+        <QueryProvider>
+          <OverlayProvider>
+            {children}
+          </OverlayProvider>
+        </QueryProvider>
       </body>
     </html>
   );
