@@ -23,7 +23,7 @@ progress 2종은 단일 값 표시라 계열(series) 데이터를 다루는 차�
 | 매출 대시보드 (desktop/tablet/mobile) | `sales_category_card` | 도넛 (카테고리 구성)    |
 | 대시보드 (desktop/tablet/mobile)      | `sales_chart _card`   | 누적 막대 (이번 달)     |
 
-카드 외곽(제목·월 선택 dropdown·`그래프 선택 탭`)은 **도메인에서 조합한다.** Chart는 카드 안의 플롯·범례·빈 상태만 책임진다.
+카드 외곽(제목·월 선택 dropdown·`그래프 선택 탭`)은 **도메인에서 [`_common/Card`](../card/README.md)로 조합한다.** Chart는 카드를 import하지 않으며, 카드 안의 플롯·범례·빈 상태만 책임진다.
 
 ### Figma 원본 노드
 
@@ -46,36 +46,59 @@ progress 2종은 단일 값 표시라 계열(series) 데이터를 다루는 차�
 
 ## 설계 결정 요약
 
-| 결정          | 선택                                                                           | 근거                                                                                                                                                                             |
-| ------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 범위          | 누적 막대 + 도넛                                                               | progress 2종은 단일 값 표시라 별도 컴포넌트로 분리                                                                                                                               |
-| 렌더링 엔진   | `recharts` (shadcn `chart` 경유)                                               | 스케일·누적·반응형 리사이즈·축 눈금을 직접 구현·테스트하는 비용이 크다                                                                                                           |
-| shadcn 생성물 | `_common/ui/chart.tsx`·`skeleton.tsx` **유지**, `_common/ui/card.tsx` **삭제** | 아래 "`shadcn add chart` 생성물 처리" 참고                                                                                                                                       |
-| 구조          | compound (`Chart.Plot`·`Bar`·`Donut`·`Center`·`Legend`·`Empty`)                | 화면마다 범례 위치·중앙 라벨·빈 상태 내용이 다르다. 슬롯 조합으로 흡수한다                                                                                                       |
-| 색상          | 호출부가 `config`로 주입                                                       | 막대(4계열)와 도넛(5계열)의 팔레트가 서로 다르다. 컴포넌트에 색을 고정하지 않는다                                                                                                |
-| 반응형        | `size` JS 값 단일화 (`large`/`small`), `matchMedia`로 판정                     | 막대 두께·도넛 반지름은 recharts prop이라 CSS만으로 바꿀 수 없다. [pagination](../pagination/README.md)과 같은 방식                                                              |
-| y축 눈금      | recharts 자동 (`tickCount` 미고정)                                             | 매장별 매출 편차가 커서 고정 범위는 막대가 눌리거나 잘린다. 값 포맷만 `formatCompactKrw`로 통일. 아래 "y축 눈금" 참고                                                            |
-| 툴팁          | **이번 범위 제외**                                                             | Figma 시안 없음. 실제 툴팁 확인 후 후속 PR에서 `Chart.Tooltip`으로 추가                                                                                                          |
-| 로딩          | 독립 슬롯 `Chart.Skeleton` (차트 모양 스켈레톤)                                | 호출부가 `isPending ? <Chart.Skeleton /> : <Chart />`로 분기한다. Provider·데이터 없이 렌더되므로 Suspense `fallback`에도 그대로 쓸 수 있다. 아래 "로딩 — `Chart.Skeleton`" 참고 |
+| 결정          | 선택                                                                  | 근거                                                                                                                                                                             |
+| ------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 범위          | 누적 막대 + 도넛                                                      | progress 2종은 단일 값 표시라 별도 컴포넌트로 분리                                                                                                                               |
+| 렌더링 엔진   | `recharts` (shadcn `chart` 경유)                                      | 스케일·누적·반응형 리사이즈·축 눈금을 직접 구현·테스트하는 비용이 크다                                                                                                           |
+| shadcn 생성물 | `chart.tsx`는 `_common/Chart/`에 **요소별 분리**, `card.tsx` **삭제** | Table과 같은 방식. Chart는 카드를 쓰지 않는다. 아래 "`shadcn add chart` 생성물 처리" 참고                                                                                        |
+| 구조          | compound (`Chart.Plot`·`Bar`·`Donut`·`Center`·`Legend`·`Empty`)       | 화면마다 범례 위치·중앙 라벨·빈 상태 내용이 다르다. 슬롯 조합으로 흡수한다                                                                                                       |
+| 색상          | 호출부가 `config`로 주입                                              | 막대(4계열)와 도넛(5계열)의 팔레트가 서로 다르다. 컴포넌트에 색을 고정하지 않는다                                                                                                |
+| 반응형        | `size` JS 값 단일화 (`large`/`small`), `matchMedia`로 판정            | 막대 두께·도넛 반지름은 recharts prop이라 CSS만으로 바꿀 수 없다. [pagination](../pagination/README.md)과 같은 방식                                                              |
+| y축 눈금      | recharts 자동 (`tickCount` 미고정)                                    | 매장별 매출 편차가 커서 고정 범위는 막대가 눌리거나 잘린다. 값 포맷만 `formatCompactKrw`로 통일. 아래 "y축 눈금" 참고                                                            |
+| 툴팁          | **이번 범위 제외**                                                    | Figma 시안 없음. 실제 툴팁 확인 후 후속 PR에서 `Chart.Tooltip`으로 추가                                                                                                          |
+| 로딩          | 독립 슬롯 `Chart.Skeleton` (차트 모양 스켈레톤)                       | 호출부가 `isPending ? <Chart.Skeleton /> : <Chart />`로 분기한다. Provider·데이터 없이 렌더되므로 Suspense `fallback`에도 그대로 쓸 수 있다. 아래 "로딩 — `Chart.Skeleton`" 참고 |
 
 ## `shadcn add chart` 생성물 처리
 
 `pnpm dlx shadcn@latest add chart`(style `base-nova`)는 아래를 생성·설치한다.
 
-| 산출물                        | 처리     | 근거                                                                                                                       |
-| ----------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `recharts@3.x` (+ `react-is`) | 설치     | 렌더링 엔진. `react-is`는 recharts의 peer dependency                                                                       |
-| `_common/ui/chart.tsx`        | **유지** | `ChartContainer`(ResponsiveContainer + `ChartStyle` 색상 변수 주입)와 `ChartConfig` 타입을 쓴다                            |
-| `_common/ui/card.tsx`         | **삭제** | `chart.tsx`는 card를 import하지 않는다. 카드는 `_common/Card/`로 별도 설계 중이라 생성물을 두면 같은 역할이 두 곳에 생긴다 |
+| 산출물                        | 처리            | 근거                                                                                                                  |
+| ----------------------------- | --------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `recharts@3.x` (+ `react-is`) | 설치            | 렌더링 엔진. `react-is`는 recharts의 peer dependency                                                                  |
+| `_common/ui/chart.tsx`        | **요소별 분리** | `_common/Table/`처럼 export 단위로 `_common/Chart/`에 나눈다. 분리 후 원본은 삭제한다. 아래 "`chart.tsx` 분리" 참고   |
+| `_common/ui/card.tsx`         | **삭제**        | Chart는 카드를 쓰지 않는다. `chart.tsx`도 card를 import하지 않는다. 카드 외곽은 도메인에서 `_common/Card/`로 조합한다 |
 
-### `chart.tsx`를 유지하는 이유
+### `chart.tsx`를 버리지 않고 분리하는 이유
 
 Modal은 생성물을 재구성하고 나면 남는 것이 없어 폐기했다. Chart는 다르다.
 
-- 후속 툴팁 PR에서 쓸 `ChartTooltipContent`는 `useChart()`로 데이터를 읽고, 이 훅은 **`ChartContainer` 밖에서 throw한다.** 지금 `ChartContainer` 위에 플롯을 올려두면 툴팁 PR은 `Chart.Tooltip` 추가만으로 끝난다. 지금 폐기하면 그 PR에서 재생성과 플롯 재구성이 함께 필요하다.
+- 후속 툴팁 PR에서 쓸 `ChartTooltipContent`는 `useChartConfig()`로 `config`를 읽고, 이 훅은 **`ChartContainer` 밖에서 throw한다.** 지금 `ChartContainer` 위에 플롯을 올려두면 툴팁 PR은 `Chart.Tooltip` 추가만으로 끝난다.
 - 비용은 작다. 쓰지 않는 `dark` 테마 셀렉터가 남고, 컨테이너 기본 `aspect-video`를 `className`으로 덮는 정도다.
 
-생성물은 **수정하지 않는다** (재생성 시 덮어쓰기). 생성물 안의 `ChartContext`·`useChart`는 생성물 내부 구현이며, 이 문서가 정의하는 Chart 전용 Context·훅은 규칙대로 `providers/`·`hooks/`에 둔다.
+그대로 두지 않고 분리하는 이유는 [folder-structure.md](../../architecture/folder-structure.md)의 레이어 규칙 때문이다. 원본은 한 파일에 컴포넌트 6개·Context·훅·유틸이 섞여 있고, `import { cn } from "cn"`처럼 프로젝트 alias와 다른 경로를 쓴다.
+
+분리한 순간부터 이 파일들은 **이 저장소의 코드**다. `shadcn add chart`를 다시 실행하면 `_common/ui/chart.tsx`가 새로 생길 뿐 분리본과 병합되지 않으므로 **재실행하지 않는다.** recharts 업데이트는 semver 의존성으로 따라간다.
+
+### `chart.tsx` 분리
+
+동작은 원본과 같다. 바뀐 것은 파일 위치, 네임드 export, import alias, 그리고 Context·훅 이름 두 개다.
+
+| 원본 (`ui/chart.tsx`)         | 분리 후                                                          | 비고                                                                       |
+| ----------------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `ChartContainer`              | `_common/Chart/ChartContainer.tsx`                               | `ChartConfigProvider`로 `config` 주입 + `ChartStyle` + ResponsiveContainer |
+| `ChartStyle`                  | `_common/Chart/ChartStyle.tsx`                                   | `THEMES` → `CHART_THEMES` 상수를 파일 내부에 둔다                          |
+| `ChartTooltip`                | `_common/Chart/ChartTooltip.tsx`                                 | recharts `Tooltip` 별칭                                                    |
+| `ChartTooltipContent`         | `_common/Chart/ChartTooltipContent.tsx`                          |                                                                            |
+| `ChartLegend`                 | `_common/Chart/ChartLegend.tsx`                                  | recharts `Legend` 별칭                                                     |
+| `ChartLegendContent`          | `_common/Chart/ChartLegendContent.tsx`                           |                                                                            |
+| `ChartConfig` 타입            | `providers/types/chart.ts`                                       | `ChartTheme`(`'light' \| 'dark'`)과 함께 둔다                              |
+| `ChartContext`                | `providers/chart/ChartConfigProvider.tsx` — `ChartConfigContext` | **이름 변경.** 아래 참고                                                   |
+| `useChart`                    | `hooks/chart/useChartConfig.ts` — `useChartConfig`               | **이름 변경.** 아래 참고                                                   |
+| `getPayloadConfigFromPayload` | `lib/utilities/chart/getPayloadConfigFromPayload.ts`             |                                                                            |
+
+**Context·훅 이름을 바꾼 이유.** 원본 `ChartContext`는 `config`만 담는다. compound 슬롯은 `providers/chart/ChartProvider.tsx`에 `{ config, data, valueKey, size, isEmpty, total }`을 담는 별도 Context와 `useChartContext`를 둔다. 같은 `providers/chart/`·`hooks/chart/`에 `ChartContext`·`useChart`·`useChartContext`가 함께 있으면 어느 쪽이 어떤 값을 주는지 이름으로 구분되지 않는다. 그래서 원본 쪽은 담는 값에 맞춰 `ChartConfig*`로 부른다.
+
+**범례 슬롯 파일명.** 생성물 `ChartLegend`(recharts `Legend` 별칭)와 compound 범례 슬롯의 파일명이 같은 폴더에서 겹친다. 생성물 이름을 유지하고 **compound 범례 슬롯 파일을 `ChartSeriesLegend.tsx`로 둔다.** 공개 API는 그대로 `Chart.Legend`다. 생성물 `ChartLegend`·`ChartLegendContent`는 recharts 내장 범례용이라 compound 슬롯에서는 쓰지 않는다.
 
 ### `shadcn add skeleton`
 
@@ -84,34 +107,35 @@ Modal은 생성물을 재구성하고 나면 남는 것이 없어 폐기했다. 
 ## 레이어 구조
 
 ```
-① 생성물   src/components/_common/ui/chart.tsx      shadcn 원본 (수정 금지)
-           src/components/_common/ui/skeleton.tsx
-② 구현     src/components/_common/Chart/             Figma 스타일 · compound 슬롯
-③ 상태     src/providers/chart/                      ChartContext · ChartProvider
-④ 기능     src/hooks/chart/                          컨텍스트 소비 · 계열 계산 · 빈 상태 판정 · size 판정
-⑤ 유틸     src/lib/utilities/formatCompactKrw.ts     축 눈금 금액 포맷
+① 생성물   src/components/_common/ui/skeleton.tsx   shadcn 원본 (수정 금지)
+② 구현     src/components/_common/Chart/             chart.tsx 분리본 · Figma 스타일 · compound 슬롯
+③ 상태     src/providers/chart/                      ChartConfigProvider(분리본) · ChartContext · ChartProvider
+④ 기능     src/hooks/chart/                          useChartConfig(분리본) · 컨텍스트 소비 · 계열 계산 · 빈 상태 판정 · size 판정
+⑤ 유틸     src/lib/utilities/                        chart/getPayloadConfigFromPayload(분리본) · formatCompactKrw(축 눈금 금액 포맷)
 ```
 
 ### 파일 구성
 
-| 파일                                | 책임                                                                                                  |
-| ----------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| `_common/Chart/Chart.tsx`           | `Object.assign(ChartRoot, { Plot, Bar, Donut, Center, Legend, Empty, Skeleton })`                     |
-| `_common/Chart/ChartRoot.tsx`       | `ChartProvider` 주입, `legend` 배치 cva(`bottom`/`right`), `role="figure"`·`aria-label`               |
-| `_common/Chart/ChartPlot.tsx`       | `relative` 플롯 영역. `Chart.Center`를 도넛 위에 겹친다                                               |
-| `_common/Chart/ChartBar.tsx`        | `ChartContainer` > `BarChart`. `config` 키 순서대로 누적, 최상단 계열만 상단 radius. 빈 상태면 `null` |
-| `_common/Chart/ChartDonut.tsx`      | `ChartContainer` > `PieChart`. `size`별 반지름. 빈 상태면 `slate-200` 링 하나                         |
-| `_common/Chart/ChartCenter.tsx`     | 도넛 중앙 `label`·`value`, `size` cva                                                                 |
-| `_common/Chart/ChartLegend.tsx`     | `<ul>` 범례. 색·라벨은 `useChartSeries`에서. 빈 상태면 `null`                                         |
-| `_common/Chart/ChartEmpty.tsx`      | 빈 상태일 때만 `children` 렌더                                                                        |
-| `_common/Chart/ChartSkeleton.tsx`   | 로딩 스켈레톤. Provider 없이 단독 렌더, `type`(`bar`/`donut`)별 플롯 모양 + 범례 칩 자리              |
-| `providers/chart/ChartProvider.tsx` | `{ config, data, valueKey, size, isEmpty, total }` 제공                                               |
-| `providers/types/chart.ts`          | `ChartContextValue`, `ChartSize` 등 Provider 타입                                                     |
-| `hooks/chart/useChartContext.ts`    | 컨텍스트 소비, Provider 밖 사용 시 throw                                                              |
-| `hooks/chart/useChartSeries.ts`     | `config` → `[{ key, label, color }]` (선언 순서 보존)                                                 |
-| `hooks/chart/useChartSummary.ts`    | `data`·`config`·`valueKey` → `{ total, isEmpty }` (wide/long 모두)                                    |
-| `hooks/chart/useChartSize.ts`       | `useSyncExternalStore` + `matchMedia`로 `large`/`small` 판정                                          |
-| `lib/utilities/formatCompactKrw.ts` | `4000000` → `"400만"`                                                                                 |
+`chart.tsx` 분리본은 위 "`chart.tsx` 분리" 표를 참고한다. 아래는 compound 슬롯과 이 문서가 새로 정의하는 파일이다.
+
+| 파일                                  | 책임                                                                                                  |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `_common/Chart/Chart.tsx`             | `Object.assign(ChartRoot, { Plot, Bar, Donut, Center, Legend, Empty, Skeleton })`                     |
+| `_common/Chart/ChartRoot.tsx`         | `ChartProvider` 주입, `legend` 배치 cva(`bottom`/`right`), `role="figure"`·`aria-label`               |
+| `_common/Chart/ChartPlot.tsx`         | `relative` 플롯 영역. `Chart.Center`를 도넛 위에 겹친다                                               |
+| `_common/Chart/ChartBar.tsx`          | `ChartContainer` > `BarChart`. `config` 키 순서대로 누적, 최상단 계열만 상단 radius. 빈 상태면 `null` |
+| `_common/Chart/ChartDonut.tsx`        | `ChartContainer` > `PieChart`. `size`별 반지름. 빈 상태면 `slate-200` 링 하나                         |
+| `_common/Chart/ChartCenter.tsx`       | 도넛 중앙 `label`·`value`, `size` cva                                                                 |
+| `_common/Chart/ChartSeriesLegend.tsx` | `Chart.Legend`. `<ul>` 범례. 색·라벨은 `useChartSeries`에서. 빈 상태면 `null`                         |
+| `_common/Chart/ChartEmpty.tsx`        | 빈 상태일 때만 `children` 렌더                                                                        |
+| `_common/Chart/ChartSkeleton.tsx`     | 로딩 스켈레톤. Provider 없이 단독 렌더, `type`(`bar`/`donut`)별 플롯 모양 + 범례 칩 자리              |
+| `providers/chart/ChartProvider.tsx`   | `{ config, data, valueKey, size, isEmpty, total }` 제공                                               |
+| `providers/types/chart.ts`            | `ChartConfig`(분리본), `ChartContextValue`, `ChartSize` 등 Provider 타입                              |
+| `hooks/chart/useChartContext.ts`      | 컨텍스트 소비, Provider 밖 사용 시 throw                                                              |
+| `hooks/chart/useChartSeries.ts`       | `config` → `[{ key, label, color }]` (선언 순서 보존)                                                 |
+| `hooks/chart/useChartSummary.ts`      | `data`·`config`·`valueKey` → `{ total, isEmpty }` (wide/long 모두)                                    |
+| `hooks/chart/useChartSize.ts`         | `useSyncExternalStore` + `matchMedia`로 `large`/`small` 판정                                          |
+| `lib/utilities/formatCompactKrw.ts`   | `4000000` → `"400만"`                                                                                 |
 
 `interface`는 [folder-structure.md](../../architecture/folder-structure.md#타입-정의-파일-위치)에 따라 Provider 타입은 `providers/types/`, 컴포넌트 props는 각 컴포넌트 파일 내부에 둔다.
 
@@ -119,7 +143,7 @@ Modal은 생성물을 재구성하고 나면 남는 것이 없어 폐기했다. 
 
 ```tsx
 import { Chart } from '@components/_common/Chart/Chart';
-import type { ChartConfig } from '@components/_common/ui/chart';
+import type { ChartConfig } from '@providers/types/chart';
 
 const CATEGORY_CHART_CONFIG = {
   product: { label: '상품 판매', color: 'var(--color-primary-700)' },
@@ -256,12 +280,12 @@ recharts 자동 눈금을 쓴다. 비교한 대안은 아래와 같다.
 
 ## variant (cva)
 
-| 대상            | 축                         | 값                                                        |
-| --------------- | -------------------------- | --------------------------------------------------------- |
-| `ChartRoot`     | `legend`                   | `bottom` (세로 쌓기) / `right` (가로 배치, 가운데 정렬)   |
-| `ChartCenter`   | `size`                     | `large` (`text-xl` bold) / `small` (`text-sm` bold)       |
-| `ChartLegend`   | `size`                     | `large` (`text-base`) / `small` (`text-xs`)               |
-| `ChartSkeleton` | `type` × `size` × `legend` | 플롯 모양·크기와 범례 배치. 값은 위 컴포넌트들과 공유한다 |
+| 대상                | 축                         | 값                                                        |
+| ------------------- | -------------------------- | --------------------------------------------------------- |
+| `ChartRoot`         | `legend`                   | `bottom` (세로 쌓기) / `right` (가로 배치, 가운데 정렬)   |
+| `ChartCenter`       | `size`                     | `large` (`text-xl` bold) / `small` (`text-sm` bold)       |
+| `ChartSeriesLegend` | `size`                     | `large` (`text-base`) / `small` (`text-xs`)               |
+| `ChartSkeleton`     | `type` × `size` × `legend` | 플롯 모양·크기와 범례 배치. 값은 위 컴포넌트들과 공유한다 |
 
 ## 디자인 토큰 매핑
 
@@ -308,7 +332,7 @@ test/components/_common/Chart/chartPlot.test.tsx
 test/components/_common/Chart/chartBar.test.tsx
 test/components/_common/Chart/chartDonut.test.tsx
 test/components/_common/Chart/chartCenter.test.tsx
-test/components/_common/Chart/chartLegend.test.tsx
+test/components/_common/Chart/chartSeriesLegend.test.tsx
 test/components/_common/Chart/chartEmpty.test.tsx
 test/components/_common/Chart/chartSkeleton.test.tsx
 
@@ -322,43 +346,43 @@ test/hooks/chart/useChartSize.test.tsx
 test/lib/utilities/formatCompactKrw.test.ts
 ```
 
-생성물 `_common/ui/chart.tsx`는 테스트하지 않는다.
+`chart.tsx` 분리본은 원본 동작을 옮긴 것이라 따로 테스트하지 않는다. `ChartContainer`는 `Chart.Bar`·`Chart.Donut` 테스트에서 함께 렌더된다.
 
 ### 파일별 검증 책임
 
-| 테스트 파일                | 검증                                                                                                                                                        |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `chart.test.tsx`           | (유닛) `Object.assign` 합성 — 루트가 `ChartRoot`, 서브컴포넌트 7종이 각 구현과 동일 참조. (통합) 막대·도넛 실사용 조합 렌더, 빈 상태 전환 시 슬롯 표시 변화 |
-| `chartRoot.test.tsx`       | Provider 값 주입, `legend` 배치 클래스, `role="figure"`·`aria-label`, `size` 명시 시 판정 생략                                                              |
-| `chartPlot.test.tsx`       | 슬롯 렌더, `relative` 기본 클래스, className 병합                                                                                                           |
-| `chartBar.test.tsx`        | 계열 수만큼 `Bar` 렌더, 최상단 계열 radius, 빈 상태 `null`, `tickFormatter` 기본값·교체                                                                     |
-| `chartDonut.test.tsx`      | 조각 수·색, `size`별 반지름, 빈 상태 단색 링                                                                                                                |
-| `chartCenter.test.tsx`     | `label`·`value` 렌더, `size` cva, className 병합                                                                                                            |
-| `chartLegend.test.tsx`     | `<ul>`·`<li>` 구조, 순서·라벨·색 칩 `aria-hidden`, 빈 상태 `null`                                                                                           |
-| `chartEmpty.test.tsx`      | 빈 상태에서만 `children` 렌더                                                                                                                               |
-| `chartSkeleton.test.tsx`   | Provider 없이 렌더, `type`별 플롯 모양·범례 칩 수, `size`·`legend` 클래스, `role="status"`·`aria-busy`·숨김 텍스트, 도형 `aria-hidden`                      |
-| `chartProvider.test.tsx`   | `useChartSummary` 결과가 컨텍스트에 실리는지, 자식 전달                                                                                                     |
-| `useChartContext.test.tsx` | Provider 안 값 반환, 밖에서 throw                                                                                                                           |
-| `useChartSeries.test.tsx`  | 선언 순서 보존, `label`·`color` 매핑, 빈 `config`                                                                                                           |
-| `useChartSummary.test.tsx` | wide·long 형태별 합계, 빈 배열·전부 0이면 `isEmpty`, 일부 값 누락                                                                                           |
-| `useChartSize.test.tsx`    | `matchMedia` 모킹으로 `large`/`small`, 변경 구독, 서버 스냅샷 `large`                                                                                       |
-| `formatCompactKrw.test.ts` | 0, 만 단위 미만, 만 단위, 억 단위 경계                                                                                                                      |
+| 테스트 파일                  | 검증                                                                                                                                                        |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `chart.test.tsx`             | (유닛) `Object.assign` 합성 — 루트가 `ChartRoot`, 서브컴포넌트 7종이 각 구현과 동일 참조. (통합) 막대·도넛 실사용 조합 렌더, 빈 상태 전환 시 슬롯 표시 변화 |
+| `chartRoot.test.tsx`         | Provider 값 주입, `legend` 배치 클래스, `role="figure"`·`aria-label`, `size` 명시 시 판정 생략                                                              |
+| `chartPlot.test.tsx`         | 슬롯 렌더, `relative` 기본 클래스, className 병합                                                                                                           |
+| `chartBar.test.tsx`          | 계열 수만큼 `Bar` 렌더, 최상단 계열 radius, 빈 상태 `null`, `tickFormatter` 기본값·교체                                                                     |
+| `chartDonut.test.tsx`        | 조각 수·색, `size`별 반지름, 빈 상태 단색 링                                                                                                                |
+| `chartCenter.test.tsx`       | `label`·`value` 렌더, `size` cva, className 병합                                                                                                            |
+| `chartSeriesLegend.test.tsx` | `<ul>`·`<li>` 구조, 순서·라벨·색 칩 `aria-hidden`, 빈 상태 `null`                                                                                           |
+| `chartEmpty.test.tsx`        | 빈 상태에서만 `children` 렌더                                                                                                                               |
+| `chartSkeleton.test.tsx`     | Provider 없이 렌더, `type`별 플롯 모양·범례 칩 수, `size`·`legend` 클래스, `role="status"`·`aria-busy`·숨김 텍스트, 도형 `aria-hidden`                      |
+| `chartProvider.test.tsx`     | `useChartSummary` 결과가 컨텍스트에 실리는지, 자식 전달                                                                                                     |
+| `useChartContext.test.tsx`   | Provider 안 값 반환, 밖에서 throw                                                                                                                           |
+| `useChartSeries.test.tsx`    | 선언 순서 보존, `label`·`color` 매핑, 빈 `config`                                                                                                           |
+| `useChartSummary.test.tsx`   | wide·long 형태별 합계, 빈 배열·전부 0이면 `isEmpty`, 일부 값 누락                                                                                           |
+| `useChartSize.test.tsx`      | `matchMedia` 모킹으로 `large`/`small`, 변경 구독, 서버 스냅샷 `large`                                                                                       |
+| `formatCompactKrw.test.ts`   | 0, 만 단위 미만, 만 단위, 억 단위 경계                                                                                                                      |
 
 ### 테스트 환경
 
-- jsdom에는 레이아웃이 없어 `ResponsiveContainer`의 크기가 0이 된다. `ResizeObserver`를 모킹하고, 생성물 `ChartContainer`의 `initialDimension`에 기대 렌더를 확인한다.
+- jsdom에는 레이아웃이 없어 `ResponsiveContainer`의 크기가 0이 된다. `ResizeObserver`를 모킹하고, `ChartContainer`의 `initialDimension`에 기대 렌더를 확인한다.
 - jest-dom 매처·DOM cleanup을 담당하는 `test/setup.ts`는 현재 Modal 테스트 스택(`feat/common-modal-test`)에 있고 `dev`에는 없다. 테스트 PR 시점에 `dev`에 병합돼 있으면 재사용하고, 아니면 같은 내용으로 추가한다.
 
 ## 단계별 PR 계획
 
 GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-started/about-stacked-prs)로 진행한다. 각 브랜치는 바로 아래 브랜치를 base로 하고, 맨 아래만 `dev`를 향한다. 작업은 `git worktree`(`../frontend-chart`)에서 `origin/dev`로부터 분기한다.
 
-| 순서 | 브랜치                      | base                        | 내용                                                                                                                                                                                                   |
-| ---- | --------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1    | `feat/common-chart`         | `dev`                       | **이 설계 문서** + `docs/README.md` · `docs/component/README.md` 인덱스 갱신                                                                                                                           |
-| 2    | `feat/common-chart-ui`      | `feat/common-chart`         | `shadcn add chart`(`card.tsx` 삭제)·`shadcn add skeleton` + `ChartProvider`·`useChartContext`·`useChartSeries` + compound 슬롯·`Chart.Skeleton`. 데이터가 있을 때 Figma대로 렌더 (`size="large"` 고정) |
-| 3    | `feat/common-chart-feature` | `feat/common-chart-ui`      | `useChartSummary` + 빈 상태 분기(`Chart.Empty`·단색 링·Legend 숨김) + `useChartSize`(얇은 막대·small 도넛·Skeleton 포함) + `formatCompactKrw`                                                          |
-| 4    | `feat/common-chart-test`    | `feat/common-chart-feature` | Vitest 테스트                                                                                                                                                                                          |
+| 순서 | 브랜치                      | base                        | 내용                                                                                                                                                                                                                                                       |
+| ---- | --------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | `feat/common-chart`         | `dev`                       | **이 설계 문서** + `docs/README.md` · `docs/component/README.md` 인덱스 갱신                                                                                                                                                                               |
+| 2    | `feat/common-chart-ui`      | `feat/common-chart`         | `shadcn add chart` 후 `_common/Chart/`로 요소별 분리(`ui/chart.tsx`·`ui/card.tsx` 삭제)·`shadcn add skeleton` + `ChartProvider`·`useChartContext`·`useChartSeries` + compound 슬롯·`Chart.Skeleton`. 데이터가 있을 때 Figma대로 렌더 (`size="large"` 고정) |
+| 3    | `feat/common-chart-feature` | `feat/common-chart-ui`      | `useChartSummary` + 빈 상태 분기(`Chart.Empty`·단색 링·Legend 숨김) + `useChartSize`(얇은 막대·small 도넛·Skeleton 포함) + `formatCompactKrw`                                                                                                              |
+| 4    | `feat/common-chart-test`    | `feat/common-chart-feature` | Vitest 테스트                                                                                                                                                                                                                                              |
 
 중간 브랜치를 수정하면 **아래 브랜치를 위 브랜치로 merge해서** 전파한다. rebase 후 force push는 하지 않는다.
 
@@ -368,7 +392,7 @@ GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-star
 
 ### 1. 툴팁
 
-Figma에 시안이 없다. 실제 툴팁 동작을 확인한 뒤 후속 PR에서 `Chart.Tooltip`(생성물 `ChartTooltip` + `ChartTooltipContent` 래핑)으로 추가한다.
+Figma에 시안이 없다. 실제 툴팁 동작을 확인한 뒤 후속 PR에서 `Chart.Tooltip`(`_common/Chart/ChartTooltip` + `ChartTooltipContent` 래핑)으로 추가한다.
 
 ### 2. `size` 판정 훅 공통화
 
