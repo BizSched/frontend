@@ -56,6 +56,7 @@ docs/
 | [component/modal/README.md](./component/modal/README.md)                                 | Modal — compound 슬롯, variant, 토큰 매핑, overlay-kit 연동         |
 | [component/pagination/README.md](./component/pagination/README.md)                       | Pagination — 평면 props API, size 반응형 판정, 슬롯 계산, 토큰 매핑 |
 | [component/month-dropdown-button/README.md](./component/month-dropdown-button/README.md) | MonthDropdownButton — 월 선택 드롭다운 트리거, size 축, 토큰 매핑   |
+| [component/input/README.md](./component/input/README.md)                                 | Input — 입력 primitive, 검색·파일·이미지 입력 설계                  |
 
 ## feature/
 
