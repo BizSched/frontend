@@ -25,15 +25,16 @@ Figma 원본: [Figma — BizSched](https://www.figma.com/design/0UAYWaDS9UNjigV7
 
 ## 설계 결정 요약
 
-| 결정             | 선택                                                                                          | 근거                                                                                                                               |
-| ---------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| 확정 방식        | **버퍼링 선택** — 열 때 임시 상태에 선택값을 스냅샷하고, 취소/확인으로 커밋                   | Figma 배치(`105:193109`)가 캘린더 아래 취소·확인 버튼 footer를 고정 슬롯으로 둔다. 클릭 즉시 반영이 아니라 명시적 확정이 필요      |
-| 제어/비제어 겸용 | `value` prop 유무로 판정                                                                      | 다른 공통 컴포넌트와 동일하게 호출부가 상태를 가질지 맡길지 선택 가능                                                              |
-| 팝오버 엔진      | Base UI `Popover` (`@base-ui/react/popover`)                                                  | Modal이 이미 Base UI `Dialog`로 통일했다. 포커스·오픈 상태를 같은 프리미티브 패밀리로 맞춘다                                       |
-| 날짜 계산/포맷   | `date-fns` + `date-fns/locale/ko`                                                             | 트리거 `yyyy.MM.dd`, 캡션 `yyyy년 M월` 포맷이 필요                                                                                 |
-| 셀 골격          | `react-day-picker`의 `DayButton` 슬롯을 커스텀 셀로 교체                                      | `shadcn add calendar` 구조를 참고하되, 생성물은 남기지 않고 처음부터 커스터마이징된 상태로 둔다                                    |
-| 셀 타입 판정     | `react-day-picker`의 `modifiers`를 4가지 타입(`default`/`active`/`selected`/`today`)으로 분류 | `_Calendar cell`의 `Type` 축과 1:1 대응                                                                                            |
-| 취소·확인 버튼   | 공통 `Button` 컴포넌트 사용 (직접 `<button>` 마크업 작성 안 함)                               | Figma footer의 두 버튼도 다른 화면과 같은 버튼 톤을 유지해야 한다. `Button`이 아직 설계되지 않아 선행 필요 (아래 "확인 필요" 참고) |
+| 결정             | 선택                                                                                          | 근거                                                                                                                                          |
+| ---------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| 선택 모드        | **단일 날짜 선택만** 지원 — range 선택은 이번 범위에서 제외                                   | 화면 레이어상 DatePicker는 현재 알바 페이지에서만 쓰이고, 단일 날짜 선택으로 충분하다는 팀 논의 결과. range가 필요해지면 그때 별도로 설계한다 |
+| 확정 방식        | **버퍼링 선택** — 열 때 임시 상태에 선택값을 스냅샷하고, 취소/확인으로 커밋                   | Figma 배치(`105:193109`)가 캘린더 아래 취소·확인 버튼 footer를 고정 슬롯으로 둔다. 클릭 즉시 반영이 아니라 명시적 확정이 필요                 |
+| 제어/비제어 겸용 | `value` prop 유무로 판정                                                                      | 다른 공통 컴포넌트와 동일하게 호출부가 상태를 가질지 맡길지 선택 가능                                                                         |
+| 팝오버 엔진      | Base UI `Popover` (`@base-ui/react/popover`)                                                  | Modal이 이미 Base UI `Dialog`로 통일했다. 포커스·오픈 상태를 같은 프리미티브 패밀리로 맞춘다                                                  |
+| 날짜 계산/포맷   | `date-fns` + `date-fns/locale/ko`                                                             | 트리거 `yyyy.MM.dd`, 캡션 `yyyy년 M월` 포맷이 필요                                                                                            |
+| 셀 골격          | `react-day-picker`의 `DayButton` 슬롯을 커스텀 셀로 교체                                      | `shadcn add calendar` 구조를 참고하되, 생성물은 남기지 않고 처음부터 커스터마이징된 상태로 둔다                                               |
+| 셀 타입 판정     | `react-day-picker`의 `modifiers`를 4가지 타입(`default`/`active`/`selected`/`today`)으로 분류 | `_Calendar cell`의 `Type` 축과 1:1 대응                                                                                                       |
+| 취소·확인 버튼   | 공통 `Button` 컴포넌트 사용 (직접 `<button>` 마크업 작성 안 함)                               | Figma footer의 두 버튼도 다른 화면과 같은 버튼 톤을 유지해야 한다. `Button`이 아직 설계되지 않아 선행 필요 (아래 "확인 필요" 참고)            |
 
 ## 레이어 구조
 
@@ -83,14 +84,14 @@ const [date, setDate] = useState<Date | undefined>();
 
 ## 셀 타입 매핑
 
-| Figma `Type`   | 판정에 쓸 `modifiers`             | 배경                                   |
-| -------------- | --------------------------------- | -------------------------------------- |
-| `Default`      | 아래 세 조건에 모두 해당하지 않음 | 없음                                   |
-| `Today's date` | `modifiers.today`                 | 옅은 회색 배경 (`Active`와 동일)       |
-| `Active`       | `modifiers.range_middle`          | 옅은 회색 배경 (`Today's date`와 동일) |
-| `Selected`     | `modifiers.selected`              | `primary` 배경                         |
+| Figma `Type`   | 판정에 쓸 `modifiers`             | 배경                 |
+| -------------- | --------------------------------- | -------------------- |
+| `Default`      | 아래 두 조건에 모두 해당하지 않음 | 없음                 |
+| `Today's date` | `modifiers.today`                 | 옅은 회색 배경       |
+| `Selected`     | `modifiers.selected`              | `primary` 배경       |
+| `Active`       | — (구현하지 않음)                 | range 선택 전용 타입 |
 
-우선순위는 `range_middle → selected → today → default` 순서로 하나만 반환하도록 판정 함수를 둔다. `range_start`/`range_end`는 별도 타입이 아니라, 인접 셀 배경을 이어 붙이는 커넥터 처리에만 쓴다 (range 선택 지원 여부는 아래 "확인 필요" 참고).
+우선순위는 `selected → today → default` 순서로 하나만 반환하도록 판정 함수를 둔다. `Active` 타입과 `range_start`/`range_middle`/`range_end` 커넥터 처리는 단일 날짜 선택만 지원하기로 했으므로 만들지 않는다 (위 "설계 결정 요약"의 선택 모드 참고).
 
 Figma의 `State`(`Default`/`Hover`/`Disabled`) 3종은 별도 variant가 아니라 Tailwind 상태 변형자(`hover:`/`disabled:`)로 구현한다. 키보드 접근성을 위한 `focus-visible` 상태는 Figma variant 축에는 없지만 추가로 둔다.
 
@@ -105,7 +106,7 @@ Figma의 `State`(`Default`/`Hover`/`Disabled`) 3종은 별도 variant가 아니�
 | 취소 버튼 보더 `#CCCCCC`                   | `border-input`(`--input`, `#CCC9C0`)과 근접 — 완전 동일은 아님                                                                                                          |
 | 셀 40×40px                                 | `size-10`                                                                                                                                                               |
 | 팝오버 328px                               | `w-82` (82 × `--spacing`)                                                                                                                                               |
-| 오늘/active 셀 배경 `#FAFAFA`              | 정확히 같은 토큰은 없음. [pagination](../pagination/README.md)이 같은 Figma 값을 값 기준으로 `bg-slate-50`(`#F4F3F3`)에 매핑한 전례가 있다 — 이 전례를 따를지 확인 필요 |
+| 오늘 셀 배경 `#FAFAFA`                     | 정확히 같은 토큰은 없음. [pagination](../pagination/README.md)이 같은 Figma 값을 값 기준으로 `bg-slate-50`(`#F4F3F3`)에 매핑한 전례가 있다 — 이 전례를 따를지 확인 필요 |
 
 ### 대응 토큰 없는 값
 
@@ -192,10 +193,6 @@ GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-star
 ### 2. 회색 텍스트 컬러 정책
 
 취소 버튼 글자(`#737373`)에 대해 Modal(이름 기준 `--color-slate-500`)과 Pagination(값 기준 `text-muted-foreground`)의 전례가 갈린다. 위 "디자인 토큰 매핑" 참고.
-
-### 3. range 선택 지원 범위
-
-`_Calendar cell`에 `range_start`/`range_middle`/`range_end`에 대응하는 커넥터 스타일을 미리 만들어 둘지, 아니면 단일 날짜 선택만 지원하고 range는 별도 컴포넌트로 분리할지 확인 필요.
 
 ## 참고
 
