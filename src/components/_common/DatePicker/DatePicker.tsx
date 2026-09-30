@@ -1,0 +1,114 @@
+'use client';
+
+import { useState } from 'react';
+
+import { Button } from '@components/_common/Button/Button';
+import { DatePickerCalendar } from '@components/_common/DatePicker/DatePickerCalendar';
+import {
+  DatePickerPopover,
+  DatePickerPopoverContent,
+  type DatePickerPopoverContentProps,
+  DatePickerPopoverTrigger,
+} from '@components/_common/DatePicker/DatePickerPopover';
+
+import { formatCalendarDate } from '@lib/utilities/calendar/calendarDate';
+import { cn } from '@lib/utilities/cn';
+
+const FOOTER_BUTTON_CLASS_NAME = 'h-10 w-auto min-w-0 flex-1';
+
+interface DatePickerProps {
+  value?: Date;
+  defaultValue?: Date;
+  onChange?: (date: Date) => void;
+  placeholder?: string;
+  disabled?: boolean;
+  className?: string;
+  align?: DatePickerPopoverContentProps['align'];
+}
+
+const formatDatePickerValue = (date: Date) =>
+  formatCalendarDate(date).replaceAll('-', '.');
+
+function DatePicker(props: DatePickerProps) {
+  const {
+    value,
+    defaultValue,
+    onChange,
+    placeholder = '날짜 선택',
+    disabled,
+    className,
+    align = 'start',
+  } = props;
+  const isControlled = 'value' in props;
+
+  const [uncontrolledValue, setUncontrolledValue] = useState(defaultValue);
+  const [pendingDate, setPendingDate] = useState<Date | undefined>();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const selectedDate = isControlled ? value : uncontrolledValue;
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      setPendingDate(selectedDate);
+    }
+
+    setIsOpen(nextOpen);
+  };
+
+  const handleCancel = () => {
+    setIsOpen(false);
+  };
+
+  const handleConfirm = () => {
+    if (!pendingDate) {
+      return;
+    }
+
+    if (!isControlled) {
+      setUncontrolledValue(pendingDate);
+    }
+
+    onChange?.(pendingDate);
+    setIsOpen(false);
+  };
+
+  return (
+    <DatePickerPopover open={isOpen} onOpenChange={handleOpenChange}>
+      <DatePickerPopoverTrigger
+        disabled={disabled}
+        className={cn(
+          'flex h-14 w-full cursor-pointer items-center rounded-[16px] border border-slate-300 bg-white-50 px-4 text-base tracking-[-0.02em] text-slate-700 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 data-[popup-open]:border-ring motion-reduce:transition-none',
+          !selectedDate && 'text-muted-foreground',
+          className,
+        )}
+      >
+        {selectedDate ? formatDatePickerValue(selectedDate) : placeholder}
+      </DatePickerPopoverTrigger>
+      <DatePickerPopoverContent align={align}>
+        <DatePickerCalendar selected={pendingDate} onSelect={setPendingDate} />
+        <div className="flex gap-3 px-4 pb-4">
+          <Button
+            hierarchy="tertiary"
+            size="small"
+            className={cn(FOOTER_BUTTON_CLASS_NAME, 'text-muted-foreground')}
+            onClick={handleCancel}
+          >
+            취소
+          </Button>
+          <Button
+            hierarchy="primary"
+            size="small"
+            className={FOOTER_BUTTON_CLASS_NAME}
+            disabled={!pendingDate}
+            onClick={handleConfirm}
+          >
+            확인
+          </Button>
+        </div>
+      </DatePickerPopoverContent>
+    </DatePickerPopover>
+  );
+}
+
+export { DatePicker };
+export type { DatePickerProps };
