@@ -17,6 +17,8 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          # merge ref 대신 PR head 브랜치를 기준으로 시각 테스트한다 (docs/collaboration/ci.md 참고)
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
