@@ -3,6 +3,7 @@
 ## 개요
 
 [Figma Sidebar](https://www.figma.com/design/0UAYWaDS9UNjigV73HWcPZ/BizSched?node-id=71-71106)의 펼침·접힘 상태를 shadcn/ui의 [Base UI Sidebar](https://ui.shadcn.com/docs/components/base/sidebar) 구조로 재구성한다. 생성물을 `ui/`에 남기지 않고 `src/components/_common/Sidebar/`에 둔다.
+추후에 아이콘 svg를 lucide를 사용하는 방안으로 대체한다.
 
 ## 설계 결정
 
