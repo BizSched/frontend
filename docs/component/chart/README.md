@@ -123,7 +123,7 @@ Modal은 생성물을 재구성하고 나면 남는 것이 없어 폐기했다. 
 | `_common/Chart/Chart.tsx`             | `Object.assign(ChartRoot, { Plot, Bar, Donut, Center, Legend, Empty, Skeleton })`                     |
 | `_common/Chart/ChartRoot.tsx`         | `ChartProvider` 주입, `legend` 배치 cva(`bottom`/`right`), `role="figure"`·`aria-label`               |
 | `_common/Chart/ChartPlot.tsx`         | `relative` 플롯 영역. `Chart.Center`를 도넛 위에 겹친다                                               |
-| `_common/Chart/ChartBar.tsx`          | `ChartContainer` > `BarChart`. `config` 키 순서대로 누적, 최상단 계열만 상단 radius. 빈 상태면 `null` |
+| `_common/Chart/ChartBar.tsx`          | `ChartContainer` > `BarChart`. `config` 키 순서대로 누적, 모든 계열 radius 0 (직각). 빈 상태면 `null` |
 | `_common/Chart/ChartDonut.tsx`        | `ChartContainer` > `PieChart`. `size`별 반지름. 빈 상태면 `slate-200` 링 하나                         |
 | `_common/Chart/ChartCenter.tsx`       | 도넛 중앙 `label`·`value`, `size` cva                                                                 |
 | `_common/Chart/ChartSeriesLegend.tsx` | `Chart.Legend`. `<ul>` 범례. 색·라벨은 `useChartSeries`에서. 빈 상태면 `null`                         |
@@ -227,7 +227,7 @@ Figma에 로딩 시안이 없어 위 형태(차트 모양 · `bg-muted` · pulse
 
 `config`는 shadcn `ChartConfig`를 그대로 쓴다. **선언 순서가 곧 계열 순서다.**
 
-- 막대: 아래 → 위 누적 순서. 마지막 계열에만 상단 radius를 준다.
+- 막대: 아래 → 위 누적 순서. 모서리는 둥글게 하지 않는다 (모든 계열 `radius [0,0,0,0]`).
 - 도넛: 12시 방향부터 시계 방향 순서.
 - 범례: 같은 순서로 나열.
 
@@ -355,7 +355,7 @@ test/lib/utilities/formatCompactKrw.test.ts
 | `chart.test.tsx`             | (유닛) `Object.assign` 합성 — 루트가 `ChartRoot`, 서브컴포넌트 7종이 각 구현과 동일 참조. (통합) 막대·도넛 실사용 조합 렌더, 빈 상태 전환 시 슬롯 표시 변화 |
 | `chartRoot.test.tsx`         | Provider 값 주입, `legend` 배치 클래스, `role="figure"`·`aria-label`, `size` 명시 시 판정 생략                                                              |
 | `chartPlot.test.tsx`         | 슬롯 렌더, `relative` 기본 클래스, className 병합                                                                                                           |
-| `chartBar.test.tsx`          | 계열 수만큼 `Bar` 렌더, 최상단 계열 radius, 빈 상태 `null`, `tickFormatter` 기본값·교체                                                                     |
+| `chartBar.test.tsx`          | 계열 수만큼 `Bar` 렌더, 빈 상태 `null`, `tickFormatter` 기본값·교체                                                                                         |
 | `chartDonut.test.tsx`        | 조각 수·색, `size`별 반지름, 빈 상태 단색 링                                                                                                                |
 | `chartCenter.test.tsx`       | `label`·`value` 렌더, `size` cva, className 병합                                                                                                            |
 | `chartSeriesLegend.test.tsx` | `<ul>`·`<li>` 구조, 순서·라벨·색 칩 `aria-hidden`, 빈 상태 `null`                                                                                           |
