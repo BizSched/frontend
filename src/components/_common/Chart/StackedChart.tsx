@@ -3,14 +3,13 @@
 import Image from 'next/image';
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 
-import {
-  ChartContainer,
-  ChartLegend,
-  ChartLegendContent,
-  ChartTooltip,
-  ChartTooltipContent,
-  type ChartConfig,
-} from '@components/_common/ui/chart';
+import { ChartContainer } from '@components/_common/Chart/ChartContainer';
+import { ChartLegend } from '@components/_common/Chart/ChartLegend';
+import { ChartLegendContent } from '@components/_common/Chart/ChartLegendContent';
+import { ChartTooltip } from '@components/_common/Chart/ChartTooltip';
+import { ChartTooltipContent } from '@components/_common/Chart/ChartTooltipContent';
+
+import type { ChartConfig } from '@providers/types/chart';
 
 import IcEmpty from '@assets/icons/ic_empty.svg';
 
