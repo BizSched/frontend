@@ -75,7 +75,7 @@ function PartTimeScheduleDaySummary({
                   <TextButton
                     size="small"
                     aria-label={`${startTime} ~ ${endTime} ${staff.name} 스케쥴 수정`}
-                    className="text-slate-600"
+                    className="text-slate-500"
                   >
                     수정
                   </TextButton>
