@@ -264,7 +264,7 @@ Figma에 로딩 시안이 없어 위 형태(차트 모양 · `bg-muted` · pulse
 | `large` | Figma `Sales Chart` 두께                         | `size=large` 반지름 |
 | `small` | **얇은 막대** (모바일 시안의 선 형태, 누적 유지) | `size=small` 반지름 |
 
-모바일 도넛은 시안상 더 작게 그려져 있지만 `small`로 통일한다. 막대 두께·도넛 반지름의 구체 수치는 UI PR에서 `get_design_context`로 측정해 이 표에 기록한다. 스크린샷 기준 추정치는 도넛 외경 `large` 약 252px·`small` 약 152px이다.
+모바일 도넛은 시안상 더 작게 그려져 있지만 `small`로 통일한다. 막대 두께·도넛 반지름의 구체 수치는 UI PR에서 `get_design_context`로 측정해 이 표에 기록한다. 도넛 반지름 측정값(노드 `185:190641`): `large` 바깥 126px·안쪽 79px, `small` 바깥 76px·안쪽 48px. 빈 링 색은 `slate-200`(`#C6C5C5`).
 
 ## y축 눈금
 
@@ -283,7 +283,7 @@ recharts 자동 눈금을 쓴다. 비교한 대안은 아래와 같다.
 | 대상                | 축                         | 값                                                        |
 | ------------------- | -------------------------- | --------------------------------------------------------- |
 | `ChartRoot`         | `legend`                   | `bottom` (세로 쌓기) / `right` (가로 배치, 가운데 정렬)   |
-| `ChartCenter`       | `size`                     | `large` (`text-xl` bold) / `small` (`text-sm` bold)       |
+| `ChartCenter`       | `size`                     | `large` 16px / `small` 10px, label·value 모두 bold        |
 | `ChartSeriesLegend` | `size`                     | `large` (`text-base`) / `small` (`text-xs`)               |
 | `ChartSkeleton`     | `type` × `size` × `legend` | 플롯 모양·크기와 범례 배치. 값은 위 컴포넌트들과 공유한다 |
 
