@@ -284,7 +284,7 @@ recharts 자동 눈금을 쓴다. 비교한 대안은 아래와 같다.
 | ------------------- | -------------------------- | --------------------------------------------------------- |
 | `ChartRoot`         | `legend`                   | `bottom` (세로 쌓기) / `right` (가로 배치, 가운데 정렬)   |
 | `ChartCenter`       | `size`                     | `large` 16px / `small` 10px, label·value 모두 bold        |
-| `ChartSeriesLegend` | `size`                     | `large` (`text-base`) / `small` (`text-xs`)               |
+| `ChartSeriesLegend` | `size`                     | `large` 16px / `small` 10px, Medium, 칩 12px              |
 | `ChartSkeleton`     | `type` × `size` × `legend` | 플롯 모양·크기와 범례 배치. 값은 위 컴포넌트들과 공유한다 |
 
 ## 디자인 토큰 매핑

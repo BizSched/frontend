@@ -33,7 +33,12 @@ describe('ChartRoot', () => {
       </ChartRoot>,
     );
 
-    expect(screen.getByRole('figure')).toHaveClass('flex-row', 'items-center');
+    expect(screen.getByRole('figure')).toHaveClass(
+      'flex-row',
+      'items-center',
+      '[&_[data-slot=chart-legend]]:flex-col',
+      '[&_[data-slot=chart-legend]]:items-start',
+    );
   });
 
   it('size를 명시하면 그대로 쓴다', () => {

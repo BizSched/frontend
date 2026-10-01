@@ -12,7 +12,8 @@ const chartRootVariants = cva('flex gap-4', {
   variants: {
     legend: {
       bottom: 'flex-col',
-      right: 'flex-row items-center',
+      right:
+        'flex-row items-center [&_[data-slot=chart-legend]]:flex-col [&_[data-slot=chart-legend]]:items-start',
     },
   },
   defaultVariants: {

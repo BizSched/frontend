@@ -15,6 +15,8 @@ import { ChartDonut } from '@components/_common/Chart/ChartDonut';
 import { ChartProvider } from '@providers/chart/ChartProvider';
 import type { ChartConfig } from '@providers/types/chart';
 
+import { mockResizeObserver } from '@test/helpers/mockResizeObserver';
+
 const CONFIG = {
   product: { label: '상품', color: 'var(--color-primary-700)' },
   service: { label: '서비스', color: 'var(--color-secondary-500)' },
@@ -25,21 +27,8 @@ const DATA = [
   { category: 'service', amount: 50 },
 ];
 
-// jsdom은 레이아웃을 계산하지 않아 크기가 0이다. ResponsiveContainer가 크기 0이면
-// 차트를 그리지 않으므로, observe 시점에 브라우저처럼 컨테이너 크기를 알려 준다.
 beforeAll(() => {
-  class ResizeObserverMock {
-    constructor(private callback: ResizeObserverCallback) {}
-    observe() {
-      this.callback(
-        [{ contentRect: { width: 320, height: 200 } } as ResizeObserverEntry],
-        this as unknown as ResizeObserver,
-      );
-    }
-    unobserve() {}
-    disconnect() {}
-  }
-  global.ResizeObserver = ResizeObserverMock;
+  mockResizeObserver({ width: 320, height: 200 });
 });
 
 // recharts는 조각을 각도 0에서 펼치는 애니메이션으로 그린다. jsdom에서는 프레임이
@@ -121,6 +110,30 @@ describe('ChartDonut', () => {
       finishAnimation();
 
       expect(getArcRadii(container)).toEqual(radii);
+    },
+  );
+
+  it.each([
+    { size: 'large', diameter: '252px' },
+    { size: 'small', diameter: '152px' },
+  ] as const)(
+    'size가 $size 일 때 컨테이너를 바깥 지름 $diameter 정사각형으로 고정한다',
+    ({ size, diameter }) => {
+      const { container } = render(
+        <ChartProvider
+          config={CONFIG}
+          data={DATA}
+          valueKey="amount"
+          size={size}
+        >
+          <ChartDonut nameKey="category" />
+        </ChartProvider>,
+      );
+
+      expect(container.querySelector('[data-slot="chart"]')).toHaveStyle({
+        width: diameter,
+        height: diameter,
+      });
     },
   );
 });
