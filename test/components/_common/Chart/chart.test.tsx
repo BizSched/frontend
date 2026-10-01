@@ -11,7 +11,7 @@ import { ChartPlot } from '@components/_common/Chart/ChartPlot';
 import { ChartRoot } from '@components/_common/Chart/ChartRoot';
 import { ChartSeriesLegend } from '@components/_common/Chart/ChartSeriesLegend';
 
-import type { ChartConfig } from '@providers/types/chart';
+import type { ChartSeriesConfig } from '@providers/types/chart';
 
 import { mockResizeObserver } from '@test/helpers/mockResizeObserver';
 
@@ -23,7 +23,7 @@ afterEach(cleanup);
 
 const CONFIG = {
   product: { label: '상품', color: 'red' },
-} satisfies ChartConfig;
+} satisfies ChartSeriesConfig;
 
 describe('Chart', () => {
   it('Root와 서브컴포넌트가 각 구현과 동일 참조다', () => {

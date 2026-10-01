@@ -4,7 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import type { ComponentProps, ReactNode } from 'react';
 
 import { ChartProvider } from '@providers/chart/ChartProvider';
-import type { ChartConfig, ChartSize } from '@providers/types/chart';
+import type { ChartSeriesConfig, ChartSize } from '@providers/types/chart';
 
 import { cn } from '@lib/utilities/cn';
 
@@ -27,7 +27,7 @@ interface ChartRootProps
     VariantProps<typeof chartRootVariants> {
   // NOTE: ChartRoot는 client component라 Server Component에서 직접 렌더하면 config가 직렬화된다.
   // config.icon(ComponentType) 같은 함수는 직렬화할 수 없으므로, API 연동 시 차트를 렌더하는 위치(client 도메인 컴포넌트 안)를 함께 정한다.
-  config: ChartConfig;
+  config: ChartSeriesConfig;
   data: Record<string, unknown>[];
   valueKey?: string;
   size?: ChartSize;

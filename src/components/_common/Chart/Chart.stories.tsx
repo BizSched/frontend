@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/nextjs-vite';
 
-import type { ChartConfig } from '@providers/types/chart';
+import type { ChartSeriesConfig } from '@providers/types/chart';
 
 import { Chart } from './Chart';
 
@@ -13,7 +13,7 @@ const BAR_CONFIG = {
   service: { label: '서비스판매', color: 'var(--chart-2)' },
   online: { label: '배달·온라인', color: 'var(--chart-3)' },
   etc: { label: '기타', color: 'var(--chart-4)' },
-} satisfies ChartConfig;
+} satisfies ChartSeriesConfig;
 
 const BAR_DATA = [
   {
@@ -59,7 +59,7 @@ const DONUT_CONFIG = {
   event: { label: '이벤트', color: 'var(--chart-3)' },
   online: { label: '배달/온라인', color: 'var(--chart-4)' },
   etc: { label: '기타', color: 'var(--chart-5)' },
-} satisfies ChartConfig;
+} satisfies ChartSeriesConfig;
 
 const DONUT_DATA = [
   { category: 'product', amount: 4_200_000 },

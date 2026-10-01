@@ -5,12 +5,12 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { ChartSeriesLegend } from '@components/_common/Chart/ChartSeriesLegend';
 
 import { ChartProvider } from '@providers/chart/ChartProvider';
-import type { ChartConfig, ChartSize } from '@providers/types/chart';
+import type { ChartSeriesConfig, ChartSize } from '@providers/types/chart';
 
 const CONFIG = {
   product: { label: '상품', color: 'red' },
   service: { label: '서비스', color: 'blue' },
-} satisfies ChartConfig;
+} satisfies ChartSeriesConfig;
 
 afterEach(cleanup);
 

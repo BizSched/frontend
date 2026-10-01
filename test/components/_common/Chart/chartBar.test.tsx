@@ -5,14 +5,14 @@ import { afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { ChartBar } from '@components/_common/Chart/ChartBar';
 
 import { ChartProvider } from '@providers/chart/ChartProvider';
-import type { ChartConfig } from '@providers/types/chart';
+import type { ChartSeriesConfig } from '@providers/types/chart';
 
 import { mockResizeObserver } from '@test/helpers/mockResizeObserver';
 
 const CONFIG = {
   sales: { label: '상품판매', color: 'red' },
   service: { label: '서비스판매', color: 'blue' },
-} satisfies ChartConfig;
+} satisfies ChartSeriesConfig;
 
 const DATA = [{ label: '1주', sales: 100, service: 50 }];
 

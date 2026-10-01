@@ -13,14 +13,14 @@ import {
 import { ChartDonut } from '@components/_common/Chart/ChartDonut';
 
 import { ChartProvider } from '@providers/chart/ChartProvider';
-import type { ChartConfig } from '@providers/types/chart';
+import type { ChartSeriesConfig } from '@providers/types/chart';
 
 import { mockResizeObserver } from '@test/helpers/mockResizeObserver';
 
 const CONFIG = {
   product: { label: '상품', color: 'var(--color-primary-700)' },
   service: { label: '서비스', color: 'var(--color-secondary-500)' },
-} satisfies ChartConfig;
+} satisfies ChartSeriesConfig;
 
 const DATA = [
   { category: 'product', amount: 100 },

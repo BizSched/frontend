@@ -1,12 +1,12 @@
-import type { ChartConfig } from '@providers/types/chart';
+import type { ChartSeriesConfig } from '@providers/types/chart';
 
 interface ChartSeriesItem {
   key: string;
-  label: ChartConfig[string]['label'];
-  color?: string;
+  label: ChartSeriesConfig[string]['label'];
+  color: string;
 }
 
-const useChartSeries = (config: ChartConfig): ChartSeriesItem[] =>
+const useChartSeries = (config: ChartSeriesConfig): ChartSeriesItem[] =>
   Object.entries(config).map(([key, itemConfig]) => ({
     key,
     label: itemConfig.label,

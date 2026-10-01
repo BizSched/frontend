@@ -225,7 +225,9 @@ Figma에 로딩 시안이 없어 위 형태(차트 모양 · `bg-muted` · pulse
 
 ### `config`와 계열 순서
 
-`config`는 shadcn `ChartConfig`를 그대로 쓴다. **선언 순서가 곧 계열 순서다.**
+`config`는 shadcn `ChartConfig`에서 `color`를 필수로 좁힌 `ChartSeriesConfig`를 쓴다. **선언 순서가 곧 계열 순서다.**
+
+`theme`(`{ light, dark }`) 형태는 받지 않는다. 슬롯(Bar·Donut·Legend)이 `config`의 색을 직접 주입하는데, shadcn 방식의 `--color-<key>` CSS 변수는 `ChartContainer`(`[data-chart]`) 안에서만 풀려 그 밖에 있는 `Chart.Legend`에서는 쓸 수 없기 때문이다. 다크 모드는 색 토큰(`var(--color-...)`)이 처리한다.
 
 - 막대: 아래 → 위 누적 순서. 모서리는 둥글게 하지 않는다 (모든 계열 `radius [0,0,0,0]`).
 - 도넛: 12시 방향부터 시계 방향 순서.
@@ -245,7 +247,7 @@ Figma에 로딩 시안이 없어 위 형태(차트 모양 · `bg-muted` · pulse
 
 | prop         | 타입                        | 기본값           | 설명                                           |
 | ------------ | --------------------------- | ---------------- | ---------------------------------------------- |
-| `config`     | `ChartConfig`               | —                | 계열 라벨·색                                   |
+| `config`     | `ChartSeriesConfig`         | —                | 계열 라벨·색 (`color` 필수)                    |
 | `data`       | `Record<string, unknown>[]` | —                | 차트 데이터                                    |
 | `valueKey`   | `string`                    | —                | long 형태(도넛)일 때 값 컬럼. wide 형태면 생략 |
 | `size`       | `'large' \| 'small'`        | `useChartSize()` | 지정하면 반응형 판정을 건너뛴다                |
