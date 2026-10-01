@@ -14,12 +14,14 @@ const DONUT_RADIUS: Record<ChartSize, { inner: number; outer: number }> = {
   small: { inner: 48, outer: 76 },
 };
 
+// 도넛은 long 포맷(행 하나 = 계열 하나) 전용이라 행의 계열 컬럼(nameKey)과 값 컬럼(valueKey)이 모두 필요하다.
 interface ChartDonutProps {
   nameKey: string;
+  valueKey: string;
 }
 
-function ChartDonut({ nameKey }: ChartDonutProps) {
-  const { config, data, valueKey, size, isEmpty } = useChartContext();
+function ChartDonut({ nameKey, valueKey }: ChartDonutProps) {
+  const { config, data, size, isEmpty } = useChartContext();
   const series = useChartSeries(config);
   const { inner, outer } = DONUT_RADIUS[size];
   // 반지름이 고정 px이므로 컨테이너도 바깥 지름 정사각형으로 고정한다 (기본 aspect-video면 잘린다).
@@ -54,7 +56,6 @@ function ChartDonut({ nameKey }: ChartDonutProps) {
       .filter((row) => row[nameKey] === key)
       .map((row) => ({ row, key, color })),
   );
-  const dataKey = valueKey ?? series[0]?.key;
 
   return (
     <ChartContainer
@@ -65,7 +66,7 @@ function ChartDonut({ nameKey }: ChartDonutProps) {
       <PieChart>
         <Pie
           data={slices.map(({ row }) => row)}
-          dataKey={dataKey}
+          dataKey={valueKey}
           nameKey={nameKey}
           innerRadius={inner}
           outerRadius={outer}

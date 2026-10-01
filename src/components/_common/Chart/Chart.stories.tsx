@@ -154,7 +154,7 @@ export const DonutLarge: Story = {
     <div style={{ width: 401 }}>
       <Chart {...args}>
         <Chart.Plot>
-          <Chart.Donut nameKey="category" />
+          <Chart.Donut nameKey="category" valueKey="amount" />
           <Chart.Center label="10월 매출" value="11,500,000 원" />
         </Chart.Plot>
         <Chart.Legend />
@@ -170,7 +170,7 @@ export const DonutSmall: Story = {
   render: (args) => (
     <Chart {...args}>
       <Chart.Plot>
-        <Chart.Donut nameKey="category" />
+        <Chart.Donut nameKey="category" valueKey="amount" />
         <Chart.Center label="총 매출" value="11,500,000 원" />
       </Chart.Plot>
       <Chart.Legend />
@@ -206,7 +206,7 @@ export const DonutEmpty: Story = {
     <div style={{ width: 401 }}>
       <Chart {...args}>
         <Chart.Plot>
-          <Chart.Donut nameKey="category" />
+          <Chart.Donut nameKey="category" valueKey="amount" />
           <Chart.Center label="총 매출" value="0 원" />
         </Chart.Plot>
         <Chart.Legend />

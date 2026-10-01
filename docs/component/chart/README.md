@@ -155,7 +155,7 @@ const CATEGORY_CHART_CONFIG = {
 
 <Chart config={CATEGORY_CHART_CONFIG} data={categories} valueKey="amount" aria-label="10월 카테고리 구성">
   <Chart.Plot>
-    <Chart.Donut nameKey="category" />
+    <Chart.Donut nameKey="category" valueKey="amount" />
     <Chart.Center label="10월 매출" value="000,000,000 원" />
   </Chart.Plot>
   <Chart.Legend />
@@ -234,9 +234,12 @@ Figma에 로딩 시안이 없어 위 형태(차트 모양 · `bg-muted` · pulse
 데이터 형태는 두 가지다.
 
 - **wide** (막대): 행마다 계열 키가 컬럼이다. `{ label: '1째 주', product: 1200000, service: 300000 }`. 누적할 키는 `config` 키에서 파생하므로 `valueKey`를 넘기지 않는다.
-- **long** (도넛): 행 하나가 계열 하나다. `{ category: 'product', amount: 1200000 }`. Root에 `valueKey`를, `Chart.Donut`에 `nameKey`(→ `config` 키)를 넘긴다.
+- **long** (도넛): 행 하나가 계열 하나다. `{ category: 'product', amount: 1200000 }`. `Chart.Donut`에 `nameKey`(→ `config` 키)와 `valueKey`(값 컬럼)를 **둘 다 필수로** 넘긴다. Root에도 `valueKey`를 넘긴다.
 
-`valueKey`를 Root에 두는 이유는 빈 상태·합계 계산(`useChartSummary`)이 Root의 Provider에서 한 번만 일어나기 때문이다. `valueKey`가 있으면 `row[valueKey]`의 합, 없으면 모든 행의 `config` 키 값 합을 쓴다.
+`valueKey`는 두 곳에서 쓰인다.
+
+- **`Chart.Donut`의 `valueKey`(필수)**: 조각 크기를 정하는 값 컬럼. long 포맷 행에는 `config` 키 컬럼이 없어서 대체할 값이 없다. 선택 prop이면 빠뜨렸을 때 경고 없이 빈 도넛이 그려지므로 타입으로 강제한다.
+- **Root의 `valueKey`(선택)**: 빈 상태·합계 계산(`useChartSummary`)이 Root의 Provider에서 한 번만 일어나기 때문에 Root에도 둔다. `valueKey`가 있으면 `row[valueKey]`의 합, 없으면 모든 행의 `config` 키 값 합을 쓴다.
 
 ### Root props
 
