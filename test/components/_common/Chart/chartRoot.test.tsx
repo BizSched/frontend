@@ -26,6 +26,16 @@ describe('ChartRoot', () => {
     expect(screen.getByText('size:large')).toBeInTheDocument();
   });
 
+  it('플롯과 범례 사이 간격은 size와 관계없이 10px이다', () => {
+    render(
+      <ChartRoot config={{}} data={[]} size="small" aria-label="차트">
+        <span>plot</span>
+      </ChartRoot>,
+    );
+
+    expect(screen.getByRole('figure')).toHaveClass('gap-2.5');
+  });
+
   it('legend=right일 때 가로 배치 클래스를 적용한다', () => {
     render(
       <ChartRoot config={{}} data={[]} legend="right" aria-label="차트">

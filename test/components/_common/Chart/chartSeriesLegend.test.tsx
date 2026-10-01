@@ -35,14 +35,28 @@ describe('ChartSeriesLegend', () => {
   });
 
   it.each([
-    { size: 'large', classes: ['text-base'] },
-    { size: 'small', classes: ['text-[0.625rem]', 'leading-3'] },
+    {
+      size: 'large',
+      list: ['text-sm', 'gap-4'],
+      chip: ['size-2.5', 'rounded-[3px]'],
+    },
+    {
+      size: 'small',
+      list: ['text-[0.625rem]', 'leading-3', 'gap-2.5'],
+      chip: ['size-2', 'rounded-[2px]'],
+    },
   ] as const)(
-    'Context size가 $size 일 때 글자 크기를 적용한다',
-    ({ size, classes }) => {
+    'Context size가 $size 일 때 차트 종류와 관계없이 같은 글자·칩·간격을 적용한다',
+    ({ size, list, chip }) => {
       renderLegend(size, [{}]);
 
-      expect(screen.getByRole('list')).toHaveClass('font-medium', ...classes);
+      expect(screen.getByRole('list')).toHaveClass('font-medium', ...list);
+      expect(screen.getAllByRole('listitem')[0]).toHaveClass('gap-1');
+      expect(
+        screen
+          .getAllByRole('listitem')[0]
+          .querySelector('[aria-hidden="true"]'),
+      ).toHaveClass(...chip);
     },
   );
 

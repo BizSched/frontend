@@ -251,6 +251,8 @@ Figma에 로딩 시안이 없어 위 형태(차트 모양 · `bg-muted` · pulse
 
 `legend`는 `size`에서 파생하지 않는다. 도넛은 `small`에서 우측 범례지만 막대는 `small`에서도 하단 범례라, 파생 규칙이 차트 종류에 따라 갈린다. Root는 차트 종류를 모르므로 호출부가 명시한다.
 
+범례 글자·칩·간격과 플롯→범례 간격은 차트 종류와 관계없이 **별로 통일**한다. 시안의 막대·도넛 범례 차이는 의도된 것이 아니므로 막대 시안 값으로 맞춘다 (플롯→범례 10px, 칩→글자 4px).
+
 ## 반응형 — `size`
 
 막대 두께와 도넛 반지름은 recharts prop이라 CSS 미디어 쿼리로 바꿀 수 없다. [pagination](../pagination/README.md)과 같은 방식으로 **`size`를 JS 값으로 단일화**한다.
@@ -284,7 +286,7 @@ recharts 자동 눈금을 쓴다. 비교한 대안은 아래와 같다.
 | ------------------- | -------------------------- | --------------------------------------------------------- |
 | `ChartRoot`         | `legend`                   | `bottom` (세로 쌓기) / `right` (가로 배치, 가운데 정렬)   |
 | `ChartCenter`       | `size`                     | `large` 16px / `small` 10px, label·value 모두 bold        |
-| `ChartSeriesLegend` | `size`                     | `large` 16px / `small` 10px, Medium, 칩 12px              |
+| `ChartSeriesLegend` | `size`                     | `large` 14px / `small` 10px, Medium, 칩 10/8px            |
 | `ChartSkeleton`     | `type` × `size` × `legend` | 플롯 모양·크기와 범례 배치. 값은 위 컴포넌트들과 공유한다 |
 
 ## 디자인 토큰 매핑

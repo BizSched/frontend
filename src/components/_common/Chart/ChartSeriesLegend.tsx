@@ -9,16 +9,25 @@ import { useChartSeries } from '@hooks/chart/useChartSeries';
 import { cn } from '@lib/utilities/cn';
 
 const chartSeriesLegendVariants = cva(
-  'flex flex-wrap items-center gap-2.5 font-medium',
+  'flex flex-wrap items-center font-medium',
   {
     variants: {
       size: {
-        large: 'text-base',
-        small: 'text-[0.625rem] leading-3',
+        large: 'gap-4 text-sm',
+        small: 'gap-2.5 text-[0.625rem] leading-3',
       },
     },
   },
 );
+
+const chartSeriesLegendChipVariants = cva('shrink-0', {
+  variants: {
+    size: {
+      large: 'size-2.5 rounded-[3px]',
+      small: 'size-2 rounded-[2px]',
+    },
+  },
+});
 
 type ChartSeriesLegendProps = ComponentProps<'ul'>;
 
@@ -37,10 +46,10 @@ function ChartSeriesLegend({ className, ...props }: ChartSeriesLegendProps) {
       {...props}
     >
       {series.map(({ key, label, color }) => (
-        <li key={key} className="flex items-center gap-2.5">
+        <li key={key} className="flex items-center gap-1">
           <span
             aria-hidden="true"
-            className="size-3 shrink-0 rounded-[2px]"
+            className={chartSeriesLegendChipVariants({ size })}
             style={{ backgroundColor: color }}
           />
           {label}

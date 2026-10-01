@@ -8,7 +8,7 @@ import type { ChartConfig, ChartSize } from '@providers/types/chart';
 
 import { cn } from '@lib/utilities/cn';
 
-const chartRootVariants = cva('flex gap-4', {
+const chartRootVariants = cva('flex gap-2.5', {
   variants: {
     legend: {
       bottom: 'flex-col',
