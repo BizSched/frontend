@@ -16,7 +16,6 @@ import { SidebarMenuButton } from '@components/_common/Sidebar/SidebarMenuButton
 import { useSidebar } from '@components/_common/Sidebar/SidebarProvider';
 import { SidebarTrigger } from '@components/_common/Sidebar/SidebarTrigger';
 
-import { cn } from '@lib/utilities/cn';
 import { ROUTE_PATHS } from '@lib/utilities/routePaths';
 
 import Bell from '@assets/icons/ic_bell.svg';
@@ -52,6 +51,7 @@ function AppSidebar({
   const pathname = usePathname();
   const { setIsOverlayOpen } = useSidebar();
   const isDashboard = pathname === ROUTE_PATHS.dashboard();
+  const isSales = pathname === ROUTE_PATHS.sales();
   const handleNavigate = () => setIsOverlayOpen(false);
 
   return (
@@ -81,7 +81,9 @@ function AppSidebar({
           <header className="fixed inset-x-0 top-0 z-30 hidden h-14 items-center justify-between bg-white-50 px-4 max-tablet:flex">
             <div className="flex items-center gap-2">
               <SidebarTrigger />
-              <span className="text-sm font-semibold">Slid to-do</span>
+              <span className="text-sm font-semibold">
+                {isSales ? '매출 대시보드' : 'Slid to-do'}
+              </span>
             </div>
             <Button
               aria-label="알림"
@@ -149,7 +151,7 @@ function AppSidebar({
               </Collapsible.Root>
             </li>
             <li>
-              <Collapsible.Root>
+              <Collapsible.Root defaultOpen={isSales}>
                 <Collapsible.Trigger render={<SidebarMenuButton />}>
                   <SideIcon icons={SalesIcon} />
                   <span className="flex-1">매출</span>
@@ -165,7 +167,15 @@ function AppSidebar({
                 <Collapsible.Panel>
                   <ul className="pt-2">
                     <li>
-                      <SidebarMenuButton size="sub" disabled title="준비 중">
+                      <SidebarMenuButton
+                        size="sub"
+                        nativeButton={false}
+                        role="link"
+                        render={<Link href={ROUTE_PATHS.sales()} />}
+                        isActive={isSales}
+                        aria-current={isSales ? 'page' : undefined}
+                        onClick={handleNavigate}
+                      >
                         매출 대시보드
                       </SidebarMenuButton>
                     </li>
