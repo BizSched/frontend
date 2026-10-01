@@ -43,7 +43,7 @@ Figma 예시의 보조 액션 4개(매출 카테고리 추가 등)는 사용처 
 | 공유 shape        | `@components/_common/IconButton/iconButtonBase`의 `ICON_BUTTON_BASE_CLASSNAME` 재사용               | 원형·focus-visible·disabled 규칙이 IconButton 계열과 같다. 단일 출처 유지                                                                                                                                          |
 | 열림 상태 스타일  | prop·`cva` 축 없이 Base UI의 `data-popup-open` 속성으로 처리                                        | 열림에 따라 바뀌는 스타일은 메인 버튼의 그림자·아이콘 회전뿐이다. 열림 상태는 `Menu.Root`가 갖고 있으므로 이를 다시 prop으로 받아 `cva`에 넘기지 않는다                                                            |
 | 열림 상태 관리    | uncontrolled 기본 + `open`/`defaultOpen`/`onOpenChange`를 `Menu.Root`로 그대로 전달                 | 대부분은 단순 토글로 충분하고, 다른 UI와 연동할 때만 사용하는 쪽이 제어한다                                                                                                                                        |
-| 전환 애니메이션   | 열릴 때 메인 `+` 아이콘 45° 회전(`×` 모양), 보조 버튼 목록 fade + 위로 이동                         | 확정 사항(애니메이션 있음). 아이콘을 바꾸지 않고 회전으로 `×`를 만들어 전환이 자연스럽다. 아이콘 교체 방식 자체는 디자인 의견 확인 중("확인 필요" 1번)                                                             |
+| 전환 애니메이션   | 열릴 때 메인 `+` 아이콘 45° 회전(`×` 모양), 보조 버튼 목록 fade + 위로 이동                         | 확정 사항(애니메이션 있음). 아이콘을 바꾸지 않고 회전으로 `×`를 만들어 전환이 자연스럽고, 열린 상태에서 메인 버튼이 닫기 역할을 겸한다는 의미가 분명해진다. 회전 방식 유지로 확정                                  |
 | 위치 지정         | 컴포넌트는 `fixed`/`absolute`를 갖지 않음. 보조 버튼 목록은 `Menu.Positioner`가 메인 버튼 위에 배치 | 화면 우하단 고정 등 배치는 페이지 레이아웃 책임. 사용하는 쪽이 `className` 또는 래퍼로 지정한다                                                                                                                    |
 | `aria-label` 강제 | 메인 버튼 `aria-label`, 각 액션 `label`을 타입 레벨 필수                                            | 모두 아이콘 전용이라 [IconButton](../IconButton/README.md#접근성)과 같은 방식으로 컴파일 타임에 강제                                                                                                               |
 
@@ -107,6 +107,10 @@ type ActionButtonProps = Omit<Menu.Trigger.Props, 'children'> &
 
 - 변형 축이 없어 `cva`를 쓰지 않고 IconButton의 base처럼 고정 클래스를 `cn`으로 합친다.
 - Figma에 hover·disabled 프레임은 없다 — `ICON_BUTTON_BASE_CLASSNAME`의 focus-visible·disabled 규칙만 적용하고 hover는 추가하지 않는다.
+
+> **NOTE — disabled 디자인 미정**
+> Figma에 disabled 디자인이 없어, 현재 비활성 상태는 `ICON_BUTTON_BASE_CLASSNAME`의 `disabled:pointer-events-none disabled:cursor-not-allowed`로 **클릭만 막고 겉모습은 일반 상태와 같다.** 임의로 비활성 스타일(투명도·색 변경 등)을 정하지 않고 그대로 두며, 추후 디자인과 disabled 스타일을 맞춘 뒤 반영한다("확인 필요" 1번).
+
 - Figma 원본의 `px-[18px] py-[10px]` 패딩은 고정 크기 원 안에 아이콘 하나를 가운데 두는 구조라 결과에 영향이 없어 옮기지 않는다.
 - 아이콘 색은 lucide 아이콘이 `currentColor`를 따르므로 버튼의 `text-*`로 지정한다. Figma 원본 SVG와 대조한 결과 메인 `+`는 `text-white-50`(선 두께 1.8 → `strokeWidth={1.8}`), 보조 아이콘은 `text-primary-500`이다.
 
@@ -169,22 +173,23 @@ test/components/_common/ActionButton/ActionButton.test.tsx
 
 ## 확정 사항
 
-| 항목            | 결정                                                             |
-| --------------- | ---------------------------------------------------------------- |
-| 닫힘 동작       | Esc·바깥 클릭으로 닫힘, 보조 액션 선택 후 자동 닫힘              |
-| dim             | 없음                                                             |
-| 전환 애니메이션 | 있음                                                             |
-| 그림자          | 불투명 `slate/600` 그대로 (Figma 누락 아님)                      |
-| 보조 액션 정의  | 공통 컴포넌트에서 정의하지 않고 사용하는 쪽에서 `actions`로 설정 |
-| 크기            | 한 가지만 (모바일 전용)                                          |
+| 항목             | 결정                                                             |
+| ---------------- | ---------------------------------------------------------------- |
+| 닫힘 동작        | Esc·바깥 클릭으로 닫힘, 보조 액션 선택 후 자동 닫힘              |
+| dim              | 없음                                                             |
+| 전환 애니메이션  | 있음                                                             |
+| 그림자           | 불투명 `slate/600` 그대로 (Figma 누락 아님)                      |
+| 보조 액션 정의   | 공통 컴포넌트에서 정의하지 않고 사용하는 쪽에서 `actions`로 설정 |
+| 크기             | 한 가지만 (모바일 전용)                                          |
+| 열림 상태 아이콘 | `+`를 45° 회전시켜 `×` 모양으로 표시 (현재 구현 유지)            |
 
 ## 확인 필요
 
 아래 항목은 **임의로 확정하지 않는다.** 확인 후 이 문서에 반영한다.
 
-### 1. 열림 상태의 메인 버튼 아이콘 (디자인 의견 요청 중)
+### 1. disabled 디자인 (추후 디자인과 맞춤)
 
-Figma의 `active`에서는 메인 버튼이 `+` 그대로다. 열린 상태에서 메인 버튼이 닫기 역할을 겸하므로 `×`로 바꾸는 편이 의미가 분명하다는 의견을 디자인에 묻는 중이다. 결론 전까지는 `+`를 45° 회전시켜 `×` 모양이 되는 애니메이션으로 잠정 구현한다. `+` 유지로 결정되면 회전 클래스만 제거하면 된다.
+Figma에 메인·보조 버튼의 disabled 프레임이 없다. 현재는 클릭만 막고 겉모습은 일반 상태와 같게 둔다([스타일](#스타일) NOTE 참고). 디자인과 disabled 스타일을 맞춘 뒤 메인 버튼(`Menu.Trigger`)과 보조 버튼(`Menu.Item`)에 각각 `disabled:`/`data-disabled:` 클래스로 반영한다.
 
 ## 참고
 
