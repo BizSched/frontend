@@ -5,13 +5,11 @@ import { Cell, Pie, PieChart } from 'recharts';
 import { Card } from '@components/_common/Card/Card';
 import { ChartContainer } from '@components/_common/Chart/ChartContainer';
 
-import type { SalesCategory } from './salesDashboardData';
+import { SALES_CATEGORIES, type SalesCategory } from './salesDashboardData';
 
-interface SalesCategoryCardProps {
-  categories: SalesCategory[];
-}
+function SalesCategoryCard() {
+  const categories = SALES_CATEGORIES;
 
-function SalesCategoryCard({ categories }: SalesCategoryCardProps) {
   const config = Object.fromEntries(
     categories.map(({ key, label, color }) => [key, { label, color }]),
   );

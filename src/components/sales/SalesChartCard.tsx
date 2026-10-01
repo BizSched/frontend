@@ -5,11 +5,7 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { Card } from '@components/_common/Card/Card';
 import { ChartContainer } from '@components/_common/Chart/ChartContainer';
 
-import type { SalesWeek } from './salesDashboardData';
-
-interface SalesChartCardProps {
-  weeks: SalesWeek[];
-}
+import { SALES_WEEKS, type SalesWeek } from './salesDashboardData';
 
 const CHART_CONFIG = {
   product: { label: '상품 판매', color: '#ebddb9' },
@@ -25,7 +21,7 @@ const LEGEND = [
   { label: '기타', color: '#fff9ed' },
 ];
 
-function SalesChartCard({ weeks }: SalesChartCardProps) {
+function SalesChartCard() {
   return (
     <Card
       radius="2xl"
@@ -63,7 +59,7 @@ function SalesChartCard({ weeks }: SalesChartCardProps) {
         className="aspect-auto h-[344px] w-full max-tablet:h-[315px]"
         initialDimension={{ width: 720, height: 344 }}
       >
-        <BarChart data={weeks} barCategoryGap="20%" accessibilityLayer>
+        <BarChart data={SALES_WEEKS} barCategoryGap="20%" accessibilityLayer>
           <CartesianGrid vertical={false} stroke="#e5e5e5" />
           <YAxis
             domain={[0, 8000000]}

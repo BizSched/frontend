@@ -1,15 +1,12 @@
 import { Card } from '@components/_common/Card/Card';
 import { Table } from '@components/_common/Table/Table';
 
-import type { SalesRecord } from './salesDashboardData';
-
-interface SalesRecordsCardProps {
-  records: SalesRecord[];
-}
+import { SALES_RECORDS, type SalesRecord } from './salesDashboardData';
 
 const formatAmount = (amount: number) => amount.toLocaleString('ko-KR');
 
-function SalesRecordsCard({ records }: SalesRecordsCardProps) {
+function SalesRecordsCard() {
+  const records = SALES_RECORDS;
   return (
     <Card
       radius="2xl"
