@@ -25,8 +25,8 @@ interface ChartRootProps
   extends
     Omit<ComponentProps<'div'>, 'children'>,
     VariantProps<typeof chartRootVariants> {
-  // NOTE: ChartRoot는 client component라 Server Component에서 직접 렌더하면 config가 직렬화된다.
-  // config.icon(ComponentType) 같은 함수는 직렬화할 수 없으므로, API 연동 시 차트를 렌더하는 위치(client 도메인 컴포넌트 안)를 함께 정한다.
+  // NOTE: <Chart> 트리는 Client Component 안에서 조합한다. Server Component에서는 Chart가 client reference라
+  // <Chart.Plot> 같은 점 접근이 런타임 에러가 나고, config.icon(ComponentType) 같은 함수 값도 직렬화되지 않는다.
   config: ChartSeriesConfig;
   data: Record<string, unknown>[];
   valueKey?: string;

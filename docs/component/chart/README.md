@@ -325,7 +325,8 @@ Figma 변수가 모두 [colors.css](../../../src/assets/styles/colors.css)의 �
 ## 렌더링 경계
 
 - `_common/Chart/*`와 `useChartSize`는 모두 `'use client'`다. recharts가 DOM 측정·이벤트를 쓴다.
-- `tickFormatter` 같은 함수 prop은 RSC 경계를 넘을 수 없다. 서버 컴포넌트에서 쓸 때는 도메인 래퍼를 클라이언트 컴포넌트로 두고 그 안에서 `Chart`를 조합한다.
+- **`<Chart>` 트리는 반드시 Client Component 안에서 조합한다.** Server Component가 import한 `Chart`는 실제 함수가 아니라 client reference라서 `Object.assign`으로 붙인 슬롯이 없다. `<Chart.Plot>`처럼 점으로 접근하면 `Cannot access Chart.Plot on the server` 런타임 에러가 난다. 슬롯이 모두 서버에서 렌더 가능한 `_common/Card`와 다른 점이다.
+- `tickFormatter`, `config.icon` 같은 함수 값도 RSC 경계를 넘을 수 없다. 데이터를 조회하는 도메인 래퍼(`useQuery`를 쓰는 클라이언트 컴포넌트) 안에서 `Chart`를 조합하면 두 제약이 함께 해결된다.
 - [rendering.md](../../architecture/rendering.md) 금지 목록을 따른다.
 
 ## 테스트 전략
