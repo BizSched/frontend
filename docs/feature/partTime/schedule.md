@@ -15,7 +15,7 @@
 - `PartTimeScheduleStaffFilter` — 공통 `Dropdown` 기반 아르바이트생 필터, `Calendar`의 `headerSlot`에 주입
 - `PartTimeScheduleChip` — 출근 확인 여부를 `CalendarEventChip`의 `tone`·체크 아이콘으로 변환
 - `PartTimeScheduleDaySummary` — 선택 날짜 상세. 출근 확인 체크박스 목록과 진행 바 (1024px 이상 캘린더 우측, 미만 캘린더 아래)
-- `PartTimeScheduleActionButtons` — 모바일 공유·수정·추가 플로팅 버튼
+- `PartTimeScheduleActionButtons` — 모바일 플로팅 버튼. 공통 [`ActionButton`](../../component/ActionButton/README.md)에 보조 액션 공유(링크 아이콘)·추가(연필 아이콘)를 위 → 아래 순서로 `actions`에 넘긴다 (2026-10-01 확정). 메인 `+`는 목록을 여닫는 토글이라 그 자체로 추가 동작을 하지 않는다
 
 ## 상태·데이터
 
@@ -41,7 +41,8 @@ API 명세(월 조회 파라미터, `staffId` 서버 필터 지원 여부, `page
 
 - `page.tsx`는 Server Component다. `await connection()`으로 요청 시점에 렌더링해 `today`를 매 요청 계산한다
 - `"use client"`는 상태를 가진 `PartTimeScheduleCalendar` 한 곳에만 둔다. Chip·DaySummary는 지시어 없이 작성했고, Calendar가 import해 클라이언트 번들에 포함된다
-- `PartTimeScheduleHeader`·`PartTimeScheduleActionButtons`는 지금은 Server Component다. 버튼 핸들러를 붙이는 PR에서 해당 버튼만 클라이언트로 분리한다
+- `PartTimeScheduleHeader`는 지금은 Server Component다. 버튼 핸들러를 붙이는 PR에서 해당 버튼만 클라이언트로 분리한다
+- `PartTimeScheduleActionButtons`는 `ActionButton`의 `actions[].onClick`(함수)을 넘겨야 해서 Client Component다. `ActionButton` 자체가 `"use client"`라도 함수 prop은 Server Component에서 넘길 수 없다 ([ActionButton 렌더링 경계](../../component/ActionButton/README.md#렌더링-경계))
 
 [금지 목록](../../architecture/rendering.md#금지-목록-리뷰-체크리스트) 점검:
 
@@ -74,7 +75,7 @@ API 명세(월 조회 파라미터, `staffId` 서버 필터 지원 여부, `page
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 날짜 셀 (날짜 숫자·빈 영역·`+N`) | 선택 날짜를 바꾸고 `PartTimeScheduleDaySummary`에 상세를 보여준다 (1024px 이상 우측, 미만 캘린더 아래)                                           |
 | 셀 안의 스케쥴 칩                | 해당 스케쥴 수정 모달을 연다. 선택 날짜는 바꾸지 않는다. `PartTimeScheduleChip`이 `CalendarEventChip`의 `onClick`을 넘겨 `button`으로 렌더링된다 |
-| 작은 화면 셀의 점                | 클릭 대상이 아니다 (공통 Calendar 계약). 이 구간의 수정 경로는 "확인 필요" 2번                                                                   |
+| 작은 화면 셀의 점                | 클릭 대상이 아니다 (공통 Calendar 계약). 이 구간의 수정 경로는 "확인 필요" 1번                                                                   |
 
 ### 그 외
 
@@ -85,23 +86,25 @@ API 명세(월 조회 파라미터, `staffId` 서버 필터 지원 여부, `page
 
 ## 단계별 PR 계획
 
-| 단계 | 범위                                                                                                       | 상태          |
-| ---- | ---------------------------------------------------------------------------------------------------------- | ------------- |
-| 1    | 아르바이트 스케쥴 관리 docs 작성 — 이 문서                                                                 | 진행 중       |
-| 2    | 아르바이트 스케쥴 관리 목업 UI — 캘린더·필터·날짜 상세·반응형, DTO/formatter, `--z-dropdown` 토큰          | 진행 중       |
-| 3    | 아르바이트 스케쥴 관리 추가/수정 모달 UI — RHF 폼 UI, "스케쥴 추가" 버튼·모바일 FAB·셀 칩 클릭 → 모달 열기 | 2단계 이후    |
-| 4    | 조회 API 연동 — API 명세 확정, fetcher, Query Key, prefetch + hydration, 목업 제거                         | 2단계 이후    |
-| 5    | 출근 확인 토글 — `useMutation`, 날짜 상세 체크박스 활성화                                                  | API 명세 확정 |
-| 6    | 스케쥴 추가·수정 기능 — 3단계 모달에 `useMutation` 연결, 조회 쿼리 무효화                                  | 3·4단계 이후  |
-| 7    | 스케쥴 공유 — 캘린더 + 날짜 상세 영역을 PNG로 캡처해 다운로드                                              | 2단계 이후    |
+| 단계 | 브랜치                         | 범위                                                                                                                            | 상태          |
+| ---- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| 1    | `feat/part-time-schedule-docs` | 아르바이트 스케쥴 관리 docs 작성 — 이 문서                                                                                      | 진행 중       |
+| 2    | `feat/part-time-schedule-ui`   | 아르바이트 스케쥴 관리 목업 UI — 캘린더·필터·날짜 상세·반응형, DTO/formatter, `--z-dropdown` 토큰                               | 진행 중       |
+| 3    | 미정                           | 아르바이트 스케쥴 관리 추가/수정 모달 UI — RHF 폼 UI, "스케쥴 추가" 버튼·모바일 FAB(공통 `ActionButton`)·셀 칩 클릭 → 모달 열기 | 2단계 이후    |
+| 4    | 미정                           | 조회 API 연동 — API 명세 확정, fetcher, Query Key, prefetch + hydration, 목업 제거                                              | 2단계 이후    |
+| 5    | 미정                           | 출근 확인 토글 — `useMutation`, 날짜 상세 체크박스 활성화                                                                       | API 명세 확정 |
+| 6    | 미정                           | 스케쥴 추가·수정 기능 — 3단계 모달에 `useMutation` 연결, 조회 쿼리 무효화                                                       | 3·4단계 이후  |
+| 7    | 미정                           | 스케쥴 공유 — 캘린더 + 날짜 상세 영역을 PNG로 캡처해 다운로드                                                                   | 2단계 이후    |
+
+1·2단계는 stacked PR로 진행한다. 2단계 브랜치는 `dev`가 아니라 1단계 브랜치에서 분기해, UI 작업 중에도 이 문서를 같은 브랜치에서 참조하고 문서·코드를 함께 리뷰할 수 있게 한다. 1단계 PR이 먼저 `dev`에 머지되어야 하고, 1단계 브랜치가 바뀌면 2단계 브랜치를 그 위로 rebase한다. 2단계 PR 본문에 이 머지 순서를 명시한다.
 
 이 페이지 PR 흐름 밖에서 다룰 작업:
 
 - **사이드바 메뉴 연결** — 라우트는 `app/partTime/schedule/page.tsx`로 이미 동작하지만, 사이드바 "아르바이트 > 스케쥴 관리"가 `disabled`("준비 중")라 진입 경로가 없다. `ROUTE_PATHS` 추가와 메뉴 연결은 별도 이슈로 다룬다 (이슈 번호 미정)
 - **하드코딩 색상 토큰화** — #51
-- **아이콘 lucide 교체** — 이 브랜치에서 추가한 SVG 아이콘(`ic_checkbox`, `ic_link`, `ic_pencil`, `ic_plus-accent`, `ic_plus-large`, `ic_plus-white`)을 `lucide-react`로 바꾼다. #102
+- **아이콘 lucide 교체** — 2단계에서 추가한 SVG 아이콘(`ic_checkbox`, `ic_plus-accent`, `ic_plus-white`)을 `lucide-react`로 바꾼다. #102
+  - 모바일 FAB 아이콘(`ic_link`, `ic_pencil`, `ic_plus-large`)은 교체 대상이 아니다. FAB를 공통 `ActionButton`으로 만들면 메인 `+`는 컴포넌트 안의 lucide `PlusIcon`을 쓰고, 보조 아이콘도 lucide로 넘기므로 SVG를 추가하지 않는다 ([ActionButton 레이어 구조](../../component/ActionButton/README.md#레이어-구조))
 
 ## 확인 필요
 
-1. **모바일 "수정" 플로팅 버튼 제거 여부** — 수정은 칩 클릭으로 하기로 해서 연필 버튼이 할 일이 없다. 데스크톱·태블릿 헤더에도 대응 버튼이 없고, Figma 인스턴스 이름(`btn_action-매출 카테고리, 오늘 매출 추가 액션`)으로 보아 매출 화면 버튼을 복사해 온 흔적일 수 있다. 제거하고 공유·추가 2개만 둘지
-2. **칩으로 닿지 않는 스케쥴의 수정 경로** — 날짜 상세가 체크박스 행이 되면서 두 경우에 수정할 곳이 없다. ① 셀에 칩이 3개까지만 보여 4개째부터는 `+N`으로 숨는다. ② 744px 미만은 셀에 점만 있어 칩 자체가 없다. 날짜 상세 행에 수정 진입점(행 클릭, 행 끝 수정 버튼 등)을 둘지. 행 전체를 클릭 대상으로 하면 체크박스 클릭과 겹치지 않게 해야 한다
+1. **칩으로 닿지 않는 스케쥴의 수정 경로** — 날짜 상세가 체크박스 행이 되면서 두 경우에 수정할 곳이 없다. ① 셀에 칩이 3개까지만 보여 4개째부터는 `+N`으로 숨는다. ② 744px 미만은 셀에 점만 있어 칩 자체가 없다. 날짜 상세 행에 수정 진입점(행 클릭, 행 끝 수정 버튼 등)을 둘지. 행 전체를 클릭 대상으로 하면 체크박스 클릭과 겹치지 않게 해야 한다
