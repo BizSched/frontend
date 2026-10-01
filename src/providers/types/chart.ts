@@ -32,11 +32,19 @@ interface ChartContextValue {
   total: number;
 }
 
+interface ChartProviderProps extends Pick<
+  ChartContextValue,
+  'config' | 'data' | 'valueKey' | 'size'
+> {
+  children: ReactNode;
+}
+
 export type {
   ChartConfig,
   ChartConfigContextValue,
   ChartConfigProviderProps,
   ChartContextValue,
+  ChartProviderProps,
   ChartSize,
   ChartTheme,
 };
