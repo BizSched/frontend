@@ -1,4 +1,5 @@
 import { Checkbox } from '@components/_common/Checkbox/Checkbox';
+import { TextButton } from '@components/_common/TextButton/TextButton';
 
 import type { PartTimeSchedule } from '@lib/types/partTimeSchedule';
 import { cn } from '@lib/utilities/cn';
@@ -63,13 +64,29 @@ function PartTimeScheduleDaySummary({
           </div>
           <ul className="flex flex-col gap-1">
             {schedules.map(({ id, startTime, endTime, staff, isCheckedIn }) => (
-              <li key={id}>
-                <label className="flex min-w-0 items-center gap-1 px-1 py-1.5">
+              <li key={id} className="flex items-center gap-2 px-1 py-1.5">
+                <label className="flex min-w-0 flex-1 items-center gap-1">
                   <Checkbox checked={isCheckedIn} readOnly />
                   <span className="truncate text-sm font-medium tracking-[-0.03em] text-[#737373]">
                     {startTime} ~ {endTime} {staff.name}
                   </span>
                 </label>
+                <div className="flex shrink-0 items-center gap-1">
+                  <TextButton
+                    size="small"
+                    aria-label={`${startTime} ~ ${endTime} ${staff.name} 스케쥴 수정`}
+                    className="text-slate-600"
+                  >
+                    수정
+                  </TextButton>
+                  <span aria-hidden="true" className="h-3 w-px bg-slate-200" />
+                  <TextButton
+                    size="small"
+                    aria-label={`${startTime} ~ ${endTime} ${staff.name} 스케쥴 삭제`}
+                  >
+                    삭제
+                  </TextButton>
+                </div>
               </li>
             ))}
           </ul>
