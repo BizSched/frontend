@@ -47,7 +47,13 @@ function ChartDonut({ nameKey }: ChartDonutProps) {
     );
   }
 
-  // long 포맷(행 하나 = 계열 하나): nameKey로 각 행이 어느 계열인지 찾아 Cell 색을 매핑한다.
+  // long 포맷(행 하나 = 계열 하나): config 선언 순서로 행을 다시 세워 범례와 순서를 맞추고,
+  // config에 없는 계열의 행은 범례에 없는 조각이 되므로 그리지 않는다.
+  const slices = series.flatMap(({ key, color }) =>
+    data
+      .filter((row) => row[nameKey] === key)
+      .map((row) => ({ row, key, color })),
+  );
   const dataKey = valueKey ?? series[0]?.key;
 
   return (
@@ -58,17 +64,17 @@ function ChartDonut({ nameKey }: ChartDonutProps) {
     >
       <PieChart>
         <Pie
-          data={data}
+          data={slices.map(({ row }) => row)}
           dataKey={dataKey}
           nameKey={nameKey}
           innerRadius={inner}
           outerRadius={outer}
+          startAngle={90}
+          endAngle={-270}
         >
-          {data.map((row, index) => {
-            const seriesKey = String(row[nameKey]);
-            const color = series.find(({ key }) => key === seriesKey)?.color;
-            return <Cell key={`${seriesKey}-${index}`} fill={color} />;
-          })}
+          {slices.map(({ key, color }, index) => (
+            <Cell key={`${key}-${index}`} fill={color} />
+          ))}
         </Pie>
       </PieChart>
     </ChartContainer>

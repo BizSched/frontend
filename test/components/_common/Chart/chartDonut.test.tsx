@@ -62,7 +62,91 @@ const getArcRadii = (container: HTMLElement) => {
   return [...new Set(radii)].sort((a, b) => b - a);
 };
 
+// 첫 조각 path의 시작점(M)과 바깥 호(A)의 끝점, 차트 중심을 svg 좌표로 읽는다.
+const getFirstSectorOuterArc = (container: HTMLElement) => {
+  const svg = container.querySelector('svg');
+  const d =
+    container.querySelector('.recharts-pie-sector path')?.getAttribute('d') ??
+    '';
+  const [mx, my] = (d.match(/M\s*([-\d.]+),([-\d.]+)/) ?? []).slice(1, 3);
+  const arc = d
+    .match(/A\s*([-\d.,\s]+?)L/)?.[1]
+    .split(/[\s,]+/)
+    .filter(Boolean);
+  return {
+    center: {
+      x: Number(svg?.getAttribute('width')) / 2,
+      y: Number(svg?.getAttribute('height')) / 2,
+    },
+    start: { x: Number(mx), y: Number(my) },
+    end: { x: Number(arc?.[5]), y: Number(arc?.[6]) },
+  };
+};
+
 describe('ChartDonut', () => {
+  it('data 행 순서와 관계없이 config 선언 순서로 조각을 그린다', () => {
+    const { container } = render(
+      <ChartProvider
+        config={CONFIG}
+        data={[...DATA].reverse()}
+        valueKey="amount"
+        size="large"
+      >
+        <ChartDonut nameKey="category" />
+      </ChartProvider>,
+    );
+
+    finishAnimation();
+
+    expect(getSectorFills(container)).toEqual([
+      'var(--color-primary-700)',
+      'var(--color-secondary-500)',
+    ]);
+  });
+
+  it('config에 없는 nameKey 값의 행은 그리지 않는다', () => {
+    const { container } = render(
+      <ChartProvider
+        config={CONFIG}
+        data={[...DATA, { category: 'unknown', amount: 30 }]}
+        valueKey="amount"
+        size="large"
+      >
+        <ChartDonut nameKey="category" />
+      </ChartProvider>,
+    );
+
+    finishAnimation();
+
+    expect(getSectorFills(container)).toHaveLength(2);
+  });
+
+  it('12시 방향에서 시작해 시계 방향으로 그린다', () => {
+    const { container } = render(
+      <ChartProvider
+        config={CONFIG}
+        data={[
+          { category: 'product', amount: 25 },
+          { category: 'service', amount: 75 },
+        ]}
+        valueKey="amount"
+        size="large"
+      >
+        <ChartDonut nameKey="category" />
+      </ChartProvider>,
+    );
+
+    finishAnimation();
+
+    const { center, start, end } = getFirstSectorOuterArc(container);
+    // 시작점: 중심 바로 위(12시), 바깥 반지름 126
+    expect(start.x).toBeCloseTo(center.x, 0);
+    expect(start.y).toBeCloseTo(center.y - 126, 0);
+    // 25% 조각이 시계 방향이면 3시(중심 오른쪽)에서 끝난다
+    expect(end.x).toBeCloseTo(center.x + 126, 0);
+    expect(end.y).toBeCloseTo(center.y, 0);
+  });
+
   it('계열 수만큼 조각을 렌더하고 nameKey로 계열 색을 매핑한다', () => {
     const { container } = render(
       <ChartProvider config={CONFIG} data={DATA} valueKey="amount" size="large">
