@@ -6,7 +6,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@lib/utilities/cn';
 
 const dropdownContentVariants = cva(
-  'bg-white-50 overflow-clip drop-shadow-[0px_4px_8px_rgba(0,0,0,0.1)] outline-none',
+  'overflow-clip bg-white-50 drop-shadow-[0px_4px_8px_rgba(0,0,0,0.1)] outline-none',
   {
     variants: {
       size: {
@@ -37,7 +37,11 @@ function DropdownContent({
 }: DropdownContentProps) {
   return (
     <Menu.Portal>
-      <Menu.Positioner data-slot="dropdown-positioner" sideOffset={sideOffset}>
+      <Menu.Positioner
+        data-slot="dropdown-positioner"
+        sideOffset={sideOffset}
+        className="z-(--z-dropdown)"
+      >
         <Menu.Popup
           data-slot="dropdown-content"
           className={cn(dropdownContentVariants({ size }), className)}
