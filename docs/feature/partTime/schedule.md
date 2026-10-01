@@ -28,11 +28,11 @@
 | 스케쥴 목록       | 서버 데이터                | 현재 목업 → TanStack Query    | 출근 확인·추가·수정으로 갱신·무효화가 필요해 RSC 직접 조회 예외에 해당하지 않는다               |
 | 추가·수정 폼      | 모달                       | React Hook Form (예정)        | Form 상태                                                                                       |
 
-API 명세(월 조회 파라미터, `staffId` 서버 필터 지원 여부, `page`/`size` 페이지네이션 사용 여부)는 UI를 먼저 구현한 뒤 4단계 조회 API 연동에서 정한다 (2026-10-01 확정). 정리되면 도메인 문서(`feature/partTime/README.md`)에 작성하고 여기서는 링크만 한다. 현재 DTO(`src/lib/types/partTimeSchedule.ts`)는 BE에서 받은 **예시 응답** 기준이다.
+API 명세(월 조회 파라미터, `staffId` 서버 필터 지원 여부, `page`/`size` 페이지네이션 사용 여부)는 UI를 먼저 구현한 뒤 4단계 조회 API 연동에서 정한다 (2026-10-01 확정). 정리되면 도메인 문서(`feature/partTime/README.md`)에 작성하고 여기서는 링크만 한다. BE에서 받은 응답은 **예시**일 뿐이라 DTO 타입과 Formatter는 명세가 확정되는 4단계에서 작성한다 (2026-10-01 확정). 2단계에서는 UI가 쓰는 FE 타입(`PartTimeSchedule`, `PartTimeStaff` — `src/lib/types/partTimeSchedule.ts`)만 두고, 목업도 이 타입으로 바로 만든다.
 
 ### API 연동 계획
 
-1. 월 단위 조회 함수를 작성하고 `formatPartTimeScheduleList`로 변환한다. 목업(`partTimeScheduleMock.ts`)은 이미 DTO → formatter를 거치므로 컴포넌트는 수정하지 않는다
+1. 확정된 명세로 DTO 타입과 Formatter(DTO → FE 타입)를 작성하고, 월 단위 조회 함수 안에서 Formatter를 호출한다. 컴포넌트는 2단계부터 FE 타입만 쓰므로 수정하지 않는다
 2. Query Key에 `month`·`staffId`를 넣는다. 필터를 서버에서 할지 클라이언트에서 할지는 API 명세를 따른다
 3. 첫 화면(현재 월)은 `page.tsx`에서 `prefetchQuery` → `HydrationBoundary` → `useQuery`, 월 이동은 클라이언트에서 조회한다
 4. 날짜 상세는 따로 조회하지 않고 월 데이터에서 걸러낸다. 이전·다음 달 날짜를 선택하면 그 달의 쿼리를 읽는다
@@ -89,9 +89,9 @@ API 명세(월 조회 파라미터, `staffId` 서버 필터 지원 여부, `page
 | 단계 | 브랜치                         | 범위                                                                                                                            | 상태          |
 | ---- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- | ------------- |
 | 1    | `feat/part-time-schedule-docs` | 아르바이트 스케쥴 관리 docs 작성 — 이 문서                                                                                      | 진행 중       |
-| 2    | `feat/part-time-schedule-ui`   | 아르바이트 스케쥴 관리 목업 UI — 캘린더·필터·날짜 상세·반응형, DTO/formatter, `--z-dropdown` 토큰                               | 진행 중       |
+| 2    | `feat/part-time-schedule-ui`   | 아르바이트 스케쥴 관리 목업 UI — 캘린더·필터·날짜 상세·반응형, FE 타입·목업, `--z-dropdown` 토큰                                | 진행 중       |
 | 3    | 미정                           | 아르바이트 스케쥴 관리 추가/수정 모달 UI — RHF 폼 UI, "스케쥴 추가" 버튼·모바일 FAB(공통 `ActionButton`)·셀 칩 클릭 → 모달 열기 | 2단계 이후    |
-| 4    | 미정                           | 조회 API 연동 — API 명세 확정, fetcher, Query Key, prefetch + hydration, 목업 제거                                              | 2단계 이후    |
+| 4    | 미정                           | 조회 API 연동 — API 명세 확정, DTO 타입·Formatter, fetcher, Query Key, prefetch + hydration, 목업 제거                          | 2단계 이후    |
 | 5    | 미정                           | 출근 확인 토글 — `useMutation`, 날짜 상세 체크박스 활성화                                                                       | API 명세 확정 |
 | 6    | 미정                           | 스케쥴 추가·수정 기능 — 3단계 모달에 `useMutation` 연결, 조회 쿼리 무효화                                                       | 3·4단계 이후  |
 | 7    | 미정                           | 스케쥴 공유 — 캘린더 + 날짜 상세 영역을 PNG로 캡처해 다운로드                                                                   | 2단계 이후    |
@@ -102,7 +102,7 @@ API 명세(월 조회 파라미터, `staffId` 서버 필터 지원 여부, `page
 
 - **사이드바 메뉴 연결** — 라우트는 `app/partTime/schedule/page.tsx`로 이미 동작하지만, 사이드바 "아르바이트 > 스케쥴 관리"가 `disabled`("준비 중")라 진입 경로가 없다. `ROUTE_PATHS` 추가와 메뉴 연결은 별도 이슈로 다룬다 (이슈 번호 미정)
 - **하드코딩 색상 토큰화** — #51
-- **아이콘 lucide 교체** — 2단계에서 추가한 SVG 아이콘(`ic_checkbox`, `ic_plus-accent`, `ic_plus-white`)을 `lucide-react`로 바꾼다. #102
+- **아이콘 lucide 교체** — 2단계에서 추가한 SVG 아이콘(`ic_checkbox`, `ic_plus-white`)을 `lucide-react`로 바꾼다. #102 헤더 "스케쥴 공유" 버튼은 처음부터 lucide `LinkIcon`을 쓴다
   - 모바일 FAB 아이콘(`ic_link`, `ic_pencil`, `ic_plus-large`)은 교체 대상이 아니다. FAB를 공통 `ActionButton`으로 만들면 메인 `+`는 컴포넌트 안의 lucide `PlusIcon`을 쓰고, 보조 아이콘도 lucide로 넘기므로 SVG를 추가하지 않는다 ([ActionButton 레이어 구조](../../component/ActionButton/README.md#레이어-구조))
 
 ## 확인 필요
