@@ -22,7 +22,11 @@ function DatePickerPanel({
 }: DatePickerPanelProps) {
   return (
     <>
-      <DatePickerCalendar selected={selected} onSelect={onSelect} />
+      <DatePickerCalendar
+        selected={selected}
+        onSelect={onSelect}
+        className="self-center"
+      />
       <div className="flex gap-3 px-4 pb-4">
         <Button
           hierarchy="tertiary"

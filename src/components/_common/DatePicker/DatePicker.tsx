@@ -9,6 +9,13 @@ import {
   type DatePickerPopoverContentProps,
   DatePickerPopoverTrigger,
 } from '@components/_common/DatePicker/DatePickerPopover';
+import {
+  DatePickerSheet,
+  DatePickerSheetContent,
+  DatePickerSheetTrigger,
+} from '@components/_common/DatePicker/DatePickerSheet';
+
+import { useDatePickerLayout } from '@hooks/datePicker/useDatePickerLayout';
 
 import { formatCalendarDate } from '@lib/utilities/calendar/calendarDate';
 import { cn } from '@lib/utilities/cn';
@@ -41,6 +48,7 @@ function DatePicker(props: DatePickerProps) {
   const [uncontrolledValue, setUncontrolledValue] = useState(defaultValue);
   const [pendingDate, setPendingDate] = useState<Date | undefined>();
   const [isOpen, setIsOpen] = useState(false);
+  const layout = useDatePickerLayout();
 
   const selectedDate = isControlled ? value : uncontrolledValue;
 
@@ -69,26 +77,46 @@ function DatePicker(props: DatePickerProps) {
     setIsOpen(false);
   };
 
+  const triggerClassName = cn(
+    'flex h-14 w-full cursor-pointer items-center rounded-[16px] border border-slate-300 bg-white-50 px-4 text-base tracking-[-0.02em] text-slate-700 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 data-[popup-open]:border-ring motion-reduce:transition-none',
+    !selectedDate && 'text-muted-foreground',
+    className,
+  );
+  const triggerLabel = selectedDate
+    ? formatDatePickerValue(selectedDate)
+    : placeholder;
+  const panel = (
+    <DatePickerPanel
+      selected={pendingDate}
+      onSelect={setPendingDate}
+      onCancel={handleCancel}
+      onConfirm={handleConfirm}
+    />
+  );
+
+  if (layout === 'sheet') {
+    return (
+      <DatePickerSheet open={isOpen} onOpenChange={handleOpenChange}>
+        <DatePickerSheetTrigger
+          disabled={disabled}
+          className={triggerClassName}
+        >
+          {triggerLabel}
+        </DatePickerSheetTrigger>
+        <DatePickerSheetContent>{panel}</DatePickerSheetContent>
+      </DatePickerSheet>
+    );
+  }
+
   return (
     <DatePickerPopover open={isOpen} onOpenChange={handleOpenChange}>
       <DatePickerPopoverTrigger
         disabled={disabled}
-        className={cn(
-          'flex h-14 w-full cursor-pointer items-center rounded-[16px] border border-slate-300 bg-white-50 px-4 text-base tracking-[-0.02em] text-slate-700 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 data-[popup-open]:border-ring motion-reduce:transition-none',
-          !selectedDate && 'text-muted-foreground',
-          className,
-        )}
+        className={triggerClassName}
       >
-        {selectedDate ? formatDatePickerValue(selectedDate) : placeholder}
+        {triggerLabel}
       </DatePickerPopoverTrigger>
-      <DatePickerPopoverContent align={align}>
-        <DatePickerPanel
-          selected={pendingDate}
-          onSelect={setPendingDate}
-          onCancel={handleCancel}
-          onConfirm={handleConfirm}
-        />
-      </DatePickerPopoverContent>
+      <DatePickerPopoverContent align={align}>{panel}</DatePickerPopoverContent>
     </DatePickerPopover>
   );
 }
