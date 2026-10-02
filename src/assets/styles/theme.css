@@ -69,6 +69,7 @@
   --chart-4: var(--color-primary-300);
   --chart-5: var(--color-primary-200);
   --radius: 0.625rem;
+  --z-dropdown: 100;
   --z-modal-base: 1000;
   --z-popover: 2000;
   --sidebar: var(--color-white-100);
