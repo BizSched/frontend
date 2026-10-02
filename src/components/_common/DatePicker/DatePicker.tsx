@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 
-import { Button } from '@components/_common/Button/Button';
-import { DatePickerCalendar } from '@components/_common/DatePicker/DatePickerCalendar';
+import { DatePickerPanel } from '@components/_common/DatePicker/DatePickerPanel';
 import {
   DatePickerPopover,
   DatePickerPopoverContent,
@@ -13,8 +12,6 @@ import {
 
 import { formatCalendarDate } from '@lib/utilities/calendar/calendarDate';
 import { cn } from '@lib/utilities/cn';
-
-const FOOTER_BUTTON_CLASS_NAME = 'h-10 w-auto min-w-0 flex-1';
 
 interface DatePickerProps {
   value?: Date;
@@ -85,26 +82,12 @@ function DatePicker(props: DatePickerProps) {
         {selectedDate ? formatDatePickerValue(selectedDate) : placeholder}
       </DatePickerPopoverTrigger>
       <DatePickerPopoverContent align={align}>
-        <DatePickerCalendar selected={pendingDate} onSelect={setPendingDate} />
-        <div className="flex gap-3 px-4 pb-4">
-          <Button
-            hierarchy="tertiary"
-            size="small"
-            className={cn(FOOTER_BUTTON_CLASS_NAME, 'text-muted-foreground')}
-            onClick={handleCancel}
-          >
-            취소
-          </Button>
-          <Button
-            hierarchy="primary"
-            size="small"
-            className={FOOTER_BUTTON_CLASS_NAME}
-            disabled={!pendingDate}
-            onClick={handleConfirm}
-          >
-            확인
-          </Button>
-        </div>
+        <DatePickerPanel
+          selected={pendingDate}
+          onSelect={setPendingDate}
+          onCancel={handleCancel}
+          onConfirm={handleConfirm}
+        />
       </DatePickerPopoverContent>
     </DatePickerPopover>
   );
