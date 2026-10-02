@@ -266,13 +266,14 @@ Figma에 로딩 시안이 없어 위 형태(차트 모양 · `bg-muted` · pulse
 - `useChartSize`는 `useSyncExternalStore` + `matchMedia`로 판정한다.
 - `getServerSnapshot`은 `large`를 반환한다. SSR은 데스크톱 기준으로 그리고, 모바일에서는 마운트 직후 `small`로 교정된다.
 - 미디어 쿼리 값은 `--breakpoint-tablet`(46.5rem)과 같아야 하는 계약이므로 `CHART_BREAKPOINT` 상수 한 곳에만 둔다.
+- `matchMedia`가 없는 환경(jsdom 등)에서는 throw하지 않고 `large`로 폴백한다.
 
 | `size`  | 막대                                             | 도넛                |
 | ------- | ------------------------------------------------ | ------------------- |
 | `large` | Figma `Sales Chart` 두께                         | `size=large` 반지름 |
 | `small` | **얇은 막대** (모바일 시안의 선 형태, 누적 유지) | `size=small` 반지름 |
 
-모바일 도넛은 시안상 더 작게 그려져 있지만 `small`로 통일한다. 막대 두께·도넛 반지름의 구체 수치는 UI PR에서 `get_design_context`로 측정해 이 표에 기록한다. 도넛 반지름 측정값(노드 `185:190641`): `large` 바깥 126px·안쪽 79px, `small` 바깥 76px·안쪽 48px. 빈 링 색은 `slate-200`(`#C6C5C5`).
+모바일 도넛은 시안상 더 작게 그려져 있지만 `small`로 통일한다. 막대 두께·도넛 반지름의 구체 수치는 UI PR에서 `get_design_context`로 측정해 이 표에 기록한다. 도넛 반지름 측정값(노드 `185:190641`): `large` 바깥 126px·안쪽 79px, `small` 바깥 76px·안쪽 48px. 빈 링 색은 `slate-200`(`#C6C5C5`). 막대 두께(`barSize`)는 측정 전 임시값 `large` 24px·`small` 8px이며, Figma 노드 `103:176038` 측정 후 교체한다.
 
 ## y축 눈금
 
