@@ -67,4 +67,27 @@ describe('Chart', () => {
     expect(screen.getByText('empty-state')).toBeInTheDocument();
     expect(screen.queryByRole('list')).not.toBeInTheDocument();
   });
+
+  it('모든 금액이 0이면 깨진 차트 대신 빈 상태를 보여준다', () => {
+    const { container } = render(
+      <Chart
+        config={CONFIG}
+        data={[
+          { label: '1주', product: 0 },
+          { label: '2주', product: 0 },
+        ]}
+        aria-label="차트"
+      >
+        <Chart.Plot>
+          <Chart.Bar xKey="label" />
+        </Chart.Plot>
+        <Chart.Legend />
+        <Chart.Empty>empty-state</Chart.Empty>
+      </Chart>,
+    );
+
+    expect(screen.getByText('empty-state')).toBeInTheDocument();
+    expect(screen.queryByRole('list')).not.toBeInTheDocument();
+    expect(container.querySelector('svg')).not.toBeInTheDocument();
+  });
 });

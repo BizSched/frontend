@@ -2,6 +2,8 @@
 
 import { createContext } from 'react';
 
+import { useChartSummary } from '@hooks/chart/useChartSummary';
+
 import type {
   ChartContextValue,
   ChartProviderProps,
@@ -16,8 +18,7 @@ function ChartProvider({
   size,
   children,
 }: ChartProviderProps) {
-  const isEmpty = data.length === 0;
-  const total = 0;
+  const { total, isEmpty } = useChartSummary(data, config, valueKey);
 
   return (
     <ChartContext.Provider
