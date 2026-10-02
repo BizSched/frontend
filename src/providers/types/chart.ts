@@ -13,6 +13,17 @@ type ChartConfig = Record<
   )
 >;
 
+// compound Chart 전용. 슬롯(Bar·Donut·Legend)이 색을 직접 주입하므로 color가 필수이고,
+// shadcn ChartStyle의 CSS 변수(--color-<key>)에 의존하는 theme 형태는 받지 않는다.
+type ChartSeriesConfig = Record<
+  string,
+  {
+    label?: ReactNode;
+    icon?: ComponentType;
+    color: string;
+  }
+>;
+
 interface ChartConfigContextValue {
   config: ChartConfig;
 }
@@ -24,7 +35,7 @@ interface ChartConfigProviderProps extends ChartConfigContextValue {
 type ChartSize = 'large' | 'small';
 
 interface ChartContextValue {
-  config: ChartConfig;
+  config: ChartSeriesConfig;
   data: Record<string, unknown>[];
   valueKey?: string;
   size: ChartSize;
@@ -32,11 +43,20 @@ interface ChartContextValue {
   total: number;
 }
 
+interface ChartProviderProps extends Pick<
+  ChartContextValue,
+  'config' | 'data' | 'valueKey' | 'size'
+> {
+  children: ReactNode;
+}
+
 export type {
   ChartConfig,
   ChartConfigContextValue,
   ChartConfigProviderProps,
   ChartContextValue,
+  ChartProviderProps,
+  ChartSeriesConfig,
   ChartSize,
   ChartTheme,
 };

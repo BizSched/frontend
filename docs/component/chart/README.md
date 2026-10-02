@@ -123,7 +123,7 @@ Modal은 생성물을 재구성하고 나면 남는 것이 없어 폐기했다. 
 | `_common/Chart/Chart.tsx`             | `Object.assign(ChartRoot, { Plot, Bar, Donut, Center, Legend, Empty, Skeleton })`                     |
 | `_common/Chart/ChartRoot.tsx`         | `ChartProvider` 주입, `legend` 배치 cva(`bottom`/`right`), `role="figure"`·`aria-label`               |
 | `_common/Chart/ChartPlot.tsx`         | `relative` 플롯 영역. `Chart.Center`를 도넛 위에 겹친다                                               |
-| `_common/Chart/ChartBar.tsx`          | `ChartContainer` > `BarChart`. `config` 키 순서대로 누적, 최상단 계열만 상단 radius. 빈 상태면 `null` |
+| `_common/Chart/ChartBar.tsx`          | `ChartContainer` > `BarChart`. `config` 키 순서대로 누적, 모든 계열 radius 0 (직각). 빈 상태면 `null` |
 | `_common/Chart/ChartDonut.tsx`        | `ChartContainer` > `PieChart`. `size`별 반지름. 빈 상태면 `slate-200` 링 하나                         |
 | `_common/Chart/ChartCenter.tsx`       | 도넛 중앙 `label`·`value`, `size` cva                                                                 |
 | `_common/Chart/ChartSeriesLegend.tsx` | `Chart.Legend`. `<ul>` 범례. 색·라벨은 `useChartSeries`에서. 빈 상태면 `null`                         |
@@ -155,7 +155,7 @@ const CATEGORY_CHART_CONFIG = {
 
 <Chart config={CATEGORY_CHART_CONFIG} data={categories} valueKey="amount" aria-label="10월 카테고리 구성">
   <Chart.Plot>
-    <Chart.Donut nameKey="category" />
+    <Chart.Donut nameKey="category" valueKey="amount" />
     <Chart.Center label="10월 매출" value="000,000,000 원" />
   </Chart.Plot>
   <Chart.Legend />
@@ -225,24 +225,29 @@ Figma에 로딩 시안이 없어 위 형태(차트 모양 · `bg-muted` · pulse
 
 ### `config`와 계열 순서
 
-`config`는 shadcn `ChartConfig`를 그대로 쓴다. **선언 순서가 곧 계열 순서다.**
+`config`는 shadcn `ChartConfig`에서 `color`를 필수로 좁힌 `ChartSeriesConfig`를 쓴다. **선언 순서가 곧 계열 순서다.**
 
-- 막대: 아래 → 위 누적 순서. 마지막 계열에만 상단 radius를 준다.
+`theme`(`{ light, dark }`) 형태는 받지 않는다. 슬롯(Bar·Donut·Legend)이 `config`의 색을 직접 주입하는데, shadcn 방식의 `--color-<key>` CSS 변수는 `ChartContainer`(`[data-chart]`) 안에서만 풀려 그 밖에 있는 `Chart.Legend`에서는 쓸 수 없기 때문이다. 다크 모드는 색 토큰(`var(--color-...)`)이 처리한다.
+
+- 막대: 아래 → 위 누적 순서. 모서리는 둥글게 하지 않는다 (모든 계열 `radius [0,0,0,0]`).
 - 도넛: 12시 방향부터 시계 방향 순서.
 - 범례: 같은 순서로 나열.
 
 데이터 형태는 두 가지다.
 
 - **wide** (막대): 행마다 계열 키가 컬럼이다. `{ label: '1째 주', product: 1200000, service: 300000 }`. 누적할 키는 `config` 키에서 파생하므로 `valueKey`를 넘기지 않는다.
-- **long** (도넛): 행 하나가 계열 하나다. `{ category: 'product', amount: 1200000 }`. Root에 `valueKey`를, `Chart.Donut`에 `nameKey`(→ `config` 키)를 넘긴다.
+- **long** (도넛): 행 하나가 계열 하나다. `{ category: 'product', amount: 1200000 }`. `Chart.Donut`에 `nameKey`(→ `config` 키)와 `valueKey`(값 컬럼)를 **둘 다 필수로** 넘긴다. Root에도 `valueKey`를 넘긴다.
 
-`valueKey`를 Root에 두는 이유는 빈 상태·합계 계산(`useChartSummary`)이 Root의 Provider에서 한 번만 일어나기 때문이다. `valueKey`가 있으면 `row[valueKey]`의 합, 없으면 모든 행의 `config` 키 값 합을 쓴다.
+`valueKey`는 두 곳에서 쓰인다.
+
+- **`Chart.Donut`의 `valueKey`(필수)**: 조각 크기를 정하는 값 컬럼. long 포맷 행에는 `config` 키 컬럼이 없어서 대체할 값이 없다. 선택 prop이면 빠뜨렸을 때 경고 없이 빈 도넛이 그려지므로 타입으로 강제한다.
+- **Root의 `valueKey`(선택)**: 빈 상태·합계 계산(`useChartSummary`)이 Root의 Provider에서 한 번만 일어나기 때문에 Root에도 둔다. `valueKey`가 있으면 `row[valueKey]`의 합, 없으면 모든 행의 `config` 키 값 합을 쓴다.
 
 ### Root props
 
 | prop         | 타입                        | 기본값           | 설명                                           |
 | ------------ | --------------------------- | ---------------- | ---------------------------------------------- |
-| `config`     | `ChartConfig`               | —                | 계열 라벨·색                                   |
+| `config`     | `ChartSeriesConfig`         | —                | 계열 라벨·색 (`color` 필수)                    |
 | `data`       | `Record<string, unknown>[]` | —                | 차트 데이터                                    |
 | `valueKey`   | `string`                    | —                | long 형태(도넛)일 때 값 컬럼. wide 형태면 생략 |
 | `size`       | `'large' \| 'small'`        | `useChartSize()` | 지정하면 반응형 판정을 건너뛴다                |
@@ -250,6 +255,8 @@ Figma에 로딩 시안이 없어 위 형태(차트 모양 · `bg-muted` · pulse
 | `aria-label` | `string`                    | —                | 필수. 차트의 접근성 이름                       |
 
 `legend`는 `size`에서 파생하지 않는다. 도넛은 `small`에서 우측 범례지만 막대는 `small`에서도 하단 범례라, 파생 규칙이 차트 종류에 따라 갈린다. Root는 차트 종류를 모르므로 호출부가 명시한다.
+
+범례 글자·칩·간격과 플롯→범례 간격은 차트 종류와 관계없이 **`size`별로 통일**한다. 시안의 막대·도넛 범례 차이는 의도된 것이 아니므로 막대 시안 값으로 맞춘다 (플롯→범례 10px, 칩→글자 4px).
 
 ## 반응형 — `size`
 
@@ -264,7 +271,7 @@ Figma에 로딩 시안이 없어 위 형태(차트 모양 · `bg-muted` · pulse
 | `large` | Figma `Sales Chart` 두께                         | `size=large` 반지름 |
 | `small` | **얇은 막대** (모바일 시안의 선 형태, 누적 유지) | `size=small` 반지름 |
 
-모바일 도넛은 시안상 더 작게 그려져 있지만 `small`로 통일한다. 막대 두께·도넛 반지름의 구체 수치는 UI PR에서 `get_design_context`로 측정해 이 표에 기록한다. 스크린샷 기준 추정치는 도넛 외경 `large` 약 252px·`small` 약 152px이다.
+모바일 도넛은 시안상 더 작게 그려져 있지만 `small`로 통일한다. 막대 두께·도넛 반지름의 구체 수치는 UI PR에서 `get_design_context`로 측정해 이 표에 기록한다. 도넛 반지름 측정값(노드 `185:190641`): `large` 바깥 126px·안쪽 79px, `small` 바깥 76px·안쪽 48px. 빈 링 색은 `slate-200`(`#C6C5C5`).
 
 ## y축 눈금
 
@@ -283,8 +290,8 @@ recharts 자동 눈금을 쓴다. 비교한 대안은 아래와 같다.
 | 대상                | 축                         | 값                                                        |
 | ------------------- | -------------------------- | --------------------------------------------------------- |
 | `ChartRoot`         | `legend`                   | `bottom` (세로 쌓기) / `right` (가로 배치, 가운데 정렬)   |
-| `ChartCenter`       | `size`                     | `large` (`text-xl` bold) / `small` (`text-sm` bold)       |
-| `ChartSeriesLegend` | `size`                     | `large` (`text-base`) / `small` (`text-xs`)               |
+| `ChartCenter`       | `size`                     | `large` 16px / `small` 10px, label·value 모두 bold        |
+| `ChartSeriesLegend` | `size`                     | `large` 14px / `small` 10px, Medium, 칩 10/8px            |
 | `ChartSkeleton`     | `type` × `size` × `legend` | 플롯 모양·크기와 범례 배치. 값은 위 컴포넌트들과 공유한다 |
 
 ## 디자인 토큰 매핑
@@ -318,7 +325,8 @@ Figma 변수가 모두 [colors.css](../../../src/assets/styles/colors.css)의 �
 ## 렌더링 경계
 
 - `_common/Chart/*`와 `useChartSize`는 모두 `'use client'`다. recharts가 DOM 측정·이벤트를 쓴다.
-- `tickFormatter` 같은 함수 prop은 RSC 경계를 넘을 수 없다. 서버 컴포넌트에서 쓸 때는 도메인 래퍼를 클라이언트 컴포넌트로 두고 그 안에서 `Chart`를 조합한다.
+- **`<Chart>` 트리는 반드시 Client Component 안에서 조합한다.** Server Component가 import한 `Chart`는 실제 함수가 아니라 client reference라서 `Object.assign`으로 붙인 슬롯이 없다. `<Chart.Plot>`처럼 점으로 접근하면 `Cannot access Chart.Plot on the server` 런타임 에러가 난다. 슬롯이 모두 서버에서 렌더 가능한 `_common/Card`와 다른 점이다.
+- `tickFormatter`, `config.icon` 같은 함수 값도 RSC 경계를 넘을 수 없다. 데이터를 조회하는 도메인 래퍼(`useQuery`를 쓰는 클라이언트 컴포넌트) 안에서 `Chart`를 조합하면 두 제약이 함께 해결된다.
 - [rendering.md](../../architecture/rendering.md) 금지 목록을 따른다.
 
 ## 테스트 전략
@@ -355,7 +363,7 @@ test/lib/utilities/formatCompactKrw.test.ts
 | `chart.test.tsx`             | (유닛) `Object.assign` 합성 — 루트가 `ChartRoot`, 서브컴포넌트 7종이 각 구현과 동일 참조. (통합) 막대·도넛 실사용 조합 렌더, 빈 상태 전환 시 슬롯 표시 변화 |
 | `chartRoot.test.tsx`         | Provider 값 주입, `legend` 배치 클래스, `role="figure"`·`aria-label`, `size` 명시 시 판정 생략                                                              |
 | `chartPlot.test.tsx`         | 슬롯 렌더, `relative` 기본 클래스, className 병합                                                                                                           |
-| `chartBar.test.tsx`          | 계열 수만큼 `Bar` 렌더, 최상단 계열 radius, 빈 상태 `null`, `tickFormatter` 기본값·교체                                                                     |
+| `chartBar.test.tsx`          | 계열 수만큼 `Bar` 렌더, 빈 상태 `null`, `tickFormatter` 기본값·교체                                                                                         |
 | `chartDonut.test.tsx`        | 조각 수·색, `size`별 반지름, 빈 상태 단색 링                                                                                                                |
 | `chartCenter.test.tsx`       | `label`·`value` 렌더, `size` cva, className 병합                                                                                                            |
 | `chartSeriesLegend.test.tsx` | `<ul>`·`<li>` 구조, 순서·라벨·색 칩 `aria-hidden`, 빈 상태 `null`                                                                                           |
