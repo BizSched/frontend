@@ -273,7 +273,7 @@ Figma에 로딩 시안이 없어 위 형태(차트 모양 · `bg-muted` · pulse
 | `large` | Figma `Sales Chart` 두께                         | `size=large` 반지름 |
 | `small` | **얇은 막대** (모바일 시안의 선 형태, 누적 유지) | `size=small` 반지름 |
 
-모바일 도넛은 시안상 더 작게 그려져 있지만 `small`로 통일한다. 막대 두께·도넛 반지름의 구체 수치는 UI PR에서 `get_design_context`로 측정해 이 표에 기록한다. 도넛 반지름 측정값(노드 `185:190641`): `large` 바깥 126px·안쪽 79px, `small` 바깥 76px·안쪽 48px. 빈 링 색은 `slate-200`(`#C6C5C5`). 막대 두께(`barSize`)는 측정 전 임시값 `large` 24px·`small` 8px이며, Figma 노드 `103:176038` 측정 후 교체한다.
+모바일 도넛은 시안상 더 작게 그려져 있지만 `small`로 통일한다. 막대 두께·도넛 반지름의 구체 수치는 UI PR에서 `get_design_context`로 측정해 이 표에 기록한다. 도넛 반지름 측정값(노드 `185:190641`): `large` 바깥 126px·안쪽 79px, `small` 바깥 76px·안쪽 48px. 빈 링 색은 `slate-200`(`#C6C5C5`). 막대 두께(`barSize`)는 지금은 recharts 기본값(카테고리 폭에 맞춘 자동 폭)을 쓴다. `size`별 두께는 API 연동 후 Figma 노드 `103:176038`을 측정해 후속 작업으로 반영한다.
 
 ## y축 눈금
 

@@ -5,17 +5,9 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 import { useChartContext } from '@hooks/chart/useChartContext';
 import { useChartSeries } from '@hooks/chart/useChartSeries';
 
-import type { ChartSize } from '@providers/types/chart';
-
 import { formatCompactKrw } from '@lib/utilities/formatCompactKrw';
 
 import { ChartContainer } from './ChartContainer';
-
-// TODO: Figma(103:176038) 측정 전 임시값. 측정 후 교체하고 설계 문서 size 표에도 반영한다.
-const BAR_SIZE: Record<ChartSize, number> = {
-  large: 24,
-  small: 8,
-};
 
 interface ChartBarProps {
   xKey: string;
@@ -23,7 +15,7 @@ interface ChartBarProps {
 }
 
 function ChartBar({ xKey, tickFormatter = formatCompactKrw }: ChartBarProps) {
-  const { config, data, isEmpty, size } = useChartContext();
+  const { config, data, isEmpty } = useChartContext();
   const series = useChartSeries(config);
 
   if (isEmpty) {
@@ -52,7 +44,6 @@ function ChartBar({ xKey, tickFormatter = formatCompactKrw }: ChartBarProps) {
             dataKey={key}
             stackId="chart"
             fill={color}
-            barSize={BAR_SIZE[size]}
             radius={[0, 0, 0, 0]}
           />
         ))}
