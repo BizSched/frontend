@@ -18,7 +18,11 @@ describe('ChartEmpty', () => {
     expect(screen.getByText('데이터 없음')).toBeInTheDocument();
 
     rerender(
-      <ChartProvider config={{}} data={[{}]} size="large">
+      <ChartProvider
+        config={{ a: { color: 'red' } }}
+        data={[{ a: 1 }]}
+        size="large"
+      >
         <ChartEmpty>데이터 없음</ChartEmpty>
       </ChartProvider>,
     );

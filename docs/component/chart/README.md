@@ -242,6 +242,7 @@ Figma에 로딩 시안이 없어 위 형태(차트 모양 · `bg-muted` · pulse
 
 - **`Chart.Donut`의 `valueKey`(필수)**: 조각 크기를 정하는 값 컬럼. long 포맷 행에는 `config` 키 컬럼이 없어서 대체할 값이 없다. 선택 prop이면 빠뜨렸을 때 경고 없이 빈 도넛이 그려지므로 타입으로 강제한다.
 - **Root의 `valueKey`(선택)**: 빈 상태·합계 계산(`useChartSummary`)이 Root의 Provider에서 한 번만 일어나기 때문에 Root에도 둔다. `valueKey`가 있으면 `row[valueKey]`의 합, 없으면 모든 행의 `config` 키 값 합을 쓴다.
+  - 주의: long 형태 도넛에서 Root의 `valueKey`를 빠뜨리면 행에 `config` 키 컬럼이 없어 합계가 0이 되고, 데이터가 있어도 빈 상태로 그려진다. 도넛은 Root와 `Chart.Donut`에 같은 `valueKey`를 넘긴다.
 
 ### Root props
 
