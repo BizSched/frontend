@@ -186,6 +186,7 @@ API 명세(월 조회 파라미터, `staffId` 서버 필터 지원 여부, `page
 - **`FormDropdown`에 `disabled`·`contentClassName` 추가** (2026-10-02 확정) — 수정 모드의 이름 비활성과, 시간 옵션 24개 팝업의 높이 제한(`max-h-72` + 스크롤)에 필요하다 ([FormDropdown API](../../component/form-dropdown/README.md#formdropdown))
 - DatePicker 팝오버는 `--z-popover: 2000`이라 모달 위에 뜬다 ([DatePicker 설계 결정](../../component/datepicker/README.md))
 - **모바일 날짜 선택은 바텀시트로 바꾼다** (2026-10-02 확정) — Figma(`337:128232`)는 744px 미만에서 날짜 선택을 바텀시트로 띄운다. 공통 DatePicker는 지금 Base UI `Popover` 기반 팝오버만 지원하므로, DatePicker에 모바일 바텀시트를 추가하는 작업을 별도 이슈로 진행한다 (이슈 번호 미정). 그 전까지는 모바일에서도 팝오버로 연결해 두고, 바텀시트가 추가되면 이 필드를 바꾼다
+  - **알려진 문제** — 바텀시트 폼 안에서 팝오버(높이 약 444px)가 트리거 위·아래 어디에도 들어가지 않아 화면 아래로 넘친다. 375×812에서는 아래가 조금 잘리지만 `확인`을 누를 수 있고, 375×667에서는 `취소`·`확인`이 화면 밖으로 나가 **날짜를 확정할 수 없다** (2026-10-02 실측). 공통 DatePicker는 `side` 옵션을 받지 않아 호출부에서 우회하지 않고, DatePicker 바텀시트 PR에서 해결한다. 바텀시트가 머지되면 이 필드는 별도 수정 없이 바뀐 DatePicker를 쓸 것으로 예상한다
 
 ### 열기·닫기
 
