@@ -9,6 +9,8 @@ import {
 } from '@components/_common/Dropdown/Dropdown';
 import { FormDropdownButton } from '@components/_common/FormDropdownButton/FormDropdownButton';
 
+import { cn } from '@lib/utilities/cn';
+
 const POPUP_SIDE_OFFSET = 1;
 
 const formDropdownContentVariants = cva(
@@ -38,7 +40,10 @@ interface FormDropdownProps {
   onChange: (value: string) => void;
   placeholder?: ReactNode;
   size?: DropdownSize;
+  hasDivider?: boolean;
+  disabled?: boolean;
   className?: string;
+  contentClassName?: string;
 }
 
 function FormDropdown({
@@ -47,7 +52,10 @@ function FormDropdown({
   onChange,
   placeholder,
   size = 'large',
+  hasDivider = size === 'large',
+  disabled,
   className,
+  contentClassName,
 }: FormDropdownProps) {
   const selectedOption = options.find((option) => option.value === value);
 
@@ -62,12 +70,13 @@ function FormDropdown({
       items={items}
       size={size}
       sideOffset={POPUP_SIDE_OFFSET}
-      hasDivider={size === 'large'}
-      className={formDropdownContentVariants({ size })}
+      hasDivider={hasDivider}
+      className={cn(formDropdownContentVariants({ size }), contentClassName)}
     >
       <FormDropdownButton
         size={size}
         placeholder={placeholder}
+        disabled={disabled}
         className={className}
       >
         {selectedOption?.label}

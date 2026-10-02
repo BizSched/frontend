@@ -26,17 +26,17 @@ Figma: [BizSched — form dropdown](https://www.figma.com/design/0UAYWaDS9UNjigV
 
 ## 설계 결정 요약
 
-| 결정          | 선택                                                                                              | 근거                                                                                                                                                                  |
-| ------------- | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 결합 방식     | **별도 컴포넌트 2개.** 트리거 `FormDropdownButton` + 조합 `FormDropdown`                          | ③과 같은 구조(`MonthDropdownButton` + `MonthSelectDropdown`). 트리거를 분리해 두면 팝업 없이 트리거만 필요한 곳에서도 쓸 수 있다 — Dropdown 문서 "확인 필요" 1번 확정 |
-| 선택 상태     | **controlled.** `value` + `onChange`를 호출부가 가진다                                            | 폼 값은 폼 상태(RHF 등)가 소유해야 한다. [state-management.md](../../architecture/state-management.md)의 "상태는 쓰는 범위에" 원칙. ③과 동일                          |
-| 옵션 형태     | `{ value: string; label: string }[]`                                                              | 표시 문자열과 저장 값을 분리한다. 같은 라벨이 여러 개여도 `value`로 구분된다                                                                                          |
-| `medium` size | 공통 `Dropdown`의 `size`에 `medium` 추가                                                          | Dropdown 문서 개요의 "④ `size`에 `medium` 추가"와 일치. 셀은 small과 같고 항목 높이만 44px이라 variant 한 줄로 표현된다                                               |
-| large 구분선  | `Dropdown`에 `hasDivider` 옵션 추가, `FormDropdown`이 `size === 'large'`일 때만 켠다              | 구분선은 ④ large 전용 차이라 Dropdown 기본값으로 일반화하지 않는다(Dropdown 문서 "④ Form 드롭다운 트리거"). 마지막 항목은 제외 — "확정 사항" 3번                      |
-| placeholder   | `placeholder` prop 추가. 값이 없으면 `#a4a4a4`로 표시                                             | Figma에는 값이 선택된 상태만 있다. 폼 초기 상태(미선택)를 표현해야 해서 추가한 **임시 스타일**이며, Figma에 추가되면 그 값으로 교체한다 — "확정 사항" 4번             |
-| 팝업 스타일   | `Dropdown`의 `className`으로 너비·radius·그림자만 덮어쓴다                                        | ③과 같은 방식. 팝업 값만 ①과 달라 `DropdownContent`에 variant를 늘리지 않고 조합 쪽에서 덮어쓴다                                                                      |
-| 그림자        | arbitrary value 유지 (트리거 `0px 2px 4px rgba(0,0,0,0.08)`, 팝업 `0px 6px 8px rgba(0,0,0,0.12)`) | ①②③과 같은 방식. 토큰 신설 여부는 Dropdown 문서 "확인 필요" 2번에서 4종을 한 번에 검토한다                                                                            |
-| 아이콘        | lucide `ChevronDownIcon`, 열림 시 180° 회전                                                       | [MonthDropdownButton](../month-dropdown-button/README.md) 선례. 글리프가 Figma `ic_chevron-down`/`ic_chevron-up`과 1:1 대응해 에셋 커밋이 불필요하다                  |
+| 결정          | 선택                                                                                                                                          | 근거                                                                                                                                                                  |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 결합 방식     | **별도 컴포넌트 2개.** 트리거 `FormDropdownButton` + 조합 `FormDropdown`                                                                      | ③과 같은 구조(`MonthDropdownButton` + `MonthSelectDropdown`). 트리거를 분리해 두면 팝업 없이 트리거만 필요한 곳에서도 쓸 수 있다 — Dropdown 문서 "확인 필요" 1번 확정 |
+| 선택 상태     | **controlled.** `value` + `onChange`를 호출부가 가진다                                                                                        | 폼 값은 폼 상태(RHF 등)가 소유해야 한다. [state-management.md](../../architecture/state-management.md)의 "상태는 쓰는 범위에" 원칙. ③과 동일                          |
+| 옵션 형태     | `{ value: string; label: string }[]`                                                                                                          | 표시 문자열과 저장 값을 분리한다. 같은 라벨이 여러 개여도 `value`로 구분된다                                                                                          |
+| `medium` size | 공통 `Dropdown`의 `size`에 `medium` 추가                                                                                                      | Dropdown 문서 개요의 "④ `size`에 `medium` 추가"와 일치. 셀은 small과 같고 항목 높이만 44px이라 variant 한 줄로 표현된다                                               |
+| large 구분선  | `Dropdown`에 `hasDivider` 옵션 추가, `FormDropdown`이 `size === 'large'`일 때 기본으로 켠다. 구분선이 없는 화면은 `hasDivider={false}`로 끈다 | 구분선은 ④ large 전용 차이라 Dropdown 기본값으로 일반화하지 않는다(Dropdown 문서 "④ Form 드롭다운 트리거"). 마지막 항목은 제외 — "확정 사항" 3번                      |
+| placeholder   | `placeholder` prop 추가. 값이 없으면 `#a4a4a4`로 표시                                                                                         | Figma에는 값이 선택된 상태만 있다. 폼 초기 상태(미선택)를 표현해야 해서 추가한 **임시 스타일**이며, Figma에 추가되면 그 값으로 교체한다 — "확정 사항" 4번             |
+| 팝업 스타일   | `Dropdown`의 `className`으로 너비·radius·그림자만 덮어쓴다                                                                                    | ③과 같은 방식. 팝업 값만 ①과 달라 `DropdownContent`에 variant를 늘리지 않고 조합 쪽에서 덮어쓴다                                                                      |
+| 그림자        | arbitrary value 유지 (트리거 `0px 2px 4px rgba(0,0,0,0.08)`, 팝업 `0px 6px 8px rgba(0,0,0,0.12)`)                                             | ①②③과 같은 방식. 토큰 신설 여부는 Dropdown 문서 "확인 필요" 2번에서 4종을 한 번에 검토한다                                                                            |
+| 아이콘        | lucide `ChevronDownIcon`, 열림 시 180° 회전                                                                                                   | [MonthDropdownButton](../month-dropdown-button/README.md) 선례. 글리프가 Figma `ic_chevron-down`/`ic_chevron-up`과 1:1 대응해 에셋 커밋이 불필요하다                  |
 
 ## 레이어 구조
 
@@ -72,14 +72,17 @@ const [course, setCourse] = useState<string>();
 
 ### FormDropdown
 
-| prop          | 기본값    | 설명                                                             |
-| ------------- | --------- | ---------------------------------------------------------------- |
-| `value`       | —         | 현재 선택된 옵션의 `value`. 없으면 `placeholder` 표시            |
-| `options`     | —         | `FormDropdownOption[]` (`{ value: string; label: string }`)      |
-| `onChange`    | —         | `(value: string) => void`. 항목 선택 시 호출                     |
-| `placeholder` | —         | 선택값이 없을 때 트리거에 표시할 내용                            |
-| `size`        | `"large"` | `"large"` \| `"medium"` \| `"small"`. 트리거·팝업·셀에 함께 적용 |
-| `className`   | —         | 트리거(`FormDropdownButton`)에 병합. 너비 변경 등                |
+| prop               | 기본값             | 설명                                                                                                                                     |
+| ------------------ | ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `value`            | —                  | 현재 선택된 옵션의 `value`. 없으면 `placeholder` 표시                                                                                    |
+| `options`          | —                  | `FormDropdownOption[]` (`{ value: string; label: string }`)                                                                              |
+| `onChange`         | —                  | `(value: string) => void`. 항목 선택 시 호출                                                                                             |
+| `placeholder`      | —                  | 선택값이 없을 때 트리거에 표시할 내용                                                                                                    |
+| `size`             | `"large"`          | `"large"` \| `"medium"` \| `"small"`. 트리거·팝업·셀에 함께 적용                                                                         |
+| `hasDivider`       | `size === "large"` | 항목 사이 구분선. large 기본값은 Figma `271:55308` 기준. 구분선이 없는 화면(예: 스케쥴 추가/수정 모달 `337:127914`)에서는 `false`로 끈다 |
+| `disabled`         | —                  | 트리거 비활성화. 팝업이 열리지 않는다                                                                                                    |
+| `className`        | —                  | 트리거(`FormDropdownButton`)에 병합. 너비 변경 등                                                                                        |
+| `contentClassName` | —                  | 팝업(`Dropdown`)에 병합. 옵션이 많을 때 `max-h-*` + `overflow-y-auto` 등                                                                 |
 
 내부 조합(요약):
 
@@ -87,13 +90,13 @@ const [course, setCourse] = useState<string>();
 <Dropdown
   size={size}
   sideOffset={1}
-  hasDivider={size === 'large'}
+  hasDivider={hasDivider}
   items={options.map((option) => ({
     label: option.label,
     isSelected: option.value === value,
     onSelect: () => onChange(option.value),
   }))}
-  className={formDropdownContentVariants({ size })}
+  className={cn(formDropdownContentVariants({ size }), contentClassName)}
 >
   <FormDropdownButton
     size={size}
