@@ -87,7 +87,7 @@ Table 자체에는 상태·이벤트 핸들러·클라이언트 훅이 없어 Se
 - `aria-label` 등 HTML props와 슬롯별 `className`이 실제 요소에 전달되는지 확인한다.
 - 열이 많은 사용처에서 가로 스크롤과 모바일 대체 표현을 화면 테스트로 확인한다.
 
-현재 `feat/common-table`에는 Table 단위 테스트가 없다. 위 항목은 Table PR의 검증 범위로 남긴다.
+`test/components/_common/Table/Table.test.tsx`에서 시맨틱 구조, 표 이름, HTML 속성과 `className`, 가로 스크롤 컨테이너를 검증한다. 열이 많은 화면의 모바일 대체 표현은 해당 화면 테스트에서 검증한다.
 
 ## 단계별 PR 계획
 
