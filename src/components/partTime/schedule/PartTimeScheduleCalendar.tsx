@@ -7,10 +7,11 @@ import {
   type CalendarDayContent,
 } from '@components/_common/Calendar/Calendar';
 import { CalendarEventDots } from '@components/_common/Calendar/CalendarEventDots';
+import { openPartTimeScheduleFormModal } from '@components/partTime/schedule/modal/openPartTimeScheduleFormModal';
 import { PartTimeScheduleChip } from '@components/partTime/schedule/PartTimeScheduleChip';
 import { PartTimeScheduleDaySummary } from '@components/partTime/schedule/PartTimeScheduleDaySummary';
 import {
-  PART_TIME_STAFFS,
+  ACTIVE_PART_TIME_STAFFS,
   getPartTimeScheduleMocks,
 } from '@components/partTime/schedule/partTimeScheduleMock';
 import { PartTimeScheduleStaffFilter } from '@components/partTime/schedule/PartTimeScheduleStaffFilter';
@@ -22,10 +23,6 @@ import {
 } from '@lib/utilities/partTime/partTimeSchedule';
 
 const MAX_VISIBLE_SCHEDULE_COUNT = 3;
-
-const ACTIVE_PART_TIME_STAFFS = PART_TIME_STAFFS.filter(
-  (staff) => !staff.isDeleted,
-);
 
 const createDayContent = (
   schedules: PartTimeSchedule[],
@@ -84,6 +81,14 @@ function PartTimeScheduleCalendar({
       )
     : [];
 
+  const handleScheduleEdit = (schedule: PartTimeSchedule) => {
+    void openPartTimeScheduleFormModal({
+      mode: 'edit',
+      schedule,
+      staffs: ACTIVE_PART_TIME_STAFFS,
+    });
+  };
+
   const contentByDate = Object.fromEntries(
     Object.entries(schedulesByDate).map(([date, dateSchedules]) => [
       date,
@@ -115,6 +120,7 @@ function PartTimeScheduleCalendar({
           date={selectedDate}
           today={today}
           schedules={selectedDateSchedules}
+          onScheduleEdit={handleScheduleEdit}
           className="w-94.5 shrink-0 max-laptop:w-auto"
         />
       )}

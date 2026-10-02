@@ -1,9 +1,7 @@
 import { LinkIcon } from 'lucide-react';
-import Image from 'next/image';
 
 import { Button } from '@components/_common/Button/Button';
-
-import IcPlusWhite from '@assets/icons/ic_plus-white.svg';
+import { PartTimeScheduleAddButton } from '@components/partTime/schedule/PartTimeScheduleAddButton';
 
 function PartTimeScheduleHeader() {
   return (
@@ -20,21 +18,7 @@ function PartTimeScheduleHeader() {
         >
           스케쥴 공유
         </Button>
-        <Button
-          size="small"
-          icon={
-            <Image
-              src={IcPlusWhite}
-              alt=""
-              width={20}
-              height={20}
-              unoptimized
-            />
-          }
-          className="h-10 w-auto min-w-30 py-2.5"
-        >
-          스케쥴 추가
-        </Button>
+        <PartTimeScheduleAddButton />
       </div>
     </header>
   );
