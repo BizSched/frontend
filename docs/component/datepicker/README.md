@@ -60,11 +60,11 @@ src/components/_common/DatePicker/
 export interface DatePickerProps {
   value?: Date;
   defaultValue?: Date;
-  onChange?: (date: Date | undefined) => void;
+  onChange?: (date: Date) => void;
   placeholder?: string;
   disabled?: boolean;
   className?: string;
-  align?: React.ComponentProps<typeof PopoverContent>['align'];
+  align?: DatePickerPopoverContentProps['align'];
 }
 ```
 
@@ -74,15 +74,17 @@ const [date, setDate] = useState<Date | undefined>();
 <DatePicker value={date} onChange={setDate} placeholder="날짜 선택" />;
 ```
 
-| prop           | 기본값        | 설명                                     |
-| -------------- | ------------- | ---------------------------------------- |
-| `value`        | —             | 지정하면 제어 컴포넌트로 동작            |
-| `defaultValue` | —             | 비제어 모드의 초기값                     |
-| `onChange`     | —             | 확인 버튼을 눌러 선택이 커밋될 때 호출   |
-| `placeholder`  | `"날짜 선택"` | 선택값이 없을 때 트리거에 표시할 문구    |
-| `disabled`     | —             | 트리거 비활성화                          |
-| `align`        | `"start"`     | `PopoverContent`의 정렬 방향 그대로 전달 |
-| `className`    | —             | 트리거 루트에 병합                       |
+| prop           | 기본값        | 설명                                                                                |
+| -------------- | ------------- | ----------------------------------------------------------------------------------- |
+| `value`        | —             | prop이 있으면(`value={undefined}` 포함) 제어 컴포넌트로 동작                        |
+| `defaultValue` | —             | 비제어 모드의 초기값                                                                |
+| `onChange`     | —             | 확인 버튼을 눌러 선택이 커밋될 때 호출. 선택 해제가 불가하므로 항상 `Date`를 받는다 |
+| `placeholder`  | `"날짜 선택"` | 선택값이 없을 때 트리거에 표시할 문구                                               |
+| `disabled`     | —             | 트리거 비활성화                                                                     |
+| `align`        | `"start"`     | `DatePickerPopoverContent`의 정렬 방향 그대로 전달                                  |
+| `className`    | —             | 트리거 루트에 병합                                                                  |
+
+트리거 값은 `Asia/Seoul` 기준 `yyyy.MM.dd`로 표시한다(`formatCalendarDate` 재사용). 트리거는 Figma에 없어서 [Input](../input/README.md)의 `large` 톤(`h-14`, `rounded-[16px]`, `border-slate-300`, `px-4`, `text-base`)에 맞췄다.
 
 선택 로직(`pending`/`selected`/열림 상태)은 `DatePicker` 내부 `useState` 몇 개로 충분하다. Pagination의 `usePaginationRange`처럼 별도 `hooks/`로 분리할 만큼의 순수 계산이 없기 때문이다.
 
@@ -107,7 +109,7 @@ Figma의 `State`(`Default`/`Hover`/`Disabled`) 3종은 별도 variant가 아니�
 | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 선택 배경 `#FFD98A`                        | `bg-primary` (`--color-primary-500`, 완전히 같은 값)                                                                                                         |
 | 확인 버튼 배경/hover `#FFD98A` / `#EBDDB9` | `bg-primary` / `hover:bg-secondary-600`                                                                                                                      |
-| 취소 버튼 보더 `#CCCCCC`                   | `border-input`(`--input`, `#CCC9C0`)과 근접 — 완전 동일은 아님                                                                                               |
+| 취소 버튼 보더 `#CCCCCC`                   | `Button` tertiary의 `border-[#cccccc]`와 일치 — 그대로 사용                                                                                                  |
 | 셀 40×40px                                 | `size-10`                                                                                                                                                    |
 | 팝오버 328px                               | `w-82` (82 × `--spacing`)                                                                                                                                    |
 | 오늘 셀 배경 `#FAFAFA`                     | 정확히 같은 토큰은 없음. Pagination 전례(`bg-slate-50`, `#F4F3F3`)를 따르지 않고 아래 "대응 토큰 없는 값"으로 분류해 임의값 `bg-[#fafafa]`를 쓰기로 확정했다 |
@@ -127,7 +129,7 @@ Figma의 `State`(`Default`/`Hover`/`Disabled`) 3종은 별도 variant가 아니�
 
 다른 컴포넌트에서도 같은 값이 필요해지면 그때 토큰화를 재검토한다.
 
-> **확인 필요 — 취소 버튼 글자색**: Figma의 `#737373`을 어떤 규칙으로 매핑할지 두 전례가 갈린다. [pagination](../pagination/README.md#디자인-토큰-매핑)은 값 기준으로 `text-muted-foreground`(`#6B6A68`)를 쓰기로 했고, [modal](../modal/README.md)의 "컬러는 CSS 토큰 기준" 방침은 이름 기준으로 `--color-slate-500`(`#1C1917`, 거의 검정)을 그대로 쓰기로 했다. DatePicker는 어느 쪽을 따를지 확인이 필요하다.
+> **확정 — 취소 버튼 글자색**: Figma의 `#737373`은 [pagination](../pagination/README.md#디자인-토큰-매핑)과 같은 값 기준으로 `text-muted-foreground`(`#6B6A68`)에 매핑한다. [modal](../modal/README.md)의 이름 기준 방침(`--color-slate-500`, `#1C1917`)은 거의 검정이라 Figma 톤과 멀어 따르지 않았다.
 
 ## 상호작용 상태
 
@@ -192,7 +194,7 @@ GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-star
 
 아래 항목은 임의로 확정하지 않는다. 확인 후 이 문서에 반영한다.
 
-### 1. `Button` 컴포넌트 의존 — 선행 조건 해소, 덮어쓰기 방식 확인 필요
+### 1. `Button` 컴포넌트 의존 — 확정: `className` 덮어쓰기
 
 `Button`이 [button](../button/README.md) 설계대로 구현돼 `dev`에 머지됐으므로 "Button 설계 PR 선행" 조건은 해소됐다. 다만 Figma footer 버튼과 `Button`의 variant 값이 그대로 맞지 않는다.
 
@@ -204,11 +206,11 @@ GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-star
 | 취소 보더   | `#CCCCCC`                                | tertiary `border-[#cccccc]` (일치) |
 | 확인 배경   | `primary/500`, hover `secondary/600`     | primary 동일 (일치)                |
 
-[PaginationButton](../../../src/components/_common/Pagination/PaginationButton.tsx)이 `Button`을 감싸 `className`으로 크기를 덮어쓴 전례가 있다. 조립 단계에서 같은 방식으로 높이·너비·취소 글자색을 덮어쓸지, `Button`에 variant를 추가할지 확인이 필요하다. 취소 글자색은 아래 2번 결정에 따른다.
+[PaginationButton](../../../src/components/_common/Pagination/PaginationButton.tsx) 전례대로 공통 `Button`은 건드리지 않고, `DatePicker`에서 `size="small"` 위에 `className`으로 `h-10 w-auto min-w-0 flex-1`을 덮어쓴다. 취소 버튼은 여기에 `text-muted-foreground`를 더한다(아래 2번).
 
-### 2. 회색 텍스트 컬러 정책
+### 2. 회색 텍스트 컬러 정책 — 확정: `text-muted-foreground`
 
-취소 버튼 글자(`#737373`)에 대해 Modal(이름 기준 `--color-slate-500`)과 Pagination(값 기준 `text-muted-foreground`)의 전례가 갈린다. 위 "디자인 토큰 매핑" 참고.
+취소 버튼 글자(`#737373`)는 Pagination과 같은 값 기준으로 `text-muted-foreground`(`#6B6A68`)를 쓴다. 위 "디자인 토큰 매핑" 참고.
 
 ### 3. 이전·다음 달 날짜 선택 허용 — 잠정
 

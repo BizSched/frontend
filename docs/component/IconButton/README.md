@@ -15,7 +15,7 @@
 
 Figma: [BizSched / design 캔버스](https://www.figma.com/design/0UAYWaDS9UNjigV73HWcPZ/BizSched?node-id=71-70829&m=dev)
 
-`btn_action-매출 카테고리, 오늘 매출 추가 액션`(가칭 `ActionButton`)은 이 4개 중 일부를 내부에서 재사용하지만 shape 자체가 다른 별도 컴포넌트라 범위에서 제외한다. 브랜치 전략상 `ActionButton`은 이 그룹이 `dev`에 머지된 뒤 그 시점을 기준으로 분기한다([button/README.md의 "버튼 계열 브랜치 전략"](../button/README.md#버튼-계열-브랜치-전략) 참고).
+`btn_action-매출 카테고리, 오늘 매출 추가 액션`(`ActionButton`)은 shape 자체가 다른 별도 컴포넌트라 범위에서 제외한다. 보조 버튼 스타일이 이 4개와 맞지 않아 컴포넌트는 재사용하지 않고 `ICON_BUTTON_BASE_CLASSNAME`만 공유한다([ActionButton/README.md](../ActionButton/README.md)). 브랜치 전략상 `ActionButton`은 이 그룹이 `dev`에 머지된 뒤 그 시점을 기준으로 분기한다([button/README.md의 "버튼 계열 브랜치 전략"](../button/README.md#버튼-계열-브랜치-전략) 참고).
 
 ## 설계 결정 요약
 
@@ -50,6 +50,8 @@ src/components/_common/IconButton/
 ### 아이콘 자산
 
 아이콘 자산 위치·형식은 [folder-structure.md](../../architecture/folder-structure.md)에 컨벤션이 없어 구현 전 사용자에게 확인 후 아래로 결정했다.
+
+> **lucide 전환 예정** — 아래 SVG 자산을 `lucide-react` 아이콘으로 전환하는 작업은 별도 이슈로 분리하기로 확정했다(이슈 번호 미정). 이후 추가되는 버튼 계열 컴포넌트는 처음부터 lucide를 쓴다([ActionButton/README.md](../ActionButton/README.md) 참고).
 
 ```
 src/assets/icons/
