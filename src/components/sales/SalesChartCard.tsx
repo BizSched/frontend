@@ -1,25 +1,17 @@
-'use client';
+import Image from 'next/image';
 
 import { Card } from '@components/_common/Card/Card';
-import { Chart } from '@components/_common/Chart/Chart';
 
-import { SALES_WEEKS } from './salesDashboardData';
+import Plus from '@assets/icons/ic_plus-white.svg';
 
-const SALES_CHART_CONFIG = {
-  product: { label: '상품 판매', color: '#ebddb9' },
-  service: { label: '서비스', color: '#ffd98a' },
-  online: { label: '배달·온라인', color: '#fff0c9' },
-  other: { label: '기타', color: '#fff9ed' },
-};
-
-const WEEKLY_SALES = SALES_WEEKS.map((week) => ({ ...week }));
+import { SalesWeeklyChart } from './SalesWeeklyChart';
 
 function SalesChartCard() {
   return (
     <Card
       radius="2xl"
       padding="lg"
-      className="h-[518px] gap-3 shadow-[0_0_30px_rgba(0,0,0,0.05)] max-tablet:order-2 max-tablet:h-[480px] max-tablet:p-5"
+      className="relative h-[518px] gap-3 shadow-[0_0_30px_rgba(0,0,0,0.05)] max-laptop:order-2 max-tablet:h-[480px] max-tablet:overflow-visible max-tablet:p-5"
     >
       <Card.Header className="items-center max-tablet:items-start">
         <div className="flex items-center gap-3">
@@ -47,17 +39,14 @@ function SalesChartCard() {
         <span className="px-3 py-2">월간</span>
       </div>
 
-      <Chart
-        config={SALES_CHART_CONFIG}
-        data={WEEKLY_SALES}
-        aria-label="9월 주차별 매출"
-        className="min-h-0 flex-1"
+      <span
+        aria-hidden="true"
+        className="absolute top-5 -right-3 hidden size-14 items-center justify-center rounded-full bg-primary-500 shadow-[0_4px_16px_rgba(255,158,89,0.2)] max-tablet:flex"
       >
-        <Chart.Plot className="min-h-0 flex-1 [&_[data-slot=chart]]:aspect-auto [&_[data-slot=chart]]:h-full">
-          <Chart.Bar xKey="label" />
-        </Chart.Plot>
-        <Chart.Legend className="border-t border-slate-100 pt-2 max-tablet:justify-center" />
-      </Chart>
+        <Image src={Plus} alt="" width={24} height={24} />
+      </span>
+
+      <SalesWeeklyChart />
     </Card>
   );
 }

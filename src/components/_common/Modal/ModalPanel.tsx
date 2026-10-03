@@ -1,15 +1,15 @@
 'use client';
 
-import type { CSSProperties } from 'react';
-
 import { Dialog } from '@base-ui/react/dialog';
 import { cva, type VariantProps } from 'class-variance-authority';
+import type { CSSProperties } from 'react';
 
 import { useModalContext } from '@hooks/modal/useModalContext';
+
 import { cn } from '@lib/utilities/cn';
 
 const modalBackdropVariants = cva(
-  'fixed inset-0 z-[calc(var(--z-modal-base)_+_var(--modal-stack-index)_*_10)] data-[open]:animate-in data-[open]:fade-in-0 data-[closed]:animate-out data-[closed]:fade-out-0 motion-reduce:animate-none',
+  'fixed inset-0 z-[calc(var(--z-modal-base)_+_var(--modal-stack-index)_*_10)] data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:animate-in data-[open]:fade-in-0 motion-reduce:animate-none',
   {
     variants: {
       backdrop: {
@@ -24,7 +24,7 @@ const modalBackdropVariants = cva(
 );
 
 const modalPanelVariants = cva(
-  'fixed top-1/2 left-1/2 z-[calc(var(--z-modal-base)_+_var(--modal-stack-index)_*_10_+_1)] flex max-h-[calc(100dvh-4rem)] -translate-x-1/2 -translate-y-1/2 flex-col gap-6 rounded-modal bg-white-50 p-8 shadow-modal data-[open]:animate-in data-[open]:fade-in-0 data-[open]:zoom-in-95 data-[closed]:animate-out data-[closed]:fade-out-0 data-[closed]:zoom-out-95 motion-reduce:animate-none max-tablet:gap-4 max-tablet:p-6',
+  'fixed top-1/2 left-1/2 z-[calc(var(--z-modal-base)_+_var(--modal-stack-index)_*_10_+_1)] flex max-h-[calc(100dvh-4rem)] -translate-x-1/2 -translate-y-1/2 flex-col gap-6 rounded-modal bg-white-50 p-8 shadow-modal data-[closed]:animate-out data-[closed]:fade-out-0 data-[closed]:zoom-out-95 data-[open]:animate-in data-[open]:fade-in-0 data-[open]:zoom-in-95 motion-reduce:animate-none max-tablet:gap-4 max-tablet:p-6',
   {
     variants: {
       size: {
@@ -34,7 +34,7 @@ const modalPanelVariants = cva(
       placement: {
         center: '',
         sheetOnMobile:
-          'max-tablet:top-auto max-tablet:bottom-0 max-tablet:left-0 max-tablet:max-h-[85dvh] max-tablet:w-full max-tablet:translate-x-0 max-tablet:translate-y-0 max-tablet:rounded-b-none max-tablet:data-[open]:zoom-in-100 max-tablet:data-[open]:slide-in-from-bottom max-tablet:data-[closed]:zoom-out-100 max-tablet:data-[closed]:slide-out-to-bottom',
+          'max-tablet:top-auto max-tablet:bottom-0 max-tablet:left-0 max-tablet:max-h-[85dvh] max-tablet:w-full max-tablet:translate-x-0 max-tablet:translate-y-0 max-tablet:rounded-b-none max-tablet:data-[closed]:zoom-out-100 max-tablet:data-[closed]:slide-out-to-bottom max-tablet:data-[open]:zoom-in-100 max-tablet:data-[open]:slide-in-from-bottom',
       },
     },
     defaultVariants: {
