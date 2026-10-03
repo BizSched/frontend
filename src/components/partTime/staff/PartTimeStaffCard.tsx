@@ -1,13 +1,11 @@
 import { EllipsisVerticalIcon } from 'lucide-react';
-import Image from 'next/image';
 
 import { Card } from '@components/_common/Card/Card';
 import { Dropdown } from '@components/_common/Dropdown/Dropdown';
+import { PartTimeStaffNoteIcon } from '@components/partTime/staff/PartTimeStaffNoteIcon';
 
 import type { PartTimeStaffListItem } from '@lib/types/partTimeStaff';
 import { formatPartTimeStaffCreatedAt } from '@lib/utilities/partTime/partTimeStaff';
-
-import IcNote from '@assets/icons/ic_note.svg';
 
 interface PartTimeStaffCardProps {
   staff: PartTimeStaffListItem;
@@ -40,16 +38,7 @@ function PartTimeStaffCard({
 
       <Card.Header className="items-center">
         <div className="flex min-w-0 items-center gap-4 max-tablet:gap-2">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-[12px] bg-[#c7f2eb] max-tablet:size-8 max-tablet:rounded-[8px]">
-            <Image
-              src={IcNote}
-              alt=""
-              width={18}
-              height={23}
-              className="h-5.75 w-4.5 max-tablet:h-[17.89px] max-tablet:w-3.5"
-              unoptimized
-            />
-          </span>
+          <PartTimeStaffNoteIcon />
           <Card.Title className="truncate max-tablet:text-sm max-tablet:leading-5">
             {name}
           </Card.Title>
