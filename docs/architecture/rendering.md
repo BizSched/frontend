@@ -109,7 +109,7 @@ export default function TaskPage() {
 
 ### 4. UI primitive의 클라이언트 경계는 전염되지 않는다
 
-`components/ui/`의 UI primitive는 인터랙션 때문에 자체적으로 클라이언트 경계를 가질 수 있다. **Server Component가 이를 import해도 부모가 Client Component가 되는 것은 아니다.** 경계는 import 방향이 아니라 `"use client"`가 선언된 지점에서 시작한다.
+`components/_common/`의 UI primitive는 인터랙션 때문에 자체적으로 클라이언트 경계를 가질 수 있다. **Server Component가 이를 import해도 부모가 Client Component가 되는 것은 아니다.** 경계는 import 방향이 아니라 `"use client"`가 선언된 지점에서 시작한다.
 
 즉, Server Component인 `page.tsx`에서 `<Button>`을 렌더링하는 것은 정상이며, 이를 이유로 페이지에 `"use client"`를 붙이지 않는다. (배치 기준은 [ui-component.md](../convention/ui-component.md) 참고)
 
