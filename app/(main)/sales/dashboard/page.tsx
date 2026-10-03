@@ -18,12 +18,12 @@ function SalesPage() {
         </span>
       </div>
 
-      <div className="grid grid-cols-3 gap-[31px] max-tablet:grid-cols-2 max-tablet:gap-3">
+      <div className="grid grid-cols-3 gap-6 max-laptop:grid-cols-2 max-laptop:gap-3">
         <SalesSummaryCard
           title="이번달 누적"
           value="0 원"
           caption="25.10.01 ~ 25.10.31"
-          className="max-tablet:col-span-2"
+          className="max-laptop:col-span-2"
         />
         <SalesSummaryCard
           title="전월 대비 증감"
@@ -39,19 +39,12 @@ function SalesPage() {
         />
       </div>
 
-      <div className="mt-[31px] grid grid-cols-[minmax(0,2.075fr)_minmax(0,1fr)] gap-[31px] max-tablet:flex max-tablet:flex-col max-tablet:gap-3">
+      <div className="mt-[31px] grid grid-cols-[minmax(0,2.075fr)_minmax(0,1fr)] gap-[31px] max-laptop:grid-cols-1">
         <SalesChartCard />
         <SalesCategoryCard />
       </div>
 
       <SalesRecordsCard />
-
-      <span
-        aria-hidden="true"
-        className="fixed right-5 bottom-5 hidden size-14 items-center justify-center rounded-full bg-primary-500 shadow-[0_4px_16px_rgba(255,158,89,0.2)] max-tablet:flex"
-      >
-        <Image src={Plus} alt="" width={24} height={24} />
-      </span>
     </main>
   );
 }
