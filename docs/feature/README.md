@@ -75,6 +75,9 @@
 
 ## 문서 목록
 
-| 경로                                           | 내용                                 | 상태            |
-| ---------------------------------------------- | ------------------------------------ | --------------- |
-| [partTime/schedule.md](./partTime/schedule.md) | 아르바이트생 스케쥴 관리 페이지 설계 | 목업 UI 진행 중 |
+| 경로                                           | 내용                                    | 상태                  |
+| ---------------------------------------------- | --------------------------------------- | --------------------- |
+| [partTime/schedule.md](./partTime/schedule.md) | 아르바이트생 스케쥴 관리 페이지 설계    | 목업 UI 진행 중       |
+| [sales/README.md](./sales/README.md)           | 매출 도메인 개요                        | 설계 완료, UI 별도 PR |
+| [sales/dashboard.md](./sales/dashboard.md)     | `/sales/dashboard` 매출 대시보드 페이지 | 정적 UI 별도 PR 예정  |
+| [sales/details.md](./sales/details.md)         | `/sales/details` 매출 내역 페이지       | 검토 대기             |
