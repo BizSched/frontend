@@ -78,6 +78,7 @@ docs/
 | -------------------------------------------------------------- | ---------------------------------------------- |
 | [feature/README.md](./feature/README.md)                       | 작성 규칙, 도메인 문서·페이지 설계 문서 템플릿 |
 | [feature/partTime/schedule.md](./feature/partTime/schedule.md) | 아르바이트생 스케쥴 관리 페이지 설계           |
+| [feature/partTime/staff.md](./feature/partTime/staff.md)       | 아르바이트생 관리(목록·상세) 페이지 설계       |
 
 도메인 문서는 `feature/{도메인}/README.md`, 페이지 설계 문서는 `feature/{도메인}/{페이지}.md` 경로로 추가한다.
 
