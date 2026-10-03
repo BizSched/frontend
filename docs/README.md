@@ -16,7 +16,7 @@ docs/
 | 경로                                                                   | 내용                                                                          |
 | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
 | [architecture/tech-stack.md](./architecture/tech-stack.md)             | 사용 기술 스택 전체                                                           |
-| [architecture/folder-structure.md](./architecture/folder-structure.md) | 폴더 구성, 컴포넌트 분리 기준, 타입 파일 위치                                 |
+| [architecture/folder-structure.md](./architecture/folder-structure.md) | 폴더 구성, `(main)` 라우트 그룹, 컴포넌트 분리 기준, 타입 파일 위치           |
 | [architecture/rendering.md](./architecture/rendering.md)               | Server/Client 경계, `"use client"` 허용 트리거, RSC 하이드레이션, `use cache` |
 | [architecture/state-management.md](./architecture/state-management.md) | 상태 범위별 도구 선택, 서버 데이터 3가지 패턴, Query Key 관리                 |
 | [architecture/data-flow.md](./architecture/data-flow.md)               | DTO/DAO 변환, Fetcher, 쿠키 인증, 캐시 정책, 에러 처리                        |
@@ -53,6 +53,7 @@ docs/
 | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | [component/README.md](./component/README.md)                                             | 작성 규칙, `convention/`과의 차이, 문서 목록                                                   |
 | [component/card/README.md](./component/card/README.md)                                   | Card — 공통 surface primitive, compound 슬롯, variant 축                                       |
+| [component/table/README.md](./component/table/README.md)                                 | Table — 시맨틱 compound 슬롯, 가로 스크롤, 화면별 스타일 조합                                  |
 | [component/modal/README.md](./component/modal/README.md)                                 | Modal — compound 슬롯, variant, 토큰 매핑, overlay-kit 연동                                    |
 | [component/pagination/README.md](./component/pagination/README.md)                       | Pagination — 평면 props API, size 반응형 판정, 슬롯 계산, 토큰 매핑                            |
 | [component/button/README.md](./component/button/README.md)                               | Button — hierarchy × size variant, 버튼 계열 컴포넌트 분리 계획                                |
@@ -77,8 +78,9 @@ docs/
 | -------------------------------------------------------------- | ---------------------------------------------- |
 | [feature/README.md](./feature/README.md)                       | 작성 규칙, 도메인 문서·페이지 설계 문서 템플릿 |
 | [feature/partTime/schedule.md](./feature/partTime/schedule.md) | 아르바이트생 스케쥴 관리 페이지 설계           |
-| [feature/sales/README.md](./feature/sales/README.md)           | 매출 도메인 기능 문서                          |
-| [feature/sales/details.md](./feature/sales/details.md)         | 매출 내역 페이지 설계                          |
+| [feature/sales/README.md](./feature/sales/README.md)           | 매출 도메인 개요와 단계별 범위                 |
+| [feature/sales/dashboard.md](./feature/sales/dashboard.md)     | `/sales/dashboard` 매출 대시보드 페이지 설계   |
+| [feature/sales/details.md](./feature/sales/details.md)         | `/sales/details` 매출 내역 페이지 설계         |
 
 도메인 문서는 `feature/{도메인}/README.md`, 페이지 설계 문서는 `feature/{도메인}/{페이지}.md` 경로로 추가한다.
 
