@@ -292,11 +292,11 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
                   control={control}
                   name="hourlyWage"
                   render={({ field }) => (
-                    <span className="flex items-center gap-1">
-                      <span className="inline-grid min-w-0">
+                    <label className="flex cursor-text items-center gap-1">
+                      <span className="relative min-w-0">
                         <span
                           aria-hidden
-                          className="invisible col-start-1 row-start-1 whitespace-pre"
+                          className="invisible block pr-px whitespace-pre"
                         >
                           {field.value || '-'}
                         </span>
@@ -308,7 +308,7 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
                           placeholder="-"
                           className={cn(
                             FIELD_INPUT_CLASS_NAME,
-                            'col-start-1 row-start-1',
+                            'absolute inset-0',
                           )}
                           onChange={createFormattedInputChangeHandler(
                             field,
@@ -319,7 +319,7 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
                       <span className={cn(!field.value && 'text-slate-200')}>
                         원
                       </span>
-                    </span>
+                    </label>
                   )}
                 />
               </PartTimeStaffFieldRow>
