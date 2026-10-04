@@ -88,7 +88,6 @@ function PartTimeStaffAttachmentViewer({
               alt={name}
               width={0}
               height={0}
-              sizes="(min-width: 64rem) 734px, 100vw"
               className="h-auto max-h-full w-auto max-w-full border border-[#ccc] object-contain"
               unoptimized
             />
