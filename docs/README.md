@@ -53,7 +53,7 @@ docs/
 | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | [component/README.md](./component/README.md)                                             | 작성 규칙, `convention/`과의 차이, 문서 목록                                                   |
 | [component/card/README.md](./component/card/README.md)                                   | Card — 공통 surface primitive, compound 슬롯, variant 축                                       |
-| [component/table/README.md](./component/table/README.md)                                 | Table — 시맨틱 compound 슬롯, 가로 스크롤, 화면별 스타일 조합                                   |
+| [component/table/README.md](./component/table/README.md)                                 | Table — 시맨틱 compound 슬롯, 가로 스크롤, 화면별 스타일 조합                                  |
 | [component/modal/README.md](./component/modal/README.md)                                 | Modal — compound 슬롯, variant, 토큰 매핑, overlay-kit 연동                                    |
 | [component/pagination/README.md](./component/pagination/README.md)                       | Pagination — 평면 props API, size 반응형 판정, 슬롯 계산, 토큰 매핑                            |
 | [component/button/README.md](./component/button/README.md)                               | Button — hierarchy × size variant, 버튼 계열 컴포넌트 분리 계획                                |
@@ -78,6 +78,8 @@ docs/
 | -------------------------------------------------------------- | ---------------------------------------------- |
 | [feature/README.md](./feature/README.md)                       | 작성 규칙, 도메인 문서·페이지 설계 문서 템플릿 |
 | [feature/partTime/schedule.md](./feature/partTime/schedule.md) | 아르바이트생 스케쥴 관리 페이지 설계           |
+| [feature/sales/README.md](./feature/sales/README.md)           | 매출 도메인 개요와 단계별 범위                 |
+| [feature/sales/dashboard.md](./feature/sales/dashboard.md)     | `/sales` 매출 대시보드 페이지 설계             |
 
 도메인 문서는 `feature/{도메인}/README.md`, 페이지 설계 문서는 `feature/{도메인}/{페이지}.md` 경로로 추가한다.
 
