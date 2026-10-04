@@ -23,7 +23,7 @@ const renderLegend = (size: ChartSize, data: Record<string, unknown>[]) =>
 
 describe('ChartSeriesLegend', () => {
   it('config 순서대로 ul·li를 렌더하고 색 칩은 aria-hidden이다', () => {
-    renderLegend('large', [{}]);
+    renderLegend('large', [{ product: 1 }]);
 
     const items = screen.getAllByRole('listitem');
     expect(items).toHaveLength(2);
@@ -48,7 +48,7 @@ describe('ChartSeriesLegend', () => {
   ] as const)(
     'Context size가 $size 일 때 차트 종류와 관계없이 같은 글자·칩·간격을 적용한다',
     ({ size, list, chip }) => {
-      renderLegend(size, [{}]);
+      renderLegend(size, [{ product: 1 }]);
 
       expect(screen.getByRole('list')).toHaveClass('font-medium', ...list);
       expect(screen.getAllByRole('listitem')[0]).toHaveClass('gap-1');

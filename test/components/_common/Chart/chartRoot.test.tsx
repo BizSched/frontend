@@ -1,12 +1,17 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup, render, screen } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { ChartRoot } from '@components/_common/Chart/ChartRoot';
 
 import { useChartContext } from '@hooks/chart/useChartContext';
 
-afterEach(cleanup);
+const originalMatchMedia = window.matchMedia;
+
+afterEach(() => {
+  cleanup();
+  window.matchMedia = originalMatchMedia;
+});
 
 function ConfigProbe() {
   const { size } = useChartContext();
@@ -66,6 +71,23 @@ describe('ChartRoot', () => {
       '[&_[data-slot=chart-legend]]:flex-col',
       '[&_[data-slot=chart-legend]]:items-start',
     );
+  });
+
+  it('size를 생략하면 tablet 미만 화면에서 small이 된다', () => {
+    window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+      matches: true,
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }));
+
+    render(
+      <ChartRoot config={{}} data={[]} aria-label="차트">
+        <ConfigProbe />
+      </ChartRoot>,
+    );
+
+    expect(screen.getByText('size:small')).toBeInTheDocument();
   });
 
   it('size를 명시하면 그대로 쓴다', () => {

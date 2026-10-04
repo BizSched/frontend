@@ -242,6 +242,7 @@ Figma에 로딩 시안이 없어 위 형태(차트 모양 · `bg-muted` · pulse
 
 - **`Chart.Donut`의 `valueKey`(필수)**: 조각 크기를 정하는 값 컬럼. long 포맷 행에는 `config` 키 컬럼이 없어서 대체할 값이 없다. 선택 prop이면 빠뜨렸을 때 경고 없이 빈 도넛이 그려지므로 타입으로 강제한다.
 - **Root의 `valueKey`(선택)**: 빈 상태·합계 계산(`useChartSummary`)이 Root의 Provider에서 한 번만 일어나기 때문에 Root에도 둔다. `valueKey`가 있으면 `row[valueKey]`의 합, 없으면 모든 행의 `config` 키 값 합을 쓴다.
+  - 주의: long 형태 도넛에서 Root의 `valueKey`를 빠뜨리면 행에 `config` 키 컬럼이 없어 합계가 0이 되고, 데이터가 있어도 빈 상태로 그려진다. 도넛은 Root와 `Chart.Donut`에 같은 `valueKey`를 넘긴다.
 
 ### Root props
 
@@ -265,13 +266,14 @@ Figma에 로딩 시안이 없어 위 형태(차트 모양 · `bg-muted` · pulse
 - `useChartSize`는 `useSyncExternalStore` + `matchMedia`로 판정한다.
 - `getServerSnapshot`은 `large`를 반환한다. SSR은 데스크톱 기준으로 그리고, 모바일에서는 마운트 직후 `small`로 교정된다.
 - 미디어 쿼리 값은 `--breakpoint-tablet`(46.5rem)과 같아야 하는 계약이므로 `CHART_BREAKPOINT` 상수 한 곳에만 둔다.
+- `matchMedia`가 없는 환경(jsdom 등)에서는 throw하지 않고 `large`로 폴백한다.
 
 | `size`  | 막대                                             | 도넛                |
 | ------- | ------------------------------------------------ | ------------------- |
 | `large` | Figma `Sales Chart` 두께                         | `size=large` 반지름 |
 | `small` | **얇은 막대** (모바일 시안의 선 형태, 누적 유지) | `size=small` 반지름 |
 
-모바일 도넛은 시안상 더 작게 그려져 있지만 `small`로 통일한다. 막대 두께·도넛 반지름의 구체 수치는 UI PR에서 `get_design_context`로 측정해 이 표에 기록한다. 도넛 반지름 측정값(노드 `185:190641`): `large` 바깥 126px·안쪽 79px, `small` 바깥 76px·안쪽 48px. 빈 링 색은 `slate-200`(`#C6C5C5`).
+모바일 도넛은 시안상 더 작게 그려져 있지만 `small`로 통일한다. 막대 두께·도넛 반지름의 구체 수치는 UI PR에서 `get_design_context`로 측정해 이 표에 기록한다. 도넛 반지름 측정값(노드 `185:190641`): `large` 바깥 126px·안쪽 79px, `small` 바깥 76px·안쪽 48px. 빈 링 색은 `slate-200`(`#C6C5C5`). 막대 두께(`barSize`)는 지금은 recharts 기본값(카테고리 폭에 맞춘 자동 폭)을 쓴다. `size`별 두께는 API 연동 후 Figma 노드 `103:176038`을 측정해 후속 작업으로 반영한다.
 
 ## y축 눈금
 
