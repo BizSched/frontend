@@ -9,6 +9,7 @@ interface PartTimeScheduleDaySummaryProps {
   date: string;
   today: string;
   schedules: PartTimeSchedule[];
+  onScheduleEdit: (schedule: PartTimeSchedule) => void;
   className?: string;
 }
 
@@ -16,6 +17,7 @@ function PartTimeScheduleDaySummary({
   date,
   today,
   schedules,
+  onScheduleEdit,
   className,
 }: PartTimeScheduleDaySummaryProps) {
   const titleId = `part-time-schedule-summary-${date}`;
@@ -63,32 +65,40 @@ function PartTimeScheduleDaySummary({
             />
           </div>
           <ul className="flex flex-col gap-1">
-            {schedules.map(({ id, startTime, endTime, staff, isCheckedIn }) => (
-              <li key={id} className="flex items-center gap-2 px-1 py-1.5">
-                <label className="flex min-w-0 flex-1 items-center gap-1">
-                  <Checkbox checked={isCheckedIn} readOnly />
-                  <span className="truncate text-sm font-medium tracking-[-0.03em] text-[#737373]">
-                    {startTime} ~ {endTime} {staff.name}
-                  </span>
-                </label>
-                <div className="flex shrink-0 items-center gap-1">
-                  <TextButton
-                    size="small"
-                    aria-label={`${startTime} ~ ${endTime} ${staff.name} 스케쥴 수정`}
-                    className="text-slate-400"
-                  >
-                    수정
-                  </TextButton>
-                  <span aria-hidden="true" className="h-3 w-px bg-slate-200" />
-                  <TextButton
-                    size="small"
-                    aria-label={`${startTime} ~ ${endTime} ${staff.name} 스케쥴 삭제`}
-                  >
-                    삭제
-                  </TextButton>
-                </div>
-              </li>
-            ))}
+            {schedules.map((schedule) => {
+              const { id, startTime, endTime, staff, isCheckedIn } = schedule;
+
+              return (
+                <li key={id} className="flex items-center gap-2 px-1 py-1.5">
+                  <label className="flex min-w-0 flex-1 items-center gap-1">
+                    <Checkbox checked={isCheckedIn} readOnly />
+                    <span className="truncate text-sm font-medium tracking-[-0.03em] text-[#737373]">
+                      {startTime} ~ {endTime} {staff.name}
+                    </span>
+                  </label>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <TextButton
+                      size="small"
+                      aria-label={`${startTime} ~ ${endTime} ${staff.name} 스케쥴 수정`}
+                      className="text-slate-400"
+                      onClick={() => onScheduleEdit(schedule)}
+                    >
+                      수정
+                    </TextButton>
+                    <span
+                      aria-hidden="true"
+                      className="h-3 w-px bg-slate-200"
+                    />
+                    <TextButton
+                      size="small"
+                      aria-label={`${startTime} ~ ${endTime} ${staff.name} 스케쥴 삭제`}
+                    >
+                      삭제
+                    </TextButton>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         </>
       ) : (
