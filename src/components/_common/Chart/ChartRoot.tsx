@@ -3,6 +3,8 @@
 import { cva, type VariantProps } from 'class-variance-authority';
 import type { ComponentProps, ReactNode } from 'react';
 
+import { useChartSize } from '@hooks/chart/useChartSize';
+
 import { ChartProvider } from '@providers/chart/ChartProvider';
 import type { ChartSeriesConfig, ChartSize } from '@providers/types/chart';
 
@@ -45,7 +47,7 @@ function ChartRoot({
   children,
   ...props
 }: ChartRootProps) {
-  const resolvedSize = size ?? 'large';
+  const resolvedSize = useChartSize(size);
 
   return (
     <div
