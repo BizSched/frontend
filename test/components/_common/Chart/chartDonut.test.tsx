@@ -86,7 +86,12 @@ const getFirstSectorOuterArc = (container: HTMLElement) => {
 describe('ChartDonut', () => {
   it('data 행 순서와 관계없이 config 선언 순서로 조각을 그린다', () => {
     const { container } = render(
-      <ChartProvider config={CONFIG} data={[...DATA].reverse()} size="large">
+      <ChartProvider
+        config={CONFIG}
+        valueKey="amount"
+        data={[...DATA].reverse()}
+        size="large"
+      >
         <ChartDonut nameKey="category" valueKey="amount" />
       </ChartProvider>,
     );
@@ -103,6 +108,7 @@ describe('ChartDonut', () => {
     const { container } = render(
       <ChartProvider
         config={CONFIG}
+        valueKey="amount"
         data={[...DATA, { category: 'unknown', amount: 30 }]}
         size="large"
       >
@@ -119,6 +125,7 @@ describe('ChartDonut', () => {
     const { container } = render(
       <ChartProvider
         config={CONFIG}
+        valueKey="amount"
         data={[
           { category: 'product', amount: 25 },
           { category: 'service', amount: 75 },
@@ -142,7 +149,7 @@ describe('ChartDonut', () => {
 
   it('계열 수만큼 조각을 렌더하고 nameKey로 계열 색을 매핑한다', () => {
     const { container } = render(
-      <ChartProvider config={CONFIG} data={DATA} size="large">
+      <ChartProvider config={CONFIG} valueKey="amount" data={DATA} size="large">
         <ChartDonut nameKey="category" valueKey="amount" />
       </ChartProvider>,
     );
@@ -157,7 +164,7 @@ describe('ChartDonut', () => {
 
   it('isEmpty면 slate-200 단색 링을 렌더한다', () => {
     const { container } = render(
-      <ChartProvider config={CONFIG} data={[]} size="large">
+      <ChartProvider config={CONFIG} valueKey="amount" data={[]} size="large">
         <ChartDonut nameKey="category" valueKey="amount" />
       </ChartProvider>,
     );
@@ -174,7 +181,12 @@ describe('ChartDonut', () => {
     'size가 $size 일 때 바깥·안쪽 반지름은 $radii',
     ({ size, radii }) => {
       const { container } = render(
-        <ChartProvider config={CONFIG} data={DATA} size={size}>
+        <ChartProvider
+          config={CONFIG}
+          valueKey="amount"
+          data={DATA}
+          size={size}
+        >
           <ChartDonut nameKey="category" valueKey="amount" />
         </ChartProvider>,
       );
@@ -192,7 +204,12 @@ describe('ChartDonut', () => {
     'size가 $size 일 때 컨테이너를 바깥 지름 $diameter 정사각형으로 고정한다',
     ({ size, diameter }) => {
       const { container } = render(
-        <ChartProvider config={CONFIG} data={DATA} size={size}>
+        <ChartProvider
+          config={CONFIG}
+          valueKey="amount"
+          data={DATA}
+          size={size}
+        >
           <ChartDonut nameKey="category" valueKey="amount" />
         </ChartProvider>,
       );

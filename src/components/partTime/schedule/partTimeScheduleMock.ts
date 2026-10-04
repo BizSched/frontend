@@ -10,6 +10,10 @@ const PART_TIME_STAFFS: PartTimeStaff[] = [
   { id: 4, name: '박도윤', isDeleted: true },
 ];
 
+const ACTIVE_PART_TIME_STAFFS = PART_TIME_STAFFS.filter(
+  (staff) => !staff.isDeleted,
+);
+
 const [KIM_YERIM, KANG_SEONGGU, JUNG_YEEUN, PARK_DOYUN] = PART_TIME_STAFFS;
 
 const MORNING_SHIFT = { startTime: '07:00', endTime: '13:00', memo: '오픈' };
@@ -65,4 +69,4 @@ const getPartTimeScheduleMocks = (
   });
 };
 
-export { PART_TIME_STAFFS, getPartTimeScheduleMocks };
+export { ACTIVE_PART_TIME_STAFFS, PART_TIME_STAFFS, getPartTimeScheduleMocks };
