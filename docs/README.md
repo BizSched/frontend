@@ -16,7 +16,7 @@ docs/
 | 경로                                                                   | 내용                                                                          |
 | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
 | [architecture/tech-stack.md](./architecture/tech-stack.md)             | 사용 기술 스택 전체                                                           |
-| [architecture/folder-structure.md](./architecture/folder-structure.md) | 폴더 구성, `(main)` 라우트 그룹, 컴포넌트 분리 기준, 타입 파일 위치                                 |
+| [architecture/folder-structure.md](./architecture/folder-structure.md) | 폴더 구성, `(main)` 라우트 그룹, 컴포넌트 분리 기준, 타입 파일 위치           |
 | [architecture/rendering.md](./architecture/rendering.md)               | Server/Client 경계, `"use client"` 허용 트리거, RSC 하이드레이션, `use cache` |
 | [architecture/state-management.md](./architecture/state-management.md) | 상태 범위별 도구 선택, 서버 데이터 3가지 패턴, Query Key 관리                 |
 | [architecture/data-flow.md](./architecture/data-flow.md)               | DTO/DAO 변환, Fetcher, 쿠키 인증, 캐시 정책, 에러 처리                        |
