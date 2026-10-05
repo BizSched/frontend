@@ -87,6 +87,7 @@ docs/
 | [feature/auth/README.md](./feature/auth/README.md)             | 인증 도메인 개요, 가입 흐름, 약관·업종 규칙    |
 | [feature/auth/signup.md](./feature/auth/signup.md)             | `/signup` 회원가입 페이지 설계                 |
 | [feature/auth/onboarding.md](./feature/auth/onboarding.md)     | `/onboarding` 소셜 가입 추가 정보 페이지 설계  |
+| [feature/landing/README.md](./feature/landing/README.md)       | `/` 랜딩 페이지 설계                           |
 
 도메인 문서는 `feature/{도메인}/README.md`, 페이지 설계 문서는 `feature/{도메인}/{페이지}.md` 경로로 추가한다.
 

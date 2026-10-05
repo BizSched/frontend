@@ -86,3 +86,4 @@
 | [auth/onboarding.md](./auth/onboarding.md)     | `/onboarding` 소셜 가입 추가 정보 페이지 설계 | 정적 UI               |
 | [sales/details.md](./sales/details.md)             | `/sales/details` 매출 내역 페이지       | 검토 대기             |
 | [partTime/staff-form.md](./partTime/staff-form.md) | 아르바이트생 추가·수정 페이지 설계      | 설계 중               |
+| [landing/README.md](./landing/README.md)       | `/` 랜딩 페이지 (단일 문서)             | 정적 UI 별도 PR 예정  |
