@@ -239,6 +239,17 @@ radius 임의값이 Button, Card, Modal에서도 반복된다면 전역 radius s
 
 ## 파일·이미지 입력
 
+### 2026-10-05 디자인 적용 범위
+
+- 사용자 확인: `71:70627`은 ImageInput의 기본/썸네일 상태, `169:110711`은 UploadInput의 파일 선택 후 상태에 적용한다.
+- ImageInput 기본: 업로드 아이콘과 `이미지 첨부` 문구를 세로 배치한다. 높이 101px, radius 16px, padding 12px, gap 2px, 16px medium 텍스트다.
+- ImageInput 첨부: 선택한 이미지별로 160×101px, radius 16px의 object-cover 미리보기를 표시한다. 기존 `DeleteButton` small을 우상단 10px 위치에 재사용한다. 삭제 시 native input의 파일 목록과 `onChange`도 갱신한다.
+- UploadInput 첨부: 점선 없는 가로형으로 전환한다. radius 14px, 좌우 padding 16px, 상하 padding 14px, 아이콘과 텍스트 gap 4px, `첨부파일` 14px medium 문구를 사용한다. 다시 클릭하면 파일을 교체한다.
+- 두 컴포넌트는 파일 선택 상태를 내부에서 관리하며, native form reset 시 기본 상태로 돌아간다. 미리보기 object URL은 교체·삭제·reset·unmount 시 해제한다.
+- `inputProps.name`과 native file input을 유지하여 `FormData(form)` 제출을 지원한다. 서버 업로드 완료 상태가 아니라 로컬 파일 선택 상태이며, API 호출은 호출부 책임이다.
+- 기존 결정대로 slate 색상은 프로젝트 토큰, 업로드 아이콘은 Lucide `FileUpIcon`을 사용한다. Figma의 원시 색상값과 아이콘 SVG를 새로 도입하지 않는다.
+- 아래 초기 MVP 설명 중 preview 제외 항목은 이번 요청으로 확장됐다. drag/drop과 실제 파일명 표시는 계속 범위 밖이다.
+
 `UploadInput`과 `ImageInput`은 시각적으로 Input과 비슷하지만 실제 동작은 `<input type="file">`이다. 접근성상 숨겨진 file input과 visible trigger를 연결해야 하므로 일반 `Input` variant로 넣지 않는다.
 
 - `UploadInput`: placeholder 표시, 후속 단계에서 drag/drop과 첨부 후 파일명 표시 지원
