@@ -2,7 +2,11 @@
 
 import { Chart } from '@components/_common/Chart/Chart';
 
-import { SALES_CATEGORIES } from './salesDashboardData';
+import {
+  SALES_CATEGORIES,
+  SALES_MONTH_LABEL,
+  SALES_MONTH_TOTAL,
+} from './salesDashboardData';
 
 interface SalesCategoryDonutProps {
   isCompact?: boolean;
@@ -26,11 +30,14 @@ function SalesCategoryDonut({ isCompact = false }: SalesCategoryDonutProps) {
         valueKey="amount"
         size="small"
         legend="right"
-        aria-label="10월 카테고리별 매출 구성"
+        aria-label={`${SALES_MONTH_LABEL} 카테고리별 매출 구성`}
       >
         <Chart.Plot>
           <Chart.Donut nameKey="key" valueKey="amount" />
-          <Chart.Center label="총 매출" value="000,000,000 원" />
+          <Chart.Center
+            label="총 매출"
+            value={`${SALES_MONTH_TOTAL.toLocaleString('ko-KR')} 원`}
+          />
         </Chart.Plot>
         <Chart.Legend />
       </Chart>
@@ -42,12 +49,15 @@ function SalesCategoryDonut({ isCompact = false }: SalesCategoryDonutProps) {
       config={CATEGORY_CHART_CONFIG}
       data={CATEGORY_SALES}
       valueKey="amount"
-      aria-label="10월 카테고리별 매출 구성"
+      aria-label={`${SALES_MONTH_LABEL} 카테고리별 매출 구성`}
       className="items-center"
     >
       <Chart.Plot>
         <Chart.Donut nameKey="key" valueKey="amount" />
-        <Chart.Center label="10월 매출" value="000,000,000 원" />
+        <Chart.Center
+          label={`${SALES_MONTH_LABEL} 매출`}
+          value={`${SALES_MONTH_TOTAL.toLocaleString('ko-KR')} 원`}
+        />
       </Chart.Plot>
       <Chart.Legend className="justify-center" />
     </Chart>
