@@ -30,12 +30,34 @@ interface PartTimeStaffShift {
 
 type PartTimeStaffShiftStatus = 'scheduled' | 'completed' | 'missed';
 
+type PartTimeStaffAttachmentType = PartTimeStaffAttachment['type'];
+
+type PartTimeStaffAttachmentPreview = Pick<
+  PartTimeStaffAttachment,
+  'name' | 'type' | 'url'
+>;
+
+interface PartTimeStaffFormSavedAttachment extends PartTimeStaffAttachment {
+  kind: 'saved';
+  key: string;
+}
+
+interface PartTimeStaffFormNewAttachment extends PartTimeStaffAttachmentPreview {
+  kind: 'new';
+  key: string;
+  file: File;
+}
+
+type PartTimeStaffFormAttachment =
+  PartTimeStaffFormSavedAttachment | PartTimeStaffFormNewAttachment;
+
 interface PartTimeStaffFormValues {
   name: string;
   birthDate: string;
   gender: PartTimeStaffDetailItem['gender'] | '';
   phone: string;
   hourlyWage: string;
+  attachments: PartTimeStaffFormAttachment[];
   memo: string;
 }
 
@@ -69,10 +91,15 @@ interface PartTimeStaffMemoLength {
 
 export type {
   PartTimeStaffAttachment,
+  PartTimeStaffAttachmentPreview,
+  PartTimeStaffAttachmentType,
   PartTimeStaffDetailItem,
+  PartTimeStaffFormAttachment,
   PartTimeStaffFormattedInput,
   PartTimeStaffFormattedInputChange,
+  PartTimeStaffFormNewAttachment,
   PartTimeStaffFormPayload,
+  PartTimeStaffFormSavedAttachment,
   PartTimeStaffFormValues,
   PartTimeStaffInputDeleteDirection,
   PartTimeStaffMemoLength,

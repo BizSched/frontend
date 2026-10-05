@@ -1,8 +1,13 @@
 import type {
+  PartTimeStaffAttachment,
+  PartTimeStaffAttachmentType,
   PartTimeStaffDetailItem,
+  PartTimeStaffFormAttachment,
   PartTimeStaffFormattedInput,
   PartTimeStaffFormattedInputChange,
+  PartTimeStaffFormNewAttachment,
   PartTimeStaffFormPayload,
+  PartTimeStaffFormSavedAttachment,
   PartTimeStaffFormValues,
   PartTimeStaffMemoLength,
 } from '@lib/types/partTimeStaff';
@@ -19,6 +24,7 @@ const EMPTY_FORM_VALUES: PartTimeStaffFormValues = {
   gender: '',
   phone: '',
   hourlyWage: '',
+  attachments: [],
   memo: '',
 };
 
@@ -174,6 +180,50 @@ const formatPartTimeStaffHourlyWageInput = (value: string) =>
     .replace(/^0+(?=\d)/, '')
     .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
+const getPartTimeStaffAttachmentType = (
+  mimeType: string,
+): PartTimeStaffAttachmentType | undefined => {
+  if (mimeType === 'application/pdf') {
+    return 'pdf';
+  }
+
+  if (mimeType.startsWith('image/')) {
+    return 'image';
+  }
+
+  return undefined;
+};
+
+const toPartTimeStaffFormSavedAttachment = (
+  attachment: PartTimeStaffAttachment,
+): PartTimeStaffFormSavedAttachment => ({
+  ...attachment,
+  kind: 'saved',
+  key: `saved-${attachment.id}`,
+});
+
+const createPartTimeStaffFormNewAttachment = (
+  file: File,
+  url: string,
+): PartTimeStaffFormNewAttachment | undefined => {
+  const type = getPartTimeStaffAttachmentType(file.type);
+
+  if (!type) {
+    return undefined;
+  }
+
+  return { kind: 'new', key: url, file, name: file.name, type, url };
+};
+
+const isPartTimeStaffAttachmentsChanged = (
+  attachments: PartTimeStaffFormAttachment[],
+  initialAttachments: PartTimeStaffFormAttachment[],
+) =>
+  attachments.length !== initialAttachments.length ||
+  attachments.some(
+    (attachment, index) => attachment.key !== initialAttachments[index].key,
+  );
+
 const toPartTimeStaffFormValues = (
   staff?: PartTimeStaffDetailItem,
 ): PartTimeStaffFormValues => {
@@ -187,6 +237,7 @@ const toPartTimeStaffFormValues = (
     gender: staff.gender,
     phone: formatPartTimeStaffPhoneInput(staff.phone),
     hourlyWage: formatPartTimeStaffHourlyWageInput(String(staff.hourlyWage)),
+    attachments: staff.attachments.map(toPartTimeStaffFormSavedAttachment),
     memo: staff.memo,
   };
 };
@@ -214,8 +265,14 @@ const isPartTimeStaffFormChanged = (
   const payload = toPartTimeStaffFormPayload(values);
   const initialPayload = toPartTimeStaffFormPayload(initialValues);
 
-  return (Object.keys(payload) as (keyof PartTimeStaffFormPayload)[]).some(
-    (key) => payload[key] !== initialPayload[key],
+  return (
+    (Object.keys(payload) as (keyof PartTimeStaffFormPayload)[]).some(
+      (key) => payload[key] !== initialPayload[key],
+    ) ||
+    isPartTimeStaffAttachmentsChanged(
+      values.attachments,
+      initialValues.attachments,
+    )
   );
 };
 
@@ -224,9 +281,11 @@ export {
   applyPartTimeStaffInputFormat,
   countPartTimeStaffCharacters,
   countPartTimeStaffMemoLength,
+  createPartTimeStaffFormNewAttachment,
   formatPartTimeStaffBirthDateInput,
   formatPartTimeStaffHourlyWageInput,
   formatPartTimeStaffPhoneInput,
+  getPartTimeStaffAttachmentType,
   isPartTimeStaffBirthDateValid,
   isPartTimeStaffFormChanged,
   isPartTimeStaffNameValid,
