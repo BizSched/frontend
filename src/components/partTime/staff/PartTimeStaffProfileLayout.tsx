@@ -1,11 +1,14 @@
 import type { ReactNode } from 'react';
 
+import { cn } from '@lib/utilities/cn';
+
 interface PartTimeStaffProfileLayoutProps {
   title: ReactNode;
   fields: ReactNode;
   extra?: ReactNode;
   attachments?: ReactNode;
   body?: ReactNode;
+  className?: string;
 }
 
 function PartTimeStaffProfileLayout({
@@ -14,9 +17,10 @@ function PartTimeStaffProfileLayout({
   extra,
   attachments,
   body,
+  className,
 }: PartTimeStaffProfileLayoutProps) {
   return (
-    <div className="flex flex-col gap-5">
+    <div className={cn('flex flex-col gap-5', className)}>
       <div className="flex flex-col gap-6 max-tablet:gap-4">
         <div className="flex flex-col gap-7.5 max-tablet:gap-6">
           {title}
@@ -26,7 +30,7 @@ function PartTimeStaffProfileLayout({
         </div>
         <hr className="border-[#e2e8f0]" />
       </div>
-      <div className="flex flex-col gap-6">
+      <div className="flex flex-1 flex-col gap-6">
         {extra}
         {attachments}
         {body}
