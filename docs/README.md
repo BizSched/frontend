@@ -16,7 +16,7 @@ docs/
 | 경로                                                                   | 내용                                                                          |
 | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
 | [architecture/tech-stack.md](./architecture/tech-stack.md)             | 사용 기술 스택 전체                                                           |
-| [architecture/folder-structure.md](./architecture/folder-structure.md) | 폴더 구성, 컴포넌트 분리 기준, 타입 파일 위치                                 |
+| [architecture/folder-structure.md](./architecture/folder-structure.md) | 폴더 구성, `(main)` 라우트 그룹, 컴포넌트 분리 기준, 타입 파일 위치           |
 | [architecture/rendering.md](./architecture/rendering.md)               | Server/Client 경계, `"use client"` 허용 트리거, RSC 하이드레이션, `use cache` |
 | [architecture/state-management.md](./architecture/state-management.md) | 상태 범위별 도구 선택, 서버 데이터 3가지 패턴, Query Key 관리                 |
 | [architecture/data-flow.md](./architecture/data-flow.md)               | DTO/DAO 변환, Fetcher, 쿠키 인증, 캐시 정책, 에러 처리                        |
@@ -49,20 +49,41 @@ docs/
 
 `src/components/_common/`에 들어가는 공통 컴포넌트의 설계 문서를 모은다. **앞으로 추가되는 공통 컴포넌트 설계는 `component/{컴포넌트}/README.md`에 작성한다.**
 
-| 경로                                                               | 내용                                                                |
-| ------------------------------------------------------------------ | ------------------------------------------------------------------- |
-| [component/README.md](./component/README.md)                       | 작성 규칙, `convention/`과의 차이, 문서 목록                        |     |
-| [component/modal/README.md](./component/modal/README.md)           | Modal — compound 슬롯, variant, 토큰 매핑, overlay-kit 연동         |
-| [component/pagination/README.md](./component/pagination/README.md) | Pagination — 평면 props API, size 반응형 판정, 슬롯 계산, 토큰 매핑 |
-| [component/input/README.md](./component/input/README.md)           | Input — 입력 primitive, 검색·파일·이미지 입력 설계                  |
+| 경로                                                                                     | 내용                                                                                           |
+| ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| [component/README.md](./component/README.md)                                             | 작성 규칙, `convention/`과의 차이, 문서 목록                                                   |
+| [component/card/README.md](./component/card/README.md)                                   | Card — 공통 surface primitive, compound 슬롯, variant 축                                       |
+| [component/table/README.md](./component/table/README.md)                                 | Table — 시맨틱 compound 슬롯, 가로 스크롤, 화면별 스타일 조합                                  |
+| [component/modal/README.md](./component/modal/README.md)                                 | Modal — compound 슬롯, variant, 토큰 매핑, overlay-kit 연동                                    |
+| [component/pagination/README.md](./component/pagination/README.md)                       | Pagination — 평면 props API, size 반응형 판정, 슬롯 계산, 토큰 매핑                            |
+| [component/button/README.md](./component/button/README.md)                               | Button — hierarchy × size variant, 버튼 계열 컴포넌트 분리 계획                                |
+| [component/IconButton/README.md](./component/IconButton/README.md)                       | IconButton — 원형 shape만 공유하는 4개 독립 컴포넌트(Social/Notification/ReadMore/Delete)      |
+| [component/TextButton/README.md](./component/TextButton/README.md)                       | TextButton — `size` variant, hover pseudo-class 방식 state, Button의 형제 컴포넌트             |
+| [component/select-button/README.md](./component/select-button/README.md)                 | SelectButton — Toggle 기반 선택 상태, 고정 라벨 너비, 그림자 토큰                              |
+| [component/dropdown/README.md](./component/dropdown/README.md)                           | Dropdown — 팝업 리스트 평면 API, variant, 토큰 매핑, 월 변경·Form 드롭다운 설계                |
+| [component/month-dropdown-button/README.md](./component/month-dropdown-button/README.md) | MonthDropdownButton — 월 선택 드롭다운 트리거, size 축, 토큰 매핑                              |
+| [component/month-select-dropdown/README.md](./component/month-select-dropdown/README.md) | MonthSelectDropdown — 월 선택 트리거 + 월 리스트 팝업 조합, 스크롤, controlled                 |
+| [component/form-dropdown/README.md](./component/form-dropdown/README.md)                 | FormDropdown — Form 트리거 + 옵션 팝업 조합, medium size·구분선, controlled                    |
+| [component/datepicker/README.md](./component/datepicker/README.md)                       | DatePicker — 버퍼링 선택(취소/확인), 셀 타입 매핑, 토큰 매핑                                   |
+| [component/input/README.md](./component/input/README.md)                                 | Input — 입력 primitive, 검색·파일·이미지 입력 설계                                             |
+| [component/radio/README.md](./component/radio/README.md)                                 | Radio — RadioGroup(compound), Base UI Radio 기반, 토큰 매핑                                    |
+| [component/checkbox/README.md](./component/checkbox/README.md)                           | Checkbox — 단일 원자, variant(solid/subtle) 2종, Base UI Checkbox 기반                         |
+| [component/chart/README.md](./component/chart/README.md)                                 | Chart — 누적 막대·도넛 compound, shadcn chart 생성물 처리, size 반응형, 빈 상태, 로딩 스켈레톤 |
+| [component/calendar/README.md](./component/calendar/README.md)                           | Calendar — 단일 날짜 선택, 월 이동, 일정 칩·모바일 점, Dropdown 조합                           |
+| [component/ActionButton/README.md](./component/ActionButton/README.md)                   | ActionButton — Base UI Menu 기반 speed dial, `actions` 배열 prop, lucide 아이콘                |
 
 ## feature/
 
-| 경로                                     | 내용                    |
-| ---------------------------------------- | ----------------------- |
-| [feature/README.md](./feature/README.md) | 도메인 기능 문서 템플릿 |
+| 경로                                                           | 내용                                           |
+| -------------------------------------------------------------- | ---------------------------------------------- |
+| [feature/README.md](./feature/README.md)                       | 작성 규칙, 도메인 문서·페이지 설계 문서 템플릿 |
+| [feature/partTime/schedule.md](./feature/partTime/schedule.md) | 아르바이트생 스케쥴 관리 페이지 설계           |
+| [feature/sales/README.md](./feature/sales/README.md)           | 매출 도메인 개요와 단계별 범위                 |
+| [feature/sales/dashboard.md](./feature/sales/dashboard.md)     | `/sales/dashboard` 매출 대시보드 페이지 설계   |
+| [feature/sales/details.md](./feature/sales/details.md)         | `/sales/details` 매출 내역 페이지 설계         |             |
+| [feature/partTime/staff.md](./feature/partTime/staff.md)       | 아르바이트생 관리(목록·상세) 페이지 설계       |
 
-도메인 문서는 `feature/{도메인}/README.md` 경로로 추가한다. 현재 작성된 도메인 문서는 없다.
+도메인 문서는 `feature/{도메인}/README.md`, 페이지 설계 문서는 `feature/{도메인}/{페이지}.md` 경로로 추가한다.
 
 ## 저장소 루트 문서
 

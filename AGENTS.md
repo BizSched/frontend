@@ -8,27 +8,29 @@ Next.js v16 기반 프론트엔드 프로젝트. TailwindCSS v4 + Shadcn/ui, Zus
 ## 작업 시작 전 원칙
 
 - 코드 작성 전, 아래 라우팅 표를 참고해 관련 문서를 먼저 확인한다.
-- 문서에 없는 판단이 필요하면 임의로 정하지 말고 사용자에게 확인한다.
+- 구현 방식은 기존 프로젝트 문서와 코드 컨벤션을 먼저 확인하고, 해당 컨벤션이 없으면 사용 중인 버전의 공식 문서에서 해당 상황에 권장하는 방식을 따른다.
+- 공식 문서로 결정할수 없는 제품 동작이나 미확정 컨벤션은 임의로 정하지 말고 사용자에게 확인한다.
   - 확인 후 기록한다.
 - 문서와 기존 코드가 다르면 기존 코드 패턴을 따르되, 차이를 사용자에게 알린다.
 
 ## 작업 유형별 참조 문서
 
-| 작업 유형              | 참조 문서                                                                                                                   |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| 새 컴포넌트/훅 작성    | `convention/naming.md`, `convention/code-style.md`, `architecture/folder-structure.md`                                      |
-| 상태 관리 코드 작성    | `architecture/state-management.md`                                                                                          |
-| API 연동 / 에러 처리   | `architecture/data-flow.md`                                                                                                 |
-| 렌더링 경계 / RSC / TanStack Query hydration | `architecture/rendering.md`, `architecture/data-flow.md`, `architecture/state-management.md` |
-| UI/스타일 작업         | `convention/ui-component.md`, `convention/style.md`                                                                         |
-| 테스트 작성            | `convention/test.md`                                                                                                        |
-| 커밋 작성              | `commit-message-generator` 스킬 자동 적용 (`.claude/skills/commit-message-generator/SKILL.md`), 요약 `convention/commit.md` |
-| PR 코드 리뷰           | `code-review` 스킬 참고 (`.claude/skills/code-review/SKILL.md`), 요약 `collaboration/code-review.md`                        |
-| 이슈 등록              | `.github/ISSUE_TEMPLATE/`                                                                                                   |
-| 브랜치/PR              | `collaboration/branch-strategy.md`, `collaboration/pr-flow.md`                                                              |
-| CI/배포                | `collaboration/ci.md`                                                                                                       |
-| 공통 컴포넌트 작업     | `component/{컴포넌트}/README.md` — 작업 전 해당 컴포넌트 설계 문서부터 확인. 새 공통 컴포넌트 설계도 이 경로에 작성한다     |
-| 특정 기능(도메인) 파악 | `feature/{도메인}/README.md` — 작업 전 해당 도메인 문서부터 확인                                                            |
+| 작업 유형                                    | 참조 문서                                                                                                                                  |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| 새 컴포넌트/훅 작성                          | `convention/naming.md`, `convention/code-style.md`, `architecture/folder-structure.md`                                                     |
+| 상태 관리 코드 작성                          | `architecture/state-management.md`                                                                                                         |
+| API 연동 / 에러 처리                         | `architecture/data-flow.md`                                                                                                                |
+| 렌더링 경계 / RSC / TanStack Query hydration | `architecture/rendering.md`, `architecture/data-flow.md`, `architecture/state-management.md`                                               |
+| UI/스타일 작업                               | `convention/ui-component.md`, `convention/style.md`                                                                                        |
+| 테스트 작성                                  | `convention/test.md`                                                                                                                       |
+| 커밋 작성                                    | `commit-message-generator` 스킬 자동 적용 (`.claude/skills/commit-message-generator/SKILL.md`), 요약 `convention/commit.md`                |
+| PR 코드 리뷰                                 | `code-review` 스킬 참고 (`.claude/skills/code-review/SKILL.md`), 요약 `collaboration/code-review.md`                                       |
+| 이슈 등록                                    | `.github/ISSUE_TEMPLATE/`                                                                                                                  |
+| 브랜치/PR                                    | `collaboration/branch-strategy.md`, `collaboration/pr-flow.md`                                                                             |
+| CI/배포                                      | `collaboration/ci.md`                                                                                                                      |
+| 공통 컴포넌트 작업                           | `component/{컴포넌트}/README.md` — 작업 전 해당 컴포넌트 설계 문서부터 확인. 새 공통 컴포넌트 설계도 이 경로에 작성한다                    |
+| 특정 기능(도메인) 파악                       | `feature/{도메인}/README.md` — 작업 전 해당 도메인 문서부터 확인                                                                           |
+| 페이지 작업                                  | `feature/{도메인}/{페이지}.md` — 작업 전 해당 페이지 설계 문서부터 확인. 새 페이지 설계는 `feature/README.md`의 페이지 템플릿으로 작성한다 |
 
 ## 코드 작성 시 필수 체크
 

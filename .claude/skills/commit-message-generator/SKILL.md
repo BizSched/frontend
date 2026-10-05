@@ -28,8 +28,8 @@ description: 정해진 형식에 따라 구조화된 커밋 메시지를 생성�
 타입: 간결한 설명 (영어 소문자, 50자 이내) [#이슈번호]
 ```
 
-> husky `commit-msg` 훅이 강제하는 정규식: `^(feat|fix|design|refactor|test|docs|chore|ci/cd): .+( #[0-9]+)?$`
-> 타입은 아래 8종만 허용하며 `#이슈번호`는 선택이다. **이 훅이 커밋 컨벤션의 source of truth다.**
+> husky `commit-msg` 훅이 강제하는 정규식: `^(feat|fix|design|refactor|test|docs|chore|ci/cd): .+( #[0-9]+)$`
+> 타입은 아래 8종만 허용하며 `#이슈번호`는 필수이다. **이 훅이 커밋 컨벤션의 source of truth다.**
 
 ### 바디 형식
 

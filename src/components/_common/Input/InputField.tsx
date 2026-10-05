@@ -21,9 +21,12 @@ function InputField({
   className,
   children,
 }: InputFieldProps) {
-  const descriptionId = description ? `${id}-description` : undefined;
-  const errorId = errorMessage ? `${id}-error` : undefined;
+  const inputId = children.props.id ?? id;
+  const descriptionId = description ? `${inputId}-description` : undefined;
+  const errorId = errorMessage ? `${inputId}-error` : undefined;
   const hasError = Boolean(errorMessage);
+  const isDisabled =
+    children.props.disabled ?? children.props.status === 'disabled';
   const describedBy = [
     children.props['aria-describedby'],
     hasError ? errorId : descriptionId,
@@ -31,9 +34,11 @@ function InputField({
     .filter(Boolean)
     .join(' ');
   const input = cloneElement(children, {
-    id,
+    id: inputId,
+    disabled: isDisabled,
+    status: hasError ? 'error' : children.props.status,
     'aria-describedby': describedBy || undefined,
-    'aria-invalid': hasError || children.props['aria-invalid'] || undefined,
+    'aria-invalid': hasError ? true : children.props['aria-invalid'],
   });
 
   return (
@@ -42,7 +47,7 @@ function InputField({
       className={cn('flex flex-col gap-1.5', className)}
     >
       <label
-        htmlFor={id}
+        htmlFor={inputId}
         data-slot="input-label"
         className="text-sm font-medium tracking-[-0.03em] text-slate-700"
       >
@@ -66,7 +71,7 @@ function InputField({
           id={errorId}
           data-slot="input-error"
           role="alert"
-          className="text-warning-500 text-sm tracking-[-0.03em]"
+          className="text-sm tracking-[-0.03em] text-warning-500"
         >
           {errorMessage}
         </p>

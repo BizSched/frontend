@@ -5,6 +5,9 @@ RED='\033[0;31m'
 YELLOW='\033[0;33m'
 CYAN='\033[0;36m'
 RESET='\033[0m'
+TEST_CHANGED_REMOTE="${TEST_CHANGED_REMOTE:-origin}"
+TEST_CHANGED_BRANCH="${TEST_CHANGED_BRANCH:-dev}"
+TEST_CHANGED_BASE="$TEST_CHANGED_REMOTE/$TEST_CHANGED_BRANCH"
 
 print_line() {
   printf '%b\n' "$1"
@@ -20,12 +23,27 @@ TOTAL=3
 STEP=1
 
 run_step() {
-  CMD=$1
+  CMD="$*"
+  SCRIPT=$1
+  shift
 
-  print_line "${YELLOW}${BOLD}[$STEP/$TOTAL] Running pnpm run $CMD...${RESET}"
+  if [ "$SCRIPT" = "test" ]; then
+    print_line "${YELLOW}${BOLD}[$STEP/$TOTAL] Running vitest changed tests...${RESET}"
+  else
+    print_line "${YELLOW}${BOLD}[$STEP/$TOTAL] Running pnpm run $CMD...${RESET}"
+  fi
   print_line "${CYAN}──────────────────────────────────────────────────${RESET}"
 
-  if ! pnpm run "$CMD"; then
+  if [ "$SCRIPT" = "test" ]; then
+    git fetch "$TEST_CHANGED_REMOTE" "$TEST_CHANGED_BRANCH" --quiet
+    RUN_RESULT=0
+    pnpm exec vitest run --changed "$TEST_CHANGED_BASE" --passWithNoTests || RUN_RESULT=$?
+  else
+    RUN_RESULT=0
+    pnpm run "$SCRIPT" || RUN_RESULT=$?
+  fi
+
+  if [ "$RUN_RESULT" -ne 0 ]; then
     print_line ""
     print_line "${RED}${BOLD}✖ '$CMD' failed — push aborted${RESET}"
     print_line ""
@@ -39,19 +57,7 @@ run_step() {
 
 run_step "type-check"
 run_step "lint"
-
-print_line "${YELLOW}${BOLD}[$STEP/$TOTAL] Running pnpm run test -- --changed origin/dev...${RESET}"
-print_line "${CYAN}──────────────────────────────────────────────────${RESET}"
-
-if ! pnpm run test -- --changed origin/dev; then
-  print_line ""
-  print_line "${RED}${BOLD}✖ 'test --changed origin/dev' failed — push aborted${RESET}"
-  print_line ""
-  exit 1
-fi
-
-print_line "${GREEN}✔ test --changed origin/dev passed${RESET}"
-print_line ""
+run_step test --changed "$TEST_CHANGED_BASE"
 
 print_line "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
 print_line "${GREEN}${BOLD}  ✅ All checks passed! Pushing...                ${RESET}"

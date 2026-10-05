@@ -14,7 +14,7 @@ function InputAction({ className, children, ...rest }: InputActionProps) {
       type="button"
       data-slot="input-action"
       className={cn(
-        'focus-visible:ring-primary-500 inline-flex shrink-0 items-center justify-center text-slate-400 transition-opacity hover:opacity-60 focus-visible:ring-2 focus-visible:outline-none',
+        'inline-flex shrink-0 items-center justify-center text-slate-400 transition-opacity hover:opacity-60 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none',
         className,
       )}
       {...rest}

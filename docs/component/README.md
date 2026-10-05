@@ -50,8 +50,24 @@
 
 ## 문서 목록
 
-| 경로                                           | 컴포넌트                                                | 상태                  |
-| ---------------------------------------------- | ------------------------------------------------------- | --------------------- |
-| [input/README.md](./input/README.md)           | Input — 입력 primitive, 검색·파일·이미지 입력 설계      | 설계 완료 · 구현 예정 |
-| [modal/README.md](./modal/README.md)           | Modal — compound 모달, Confirm 프리셋, overlay-kit 연동 | 설계 완료 · 구현 예정 |
-| [pagination/README.md](./pagination/README.md) | Pagination — 평면 props, size 반응형 판정, 슬롯 계산 훅 | 설계 완료 · 구현 예정 |
+| 경로                                                                 | 컴포넌트                                                                                  | 상태                    |
+| -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------- |
+| [card/README.md](./card/README.md)                                   | Card — 공통 surface primitive, compound 슬롯, variant 축                                  | 구현 완료               |
+| [table/README.md](./table/README.md)                                 | Table — 시맨틱 compound 슬롯, 가로 스크롤, 화면별 스타일 조합                             | 구현 완료 · 테스트 예정 |
+| [modal/README.md](./modal/README.md)                                 | Modal — compound 모달, Confirm 프리셋, overlay-kit 연동                                   | 구현 완료               |
+| [dropdown/README.md](./dropdown/README.md)                           | Dropdown — 팝업 리스트 평면 API, 월 변경·Form 드롭다운 트리거 설계                        | 구현 완료               |
+| [button/README.md](./button/README.md)                               | Button — hierarchy × size variant, 버튼 계열 분리 계획                                    | 구현 완료               |
+| [IconButton/README.md](./IconButton/README.md)                       | IconButton — 원형 shape만 공유하는 4개 독립 컴포넌트(Social/Notification/ReadMore/Delete) | 구현 완료               |
+| [TextButton/README.md](./TextButton/README.md)                       | TextButton — `size` variant, `state`는 hover pseudo-class, Button의 sibling 컴포넌트      | 구현 완료               |
+| [select-button/README.md](./select-button/README.md)                 | SelectButton — Base UI Toggle 기반 선택 버튼, `data-pressed` 스타일링                     | 구현 완료               |
+| [month-dropdown-button/README.md](./month-dropdown-button/README.md) | MonthDropdownButton — 월 선택 드롭다운 트리거, size 축                                    | 구현 완료               |
+| [month-select-dropdown/README.md](./month-select-dropdown/README.md) | MonthSelectDropdown — 월 선택 트리거 + 월 리스트 팝업 조합, controlled                    | 구현 완료               |
+| [form-dropdown/README.md](./form-dropdown/README.md)                 | FormDropdown — Form 트리거(FormDropdownButton) + 옵션 팝업 조합, controlled               | 구현 완료               |
+| [datepicker/README.md](./datepicker/README.md)                       | DatePicker — 버퍼링 선택(취소/확인), react-day-picker 셀 커스터마이징, 모바일 바텀시트    | 구현 완료               |
+| [input/README.md](./input/README.md)                                 | Input — 입력 primitive, 검색·파일·이미지 입력 설계                                        | 구현 완료               |
+| [radio/README.md](./radio/README.md)                                 | Radio — RadioGroup(compound), Base UI Radio 기반                                          | 구현 완료               |
+| [checkbox/README.md](./checkbox/README.md)                           | Checkbox — 단일 원자, variant(solid/subtle) 2종, Base UI Checkbox 기반                    | 구현 완료               |
+| [pagination/README.md](./pagination/README.md)                       | Pagination — 평면 props, size 반응형 판정, 슬롯 계산 훅, URL `?page=` 연동                | 구현 완료               |
+| [chart/README.md](./chart/README.md)                                 | Chart — 누적 막대·도넛 compound, `config` 색 주입, 빈 상태·로딩 스켈레톤 슬롯             | 구현 완료               |
+| [calendar/README.md](./calendar/README.md)                           | Calendar — 단일 날짜 선택, 월 이동, 일정 칩·모바일 점, Dropdown 조합                      | 구현 완료               |
+| [ActionButton/README.md](./ActionButton/README.md)                   | ActionButton — Base UI Menu 기반 speed dial, `actions` 배열 prop, lucide 아이콘           | 구현 완료 · 테스트 예정 |

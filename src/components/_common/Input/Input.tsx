@@ -1,4 +1,5 @@
 import { cva, type VariantProps } from 'class-variance-authority';
+import { SearchIcon } from 'lucide-react';
 import {
   forwardRef,
   type ComponentPropsWithoutRef,
@@ -7,8 +8,10 @@ import {
 
 import { cn } from '@lib/utilities/cn';
 
+import { InputIcon } from './InputIcon';
+
 const inputVariants = cva(
-  'flex w-full items-center border bg-white-50 transition-colors outline-none tracking-[-0.02em] placeholder:text-slate-300 focus:outline-none',
+  'flex w-full items-center border bg-white-50 tracking-[-0.02em] transition-colors focus-within:ring-2 focus-within:ring-primary-500',
   {
     variants: {
       size: {
@@ -29,7 +32,7 @@ const inputVariants = cva(
         typing: 'border-primary-500 text-slate-700',
         error: 'border-warning-500 text-slate-700',
         disabled:
-          'border-slate-300 bg-slate-50 text-slate-500 disabled:cursor-not-allowed',
+          'cursor-not-allowed border-slate-300 bg-slate-50 text-slate-500',
       },
     },
     defaultVariants: {
@@ -59,11 +62,25 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
     rightSlot,
     className,
     disabled,
+    'aria-invalid': ariaInvalid,
     ...rest
   },
   ref,
 ) {
-  const resolvedStatus = disabled ? 'disabled' : status;
+  const isDisabled = disabled ?? status === 'disabled';
+  const resolvedStatus = isDisabled
+    ? 'disabled'
+    : status === 'disabled'
+      ? 'default'
+      : status;
+  const resolvedRightSlot =
+    rightSlot === undefined && variant === 'search' ? (
+      <InputIcon size={size ?? undefined}>
+        <SearchIcon />
+      </InputIcon>
+    ) : (
+      rightSlot
+    );
 
   return (
     <div
@@ -81,13 +98,14 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       <input
         ref={ref}
         data-slot="input"
-        disabled={disabled}
-        className="placeholder:inherit min-w-0 flex-1 bg-transparent outline-none"
+        disabled={isDisabled}
+        aria-invalid={ariaInvalid ?? (resolvedStatus === 'error' || undefined)}
+        className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-slate-500"
         {...rest}
       />
-      {rightSlot && (
+      {resolvedRightSlot && (
         <span data-slot="input-right-slot" className="shrink-0">
-          {rightSlot}
+          {resolvedRightSlot}
         </span>
       )}
     </div>
