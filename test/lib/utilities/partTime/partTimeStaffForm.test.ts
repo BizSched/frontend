@@ -1,16 +1,20 @@
 import { describe, expect, it } from 'vitest';
 
 import type {
+  PartTimeStaffAttachment,
   PartTimeStaffDetailItem,
+  PartTimeStaffFormSavedAttachment,
   PartTimeStaffFormValues,
 } from '@lib/types/partTimeStaff';
 import {
   applyPartTimeStaffInputFormat,
   countPartTimeStaffCharacters,
   countPartTimeStaffMemoLength,
+  createPartTimeStaffFormNewAttachment,
   formatPartTimeStaffBirthDateInput,
   formatPartTimeStaffHourlyWageInput,
   formatPartTimeStaffPhoneInput,
+  getPartTimeStaffAttachmentType,
   isPartTimeStaffBirthDateValid,
   isPartTimeStaffFormChanged,
   isPartTimeStaffNameValid,
@@ -21,6 +25,57 @@ import {
 } from '@lib/utilities/partTime/partTimeStaffForm';
 
 const TODAY = '2026-10-05';
+
+const CONTRACT_ATTACHMENT: PartTimeStaffAttachment = {
+  id: 1,
+  name: '근로계약서.pdf',
+  type: 'pdf',
+  url: '/mocks/partTimeStaff/contract.pdf',
+};
+
+const SAVED_CONTRACT_ATTACHMENT: PartTimeStaffFormSavedAttachment = {
+  ...CONTRACT_ATTACHMENT,
+  kind: 'saved',
+  key: 'saved-1',
+};
+
+describe('getPartTimeStaffAttachmentType', () => {
+  it('PDF와 이미지 MIME을 뷰어 형식으로 바꾼다', () => {
+    expect(getPartTimeStaffAttachmentType('application/pdf')).toBe('pdf');
+    expect(getPartTimeStaffAttachmentType('image/png')).toBe('image');
+    expect(getPartTimeStaffAttachmentType('image/jpeg')).toBe('image');
+  });
+
+  it('그 외 형식은 받지 않는다', () => {
+    expect(getPartTimeStaffAttachmentType('text/plain')).toBeUndefined();
+    expect(getPartTimeStaffAttachmentType('')).toBeUndefined();
+  });
+});
+
+describe('createPartTimeStaffFormNewAttachment', () => {
+  it('고른 파일을 새 첨부파일 폼 값으로 만든다', () => {
+    const file = new File(['image'], '보건증.png', { type: 'image/png' });
+
+    expect(
+      createPartTimeStaffFormNewAttachment(file, 'blob:health-certificate'),
+    ).toEqual({
+      kind: 'new',
+      key: 'blob:health-certificate',
+      file,
+      name: '보건증.png',
+      type: 'image',
+      url: 'blob:health-certificate',
+    });
+  });
+
+  it('받지 않는 형식이면 만들지 않는다', () => {
+    const file = new File(['memo'], '메모.txt', { type: 'text/plain' });
+
+    expect(
+      createPartTimeStaffFormNewAttachment(file, 'blob:memo'),
+    ).toBeUndefined();
+  });
+});
 
 describe('countPartTimeStaffCharacters', () => {
   it('이모지도 1자로 센다', () => {
@@ -162,6 +217,7 @@ describe('toPartTimeStaffFormValues', () => {
       gender: '',
       phone: '',
       hourlyWage: '',
+      attachments: [],
       memo: '',
     });
   });
@@ -175,7 +231,7 @@ describe('toPartTimeStaffFormValues', () => {
       birthDate: '2001-02-11',
       gender: 'female',
       hourlyWage: 10_320,
-      attachments: [],
+      attachments: [CONTRACT_ATTACHMENT],
       memo: '주말 오픈',
     };
 
@@ -185,6 +241,7 @@ describe('toPartTimeStaffFormValues', () => {
       gender: 'female',
       phone: '010-3456-7890',
       hourlyWage: '10,320',
+      attachments: [SAVED_CONTRACT_ATTACHMENT],
       memo: '주말 오픈',
     });
   });
@@ -198,6 +255,7 @@ describe('toPartTimeStaffFormPayload', () => {
       gender: 'female',
       phone: '010-3456-7890',
       hourlyWage: '10,320',
+      attachments: [],
       memo: '주말 오픈\n',
     };
 
@@ -218,6 +276,7 @@ describe('toPartTimeStaffFormPayload', () => {
       gender: '',
       phone: '010-3456-7890',
       hourlyWage: '',
+      attachments: [],
       memo: '',
     };
 
@@ -356,8 +415,48 @@ describe('isPartTimeStaffFormChanged', () => {
     gender: 'female',
     phone: '010-3456-7890',
     hourlyWage: '10,320',
+    attachments: [SAVED_CONTRACT_ATTACHMENT],
     memo: '주말 오픈',
   };
+
+  it('첨부파일을 추가하거나 지우면 바뀐 것이다', () => {
+    const file = new File(['image'], '보건증.png', { type: 'image/png' });
+
+    expect(
+      isPartTimeStaffFormChanged(
+        {
+          ...initialValues,
+          attachments: [
+            SAVED_CONTRACT_ATTACHMENT,
+            {
+              kind: 'new',
+              key: 'blob:health-certificate',
+              file,
+              name: file.name,
+              type: 'image',
+              url: 'blob:health-certificate',
+            },
+          ],
+        },
+        initialValues,
+      ),
+    ).toBe(true);
+    expect(
+      isPartTimeStaffFormChanged(
+        { ...initialValues, attachments: [] },
+        initialValues,
+      ),
+    ).toBe(true);
+  });
+
+  it('첨부파일 목록이 같으면 바뀌지 않은 것이다', () => {
+    expect(
+      isPartTimeStaffFormChanged(
+        { ...initialValues, attachments: [{ ...SAVED_CONTRACT_ATTACHMENT }] },
+        initialValues,
+      ),
+    ).toBe(false);
+  });
 
   it('값이 같으면 바뀌지 않은 것이다', () => {
     expect(
