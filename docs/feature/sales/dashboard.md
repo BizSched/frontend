@@ -44,6 +44,8 @@ API 연결 단계에서는 첫 화면에 필요한 매출 데이터를 [렌더�
 
 ## 설계 결정
 
+- 시연 데이터(#152): 기존 차트·내역의 2026년 9월을 기준으로 일별 목업을 생성한다. 주말·평일 차이와 날짜별 편차를 적용하되 결과는 재현 가능하게 유지한다. 월 누적·전월 동기간·전년 동기간·월요일 시작 주차별 합계·카테고리 합계·최근 8일 합계를 같은 일별 생성 규칙으로 계산한다. JSX에 금액을 직접 기입하지 않는다. 실제 이번 달 매출과 구분해 `시연 월 누적`으로 표시하며 API 계약으로 사용하지 않는다.
+
 - 라우트는 사용자 결정에 따라 `/sales/dashboard`로 확정한다. `ROUTE_PATHS.sales()`와 페이지 경로를 이 주소에 맞춘다. 사용자 결정(2026-10-03)에 따라 `next.config.ts`의 `redirects()`에서 `/sales` 접속을 `/sales/dashboard`로 리다이렉트한다(`permanent: false`, 307). 고정 경로 이동은 [Next.js 공식 redirects 문서](https://nextjs.org/docs/app/api-reference/config/next-config-js/redirects)에 따라 설정으로 관리하며, 리다이렉트 전용 페이지는 두지 않는다. 메뉴는 최종 주소로 직접 연결한다.
 - 기존 Sidebar·Card를 재사용하고 매출 의미를 가진 카드 조합은 `src/components/sales/`에 둔다. 공통 컴포넌트에 매출 데이터를 넣지 않는다.
 - 공통 `Table`과 `Chart`는 `dev`에 구현되어 있다. 정적 UI 브랜치는 문서 브랜치에서 분기해 PR을 쌓고 공통 컴포넌트를 재사용한다. 문서 PR이 `dev`에 병합되면 UI PR의 base를 `dev`로 변경한다.

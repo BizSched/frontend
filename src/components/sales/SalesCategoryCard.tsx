@@ -1,6 +1,7 @@
 import { Card } from '@components/_common/Card/Card';
 
 import { SalesCategoryDonut } from './SalesCategoryDonut';
+import { SALES_MONTH_LABEL } from './salesDashboardData';
 
 function SalesCategoryCard() {
   return (
@@ -14,7 +15,7 @@ function SalesCategoryCard() {
           카테고리 구성
         </Card.Title>
         <p className="text-base font-semibold text-slate-500 max-tablet:text-xs">
-          10월 누계
+          {SALES_MONTH_LABEL} 누계
         </p>
       </Card.Header>
 

@@ -1,7 +1,7 @@
 import { Card } from '@components/_common/Card/Card';
 import { Table } from '@components/_common/Table/Table';
 
-import { SALES_RECORDS } from './salesDashboardData';
+import { SALES_RECORDS, SALES_RECENT_TOTAL } from './salesDashboardData';
 
 const formatAmount = (amount: number) => amount.toLocaleString('ko-KR');
 
@@ -97,9 +97,9 @@ function SalesRecordsCard() {
       </div>
 
       <Card.Footer className="flex justify-between border-t border-slate-100 pt-4 text-xs text-slate-400">
-        <span>최근 8일</span>
+        <span>최근 {records.length}일</span>
         <strong className="font-semibold text-slate-950">
-          합계 ₩5,431,700
+          합계 ₩{formatAmount(SALES_RECENT_TOTAL)}
         </strong>
       </Card.Footer>
     </Card>

@@ -2,6 +2,14 @@ import Image from 'next/image';
 
 import { SalesCategoryCard } from '@components/sales/SalesCategoryCard';
 import { SalesChartCard } from '@components/sales/SalesChartCard';
+import {
+  SALES_MONTH_TOTAL,
+  SALES_PREVIOUS_MONTH_TOTAL,
+  SALES_PREVIOUS_YEAR_TOTAL,
+  SALES_MONTH_CHANGE,
+  SALES_YEAR_CHANGE,
+  SALES_PERIOD,
+} from '@components/sales/salesDashboardData';
 import { SalesRecordsCard } from '@components/sales/SalesRecordsCard';
 import { SalesSummaryCard } from '@components/sales/SalesSummaryCard';
 
@@ -20,21 +28,21 @@ function SalesPage() {
 
       <div className="grid grid-cols-3 gap-6 max-laptop:grid-cols-2 max-laptop:gap-3">
         <SalesSummaryCard
-          title="이번달 누적"
-          value="0 원"
-          caption="25.10.01 ~ 25.10.31"
+          title="시연 월 누적"
+          value={`${SALES_MONTH_TOTAL.toLocaleString('ko-KR')} 원`}
+          caption={SALES_PERIOD}
           className="max-laptop:col-span-2"
         />
         <SalesSummaryCard
           title="전월 대비 증감"
-          value="+ 0.0 %"
-          caption="전월 동기간 0원"
+          value={`${SALES_MONTH_CHANGE >= 0 ? '+' : ''}${SALES_MONTH_CHANGE.toFixed(1)} %`}
+          caption={`전월 동기간 ${SALES_PREVIOUS_MONTH_TOTAL.toLocaleString('ko-KR')}원`}
           isAccent
         />
         <SalesSummaryCard
           title="전년 대비"
-          value="+ 0 원"
-          caption="작년 동기간 0원"
+          value={`${SALES_YEAR_CHANGE >= 0 ? '+' : ''}${SALES_YEAR_CHANGE.toLocaleString('ko-KR')} 원`}
+          caption={`작년 동기간 ${SALES_PREVIOUS_YEAR_TOTAL.toLocaleString('ko-KR')}원`}
           isAccent
         />
       </div>

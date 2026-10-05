@@ -1,85 +1,84 @@
-interface SalesWeek {
-  label: string;
-  product: number;
-  service: number;
-  online: number;
-  other: number;
-}
+import { createSalesDemoMonth } from '@lib/utilities/sales/salesDemo';
 
-interface SalesCategory {
-  key: string;
-  label: string;
-  amount: number;
-  color: string;
-}
+const SALES_DEMO_YEAR = 2026;
+const SALES_DEMO_MONTH = 9;
+const SALES_MONTH_LABEL = `${SALES_DEMO_MONTH}월`;
+const SALES_MONTH_RECORDS = createSalesDemoMonth(
+  SALES_DEMO_YEAR,
+  SALES_DEMO_MONTH,
+);
+const SALES_MONTH_TOTAL = SALES_MONTH_RECORDS.reduce(
+  (sum, record) => sum + record.total,
+  0,
+);
+const SALES_PREVIOUS_MONTH_TOTAL = createSalesDemoMonth(
+  SALES_DEMO_YEAR,
+  SALES_DEMO_MONTH - 1,
+)
+  .slice(0, SALES_MONTH_RECORDS.length)
+  .reduce((sum, record) => sum + record.total, 0);
+const SALES_PREVIOUS_YEAR_TOTAL = createSalesDemoMonth(
+  SALES_DEMO_YEAR - 1,
+  SALES_DEMO_MONTH,
+).reduce((sum, record) => sum + record.total, 0);
+const SALES_MONTH_CHANGE =
+  ((SALES_MONTH_TOTAL - SALES_PREVIOUS_MONTH_TOTAL) /
+    SALES_PREVIOUS_MONTH_TOTAL) *
+  100;
+const SALES_YEAR_CHANGE = SALES_MONTH_TOTAL - SALES_PREVIOUS_YEAR_TOTAL;
+const SALES_PERIOD = `${SALES_DEMO_YEAR}.${String(SALES_DEMO_MONTH).padStart(2, '0')}.01 ~ ${SALES_DEMO_YEAR}.${String(SALES_DEMO_MONTH).padStart(2, '0')}.${SALES_MONTH_RECORDS.length}`;
 
-interface SalesRecord {
-  id: number;
-  date: string;
-  day: string;
-  product: number;
-  service: number;
-  online: number;
-  other: number;
-  total: number;
-}
-
-const SALES_WEEKS: SalesWeek[] = [
-  {
-    label: '1주',
-    product: 1550000,
-    service: 1000000,
-    online: 700000,
-    other: 350000,
-  },
-  {
-    label: '2주',
-    product: 1600000,
-    service: 900000,
-    online: 800000,
-    other: 380000,
-  },
-  {
-    label: '3주',
-    product: 1650000,
-    service: 950000,
-    online: 650000,
-    other: 400000,
-  },
-  {
-    label: '4주',
-    product: 1750000,
-    service: 1250000,
-    online: 850000,
-    other: 450000,
-  },
-  {
-    label: '5주',
-    product: 2050000,
-    service: 1400000,
-    online: 1050000,
-    other: 500000,
-  },
-];
-
-const SALES_CATEGORIES: SalesCategory[] = [
-  { key: 'product', label: '상품 판매', amount: 32, color: '#ccae6e' },
-  { key: 'service', label: '서비스', amount: 18, color: '#fff0c9' },
-  { key: 'event', label: '이벤트', amount: 0, color: '#ebddb9' },
-  { key: 'online', label: '배달·온라인', amount: 28, color: '#ffd98a' },
-  { key: 'other', label: '기타', amount: 22, color: '#ffe6b3' },
-];
-
-const SALES_RECORDS: SalesRecord[] = Array.from({ length: 7 }, (_, index) => ({
-  id: index + 1,
-  date: '9월 11일',
-  day: '금',
-  product: 183400,
-  service: 148700,
-  online: 351900,
-  other: 72300,
-  total: 756300,
+const SALES_CATEGORIES = (
+  [
+    { key: 'product', label: '상품 판매', color: '#ebddb9' },
+    { key: 'service', label: '서비스', color: '#ffd98a' },
+    { key: 'online', label: '배달·온라인', color: '#fff0c9' },
+    { key: 'other', label: '기타', color: '#fff9ed' },
+  ] as const
+).map((category) => ({
+  ...category,
+  amount: SALES_MONTH_RECORDS.reduce(
+    (sum, record) => sum + record[category.key],
+    0,
+  ),
 }));
 
-export { SALES_CATEGORIES, SALES_RECORDS, SALES_WEEKS };
-export type { SalesCategory, SalesRecord, SalesWeek };
+const firstWeekOffset =
+  (new Date(Date.UTC(SALES_DEMO_YEAR, SALES_DEMO_MONTH - 1, 1)).getUTCDay() +
+    6) %
+  7;
+const SALES_WEEKS = Array.from(
+  { length: Math.ceil((firstWeekOffset + SALES_MONTH_RECORDS.length) / 7) },
+  (_, index) => {
+    const records = SALES_MONTH_RECORDS.filter(
+      (record) => Math.floor((record.id - 1 + firstWeekOffset) / 7) === index,
+    );
+    return {
+      label: `${index + 1}주`,
+      product: records.reduce((sum, record) => sum + record.product, 0),
+      service: records.reduce((sum, record) => sum + record.service, 0),
+      online: records.reduce((sum, record) => sum + record.online, 0),
+      other: records.reduce((sum, record) => sum + record.other, 0),
+    };
+  },
+);
+const SALES_RECORDS = SALES_MONTH_RECORDS.slice(-8).reverse();
+const SALES_RECENT_TOTAL = SALES_RECORDS.reduce(
+  (sum, record) => sum + record.total,
+  0,
+);
+
+export {
+  SALES_CATEGORIES,
+  SALES_RECORDS,
+  SALES_WEEKS,
+  SALES_MONTH_LABEL,
+  SALES_MONTH_RECORDS,
+  SALES_MONTH_TOTAL,
+  SALES_PREVIOUS_MONTH_TOTAL,
+  SALES_PREVIOUS_YEAR_TOTAL,
+  SALES_MONTH_CHANGE,
+  SALES_YEAR_CHANGE,
+  SALES_PERIOD,
+  SALES_RECENT_TOTAL,
+};

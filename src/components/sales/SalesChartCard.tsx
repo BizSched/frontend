@@ -4,6 +4,7 @@ import { Card } from '@components/_common/Card/Card';
 
 import Plus from '@assets/icons/ic_plus-white.svg';
 
+import { SALES_MONTH_LABEL } from './salesDashboardData';
 import { SalesWeeklyChart } from './SalesWeeklyChart';
 
 function SalesChartCard() {
@@ -19,7 +20,7 @@ function SalesChartCard() {
             매출 차트
           </Card.Title>
           <span className="rounded-full border border-slate-100 px-3 py-1 text-sm font-semibold text-slate-800 max-tablet:text-xs">
-            9월 <span aria-hidden="true">⌄</span>
+            {SALES_MONTH_LABEL} <span aria-hidden="true">⌄</span>
           </span>
         </div>
         <div className="flex items-center rounded-lg bg-slate-50 p-[3px] text-xs font-medium max-tablet:hidden">
