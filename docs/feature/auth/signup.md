@@ -22,11 +22,11 @@
 | ----------- | ------------ | --------------- |
 | 입력값 전체 | `SignupForm` | React Hook Form |
 
-가입 API가 정해지지 않아 제출 시 동작은 없다. 필드 구성과 업종 값은 [README](./README.md#api-명세) 참고.
+가입 API가 정해지지 않아 제출 시 `/dashboard`로 이동만 한다. 필드 구성과 업종 값은 [README](./README.md#api-명세) 참고.
 
 ## 렌더링 경계
 
-`page.tsx`는 Server Component로 레이아웃과 메타데이터만 담당한다. 폼 상태가 필요한 `SignupForm`부터 Client Component다.
+`page.tsx`는 Server Component로 레이아웃과 메타데이터만 담당한다. 폼 상태와 라우터 이동이 필요한 `SignupForm`부터 Client Component다.
 
 ## 설계 결정
 
