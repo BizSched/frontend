@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { Controller, useForm } from 'react-hook-form';
 
 import { Button } from '@components/_common/Button/Button';
@@ -14,6 +15,8 @@ import {
   TermsAgreement,
   type TermsAgreementValues,
 } from '@components/auth/TermsAgreement';
+
+import { ROUTE_PATHS } from '@lib/utilities/routePaths';
 
 interface SignupFormValues {
   name: string;
@@ -36,12 +39,20 @@ const SIGNUP_FORM_DEFAULT_VALUES: SignupFormValues = {
 };
 
 function SignupForm() {
-  const { control, register } = useForm<SignupFormValues>({
+  const router = useRouter();
+  const { control, register, handleSubmit } = useForm<SignupFormValues>({
     defaultValues: SIGNUP_FORM_DEFAULT_VALUES,
   });
 
+  const handleSignupSubmit = () => {
+    router.push(ROUTE_PATHS.dashboard());
+  };
+
   return (
-    <AuthForm className="mt-2 flex flex-col gap-8">
+    <AuthForm
+      onSubmit={handleSubmit(handleSignupSubmit)}
+      className="mt-2 flex flex-col gap-8"
+    >
       <div className="flex flex-col gap-4">
         <AuthField id="signup-name" label="이름">
           <Input
