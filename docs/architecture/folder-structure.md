@@ -27,7 +27,7 @@
 
 `layout.tsx`, `page.tsx`, `globals.css`가 여기 위치한다.
 
-- `app/`: `login/`, `signup/`, `(main)/`, `layout.tsx`, `page.tsx`
+- `app/`: `login/`, `signup/`, `onboarding/`, `(main)/`, `layout.tsx`, `page.tsx`
 - `(main)/`: `dashboard/`, `partTime/`(`schedule/`, `staff/`), `sales/`(`dashboard/`, `details/`), `task/`(`calendar/`, `form/`, `detail/`), `layout.tsx`
 
 ### 라우트 그룹 `(main)`
@@ -35,7 +35,7 @@
 **로그인이 필요한 페이지(사이드바 있음)와 로그인이 필요 없는 페이지를 구분하기 위해** `(main)` 라우트 그룹으로 묶는다.
 
 - `(main)/` 안: 로그인 후 접근하는 페이지. `(main)/layout.tsx`가 사이드바(`AppSidebar`) 레이아웃을 공통으로 적용한다.
-- `(main)/` 밖: 로그인 없이 접근하는 페이지(`login/`, `signup/`, 랜딩 `page.tsx`). 사이드바를 적용하지 않는다.
+- `(main)/` 밖: 로그인 없이 접근하는 페이지(`login/`, `signup/`, 랜딩 `page.tsx`)와, 로그인 후라도 가입이 끝나지 않은 단계의 페이지(`onboarding/`). 사이드바를 적용하지 않는다.
 - 괄호 폴더는 URL에 포함되지 않는다. (`app/(main)/sales/dashboard/page.tsx` → `/sales/dashboard`)
 - 새 페이지를 추가할 때는 로그인 필요 여부로 `(main)/` 안·밖을 먼저 결정한다.
 
