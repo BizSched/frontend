@@ -44,8 +44,18 @@ const getPartTimeStaffDetailMock = (
     hourlyWage: 10_320 + (staffId % 3) * 500,
     attachments: isOddId
       ? [
-          { id: 1, name: '근로계약서.pdf', type: 'pdf', url: '' },
-          { id: 2, name: '보건증.jpg', type: 'image', url: '' },
+          {
+            id: 1,
+            name: '근로계약서.pdf',
+            type: 'pdf',
+            url: '/mocks/partTimeStaff/contract.pdf',
+          },
+          {
+            id: 2,
+            name: '보건증.jpg',
+            type: 'image',
+            url: '/mocks/partTimeStaff/health-certificate.svg',
+          },
         ]
       : [],
     memo: isOddId ? PART_TIME_STAFF_MEMO_MOCK : '',
