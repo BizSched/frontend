@@ -75,9 +75,12 @@
 
 ## 문서 목록
 
-| 경로                                           | 내용                                 | 상태                  |
-| ---------------------------------------------- | ------------------------------------ | --------------------- |
-| [partTime/schedule.md](./partTime/schedule.md) | 아르바이트생 스케쥴 관리 페이지 설계 | 목업 UI 진행 중       |
-| [sales/README.md](./sales/README.md)           | 매출 도메인 개요                     | 설계 완료, UI 별도 PR |
-| [sales/dashboard.md](./sales/dashboard.md)     | `/sales` 매출 대시보드 페이지        | 정적 UI 별도 PR 예정  |
-| [partTime/staff.md](./partTime/staff.md)       | 아르바이트생 관리 페이지 설계        | 설계 중         |
+| 경로                                           | 내용                                          | 상태                  |
+| ---------------------------------------------- | --------------------------------------------- | --------------------- |
+| [partTime/schedule.md](./partTime/schedule.md) | 아르바이트생 스케쥴 관리 페이지 설계          | 목업 UI 진행 중       |
+| [sales/README.md](./sales/README.md)           | 매출 도메인 개요                              | 설계 완료, UI 별도 PR |
+| [sales/dashboard.md](./sales/dashboard.md)     | `/sales` 매출 대시보드 페이지                 | 정적 UI 별도 PR 예정  |
+| [partTime/staff.md](./partTime/staff.md)       | 아르바이트생 관리 페이지 설계                 | 설계 중               |
+| [auth/README.md](./auth/README.md)             | 인증 도메인 개요                              | 정적 UI               |
+| [auth/signup.md](./auth/signup.md)             | `/signup` 회원가입 페이지 설계                | 정적 UI               |
+| [auth/onboarding.md](./auth/onboarding.md)     | `/onboarding` 소셜 가입 추가 정보 페이지 설계 | 정적 UI               |
