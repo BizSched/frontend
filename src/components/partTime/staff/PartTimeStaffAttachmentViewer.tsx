@@ -2,7 +2,7 @@ import { cva } from 'class-variance-authority';
 import Image from 'next/image';
 import { useId } from 'react';
 
-import type { PartTimeStaffAttachment } from '@lib/types/partTimeStaff';
+import type { PartTimeStaffAttachmentPreview } from '@lib/types/partTimeStaff';
 
 import IcChevronLeftDark from '@assets/icons/ic_chevron-left-dark.svg';
 
@@ -31,7 +31,7 @@ const attachmentViewerToggleIconVariants = cva(
 );
 
 interface PartTimeStaffAttachmentViewerProps {
-  attachment: PartTimeStaffAttachment;
+  attachment: PartTimeStaffAttachmentPreview;
   isCollapsed: boolean;
   onCollapsedChange: (collapsed: boolean) => void;
 }

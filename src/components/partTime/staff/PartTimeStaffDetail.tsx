@@ -60,7 +60,7 @@ function PartTimeStaffDetail({
       }
       fields={
         <>
-          <PartTimeStaffFieldRow label="나이">
+          <PartTimeStaffFieldRow label="생년월일">
             {formatPartTimeStaffBirthDate(birthDate)}
           </PartTimeStaffFieldRow>
           <PartTimeStaffFieldRow label="성별">
