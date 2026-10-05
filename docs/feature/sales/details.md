@@ -66,8 +66,8 @@
 | 순서 | 브랜치                         | base                         | 범위                                                                   | 완료 기준                                           |
 | ---- | ------------------------------ | ---------------------------- | ---------------------------------------------------------------------- | --------------------------------------------------- |
 | 1    | `feat/sales-details-docs`      | `dev`                        | 도메인·페이지 설계와 문서 인덱스                                       | 조회 범위와 후속 기능 경계가 명시됨                 |
-| 2    | `feat/sales-details-mock-ui`   | `feat/sales-details-docs`    | 월 선택, 합계, 날짜별 표, 페이지 이동, 반응형·빈 상태                  | Figma의 데스크톱·태블릿·모바일 구성과 URL 상태 확인 |
-| 3    | `feat/sales-details-form-ui`   | `feat/sales-details-mock-ui` | 추가 모달, 행 인라인 수정, 삭제 확인                                   | 키보드 조작과 입력 검증 확인                        |
+| 2    | `feat/sales-details-ui`   | `feat/sales-details-docs`    | 월 선택, 합계, 날짜별 표, 페이지 이동, 반응형·빈 상태                  | Figma의 데스크톱·태블릿·모바일 구성과 URL 상태 확인 |
+| 3    | `feat/sales-details-form-ui`   | `feat/sales-details-ui` | 추가 모달, 행 인라인 수정, 삭제 확인                                   | 키보드 조작과 입력 검증 확인                        |
 | 4    | `feat/sales-details-read-api`  | `dev`                        | 명세 확정, DTO 변환, 월·페이지 조회, 첫 화면 hydration, 로딩·오류 상태 | 월 이동·페이지 이동·재시도와 월 전체 합계 확인      |
 | 5    | `feat/sales-details-write-api` | `dev`                        | 추가·수정·삭제 mutation, 오류 메시지, 목록·합계 갱신                   | 성공·실패 시 데이터와 입력 상태 확인                |
 
