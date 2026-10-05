@@ -52,6 +52,12 @@ function AppSidebar({
   const { setIsOverlayOpen } = useSidebar();
   const isDashboard = pathname === ROUTE_PATHS.dashboard();
   const isSales = pathname === ROUTE_PATHS.sales();
+  const isSalesDetail = pathname === ROUTE_PATHS.salesDetails();
+  const isPartTimeSchedule = pathname === ROUTE_PATHS.partTimeSchedule();
+  const isPartTimeStaff =
+    pathname === ROUTE_PATHS.partTimeStaff() ||
+    pathname.startsWith(ROUTE_PATHS.partTimeStaff() + '/');
+  const isPartTime = isPartTimeSchedule || isPartTimeStaff;
   const handleNavigate = () => setIsOverlayOpen(false);
 
   return (
@@ -121,7 +127,10 @@ function AppSidebar({
               </SidebarMenuButton>
             </li>
             <li>
-              <Collapsible.Root>
+              <Collapsible.Root
+                key={isPartTime ? 'partTime' : 'other'}
+                defaultOpen={isPartTime}
+              >
                 <Collapsible.Trigger render={<SidebarMenuButton />}>
                   <SideIcon icons={UserGroup} />
                   <span className="flex-1">아르바이트</span>
@@ -137,12 +146,28 @@ function AppSidebar({
                 <Collapsible.Panel>
                   <ul className="pt-2">
                     <li>
-                      <SidebarMenuButton size="sub" disabled title="준비 중">
+                      <SidebarMenuButton
+                        size="sub"
+                        nativeButton={false}
+                        role="link"
+                        render={<Link href={ROUTE_PATHS.partTimeSchedule()} />}
+                        isActive={isPartTimeSchedule}
+                        aria-current={isPartTimeSchedule ? 'page' : undefined}
+                        onClick={handleNavigate}
+                      >
                         스케쥴 관리
                       </SidebarMenuButton>
                     </li>
                     <li>
-                      <SidebarMenuButton size="sub" disabled title="준비 중">
+                      <SidebarMenuButton
+                        size="sub"
+                        nativeButton={false}
+                        role="link"
+                        render={<Link href={ROUTE_PATHS.partTimeStaff()} />}
+                        isActive={isPartTimeStaff}
+                        aria-current={isPartTimeStaff ? 'page' : undefined}
+                        onClick={handleNavigate}
+                      >
                         아르바이트생 관리
                       </SidebarMenuButton>
                     </li>
@@ -183,7 +208,15 @@ function AppSidebar({
                       </SidebarMenuButton>
                     </li>
                     <li>
-                      <SidebarMenuButton size="sub" disabled title="준비 중">
+                      <SidebarMenuButton
+                        size="sub"
+                        nativeButton={false}
+                        role="link"
+                        render={<Link href={ROUTE_PATHS.salesDetails()} />}
+                        isActive={isSalesDetail}
+                        aria-current={isSalesDetail ? 'page' : undefined}
+                        onClick={handleNavigate}
+                      >
                         매출 내역
                       </SidebarMenuButton>
                     </li>
