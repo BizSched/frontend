@@ -16,7 +16,7 @@ docs/
 | 경로                                                                   | 내용                                                                          |
 | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
 | [architecture/tech-stack.md](./architecture/tech-stack.md)             | 사용 기술 스택 전체                                                           |
-| [architecture/folder-structure.md](./architecture/folder-structure.md) | 폴더 구성, 컴포넌트 분리 기준, 타입 파일 위치                                 |
+| [architecture/folder-structure.md](./architecture/folder-structure.md) | 폴더 구성, `(main)` 라우트 그룹, 컴포넌트 분리 기준, 타입 파일 위치           |
 | [architecture/rendering.md](./architecture/rendering.md)               | Server/Client 경계, `"use client"` 허용 트리거, RSC 하이드레이션, `use cache` |
 | [architecture/state-management.md](./architecture/state-management.md) | 상태 범위별 도구 선택, 서버 데이터 3가지 패턴, Query Key 관리                 |
 | [architecture/data-flow.md](./architecture/data-flow.md)               | DTO/DAO 변환, Fetcher, 쿠키 인증, 캐시 정책, 에러 처리                        |
@@ -79,7 +79,9 @@ docs/
 | [feature/README.md](./feature/README.md)                       | 작성 규칙, 도메인 문서·페이지 설계 문서 템플릿 |
 | [feature/partTime/schedule.md](./feature/partTime/schedule.md) | 아르바이트생 스케쥴 관리 페이지 설계           |
 | [feature/sales/README.md](./feature/sales/README.md)           | 매출 도메인 개요와 단계별 범위                 |
-| [feature/sales/dashboard.md](./feature/sales/dashboard.md)     | `/sales` 매출 대시보드 페이지 설계             |
+| [feature/sales/dashboard.md](./feature/sales/dashboard.md)     | `/sales/dashboard` 매출 대시보드 페이지 설계   |
+| [feature/sales/details.md](./feature/sales/details.md)         | `/sales/details` 매출 내역 페이지 설계         |     |
+| [feature/partTime/staff.md](./feature/partTime/staff.md)       | 아르바이트생 관리(목록·상세) 페이지 설계       |
 | [feature/landing/README.md](./feature/landing/README.md)       | `/` 랜딩 페이지 설계                           |
 
 도메인 문서는 `feature/{도메인}/README.md`, 페이지 설계 문서는 `feature/{도메인}/{페이지}.md` 경로로 추가한다.

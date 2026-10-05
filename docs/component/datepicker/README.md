@@ -11,6 +11,7 @@ Figma 원본: [Figma — BizSched](https://www.figma.com/design/0UAYWaDS9UNjigV7
 | `_Calendar cell`            | 셀 컴포넌트셋 — `Type`(4) × `State`(3) = 12 variant          | `71:70371`   |
 | Date picker (배치)          | 캘린더 + 취소·확인 footer가 팝오버 안에 들어간 인스턴스 배치 | `105:193109` |
 | Date picker (메인 컴포넌트) | 위 배치가 참조하는 인스턴스 원본                             | `71:70370`   |
+| Date picker (모바일)        | 같은 캘린더 + footer가 하단 앵커 바텀시트 안에 들어간 배치   | `337:128306` |
 
 `_Calendar cell`의 variant 축은 다음과 같다.
 
@@ -39,6 +40,7 @@ Figma 원본: [Figma — BizSched](https://www.figma.com/design/0UAYWaDS9UNjigV7
 | 시간대            | "오늘"·날짜 계산을 `Asia/Seoul`(`CALENDAR_TIME_ZONE`) 기준으로 고정                           | 기존 `Calendar`와 같은 기준. 해외 접속 등 브라우저 시간대가 달라도 서비스 기준 날짜가 유지된다                                                                                              |
 | 이전·다음 달 날짜 | 표시(`showOutsideDays`)하고 **선택 가능** — 잠정                                              | Figma는 이 칸을 Disabled 스타일로 그렸지만 선택 가능하게 둔다. 팀 의견을 더 받을 수 있어 잠정 결정으로 둔다 (아래 "확인 필요" 3 참고)                                                       |
 | 팝오버 z-index    | 신규 토큰 `--z-popover: 2000` (`theme.css`)                                                   | 모달(`--z-modal-base` 1000 + 중첩 단계 × 10) 안에서 열어도 모달 위에 뜨도록 한다                                                                                                            |
+| 모바일 표시 방식  | `max-tablet`(744px 미만)에서는 팝오버 대신 **바텀시트**로 연다                                | 팝오버(약 444px)가 모바일 폼 안에서 트리거 위·아래 어디에도 들어가지 않아 375×667에서 확정 버튼이 화면 밖으로 나간다. 아래 "모바일 바텀시트" 참고                                           |
 
 ## 레이어 구조
 
@@ -46,10 +48,15 @@ shadcn 생성물을 별도 파일로 남기지 않기로 팀 논의로 결정했
 
 ```
 src/components/_common/DatePicker/
-├── DatePicker.tsx          공개 컴포넌트 — 트리거 + 팝오버 조립
+├── DatePicker.tsx          공개 컴포넌트 — 트리거 + 팝오버/바텀시트 조립
+├── DatePickerPanel.tsx     캘린더 + 취소·확인 footer (팝오버·바텀시트 공용 본문)
 ├── DatePickerCalendar.tsx  캘린더 (react-day-picker 커스터마이징)
 ├── DatePickerCell.tsx      셀 (DayButton 대체)
-└── DatePickerPopover.tsx   팝오버 (Base UI Popover 커스터마이징)
+├── DatePickerPopover.tsx   팝오버 (Base UI Popover 커스터마이징)
+└── DatePickerSheet.tsx     바텀시트 (Base UI Dialog 커스터마이징)
+
+src/hooks/datePicker/
+└── useDatePickerLayout.ts  화면 폭으로 'popover' | 'sheet' 판정
 ```
 
 내부 파일 분리·폴더 구조는 구현 단계에서 조정될 수 있다. [naming.md](../../convention/naming.md)에 따라 파일명은 `PascalCase`를 쓰고, [code-style.md](../../convention/code-style.md)에 따라 배럴 `index.ts` 없이 named export만 노출한다.
@@ -142,6 +149,48 @@ Figma가 `Hover`/`Disabled`를 명시적으로 정의하고 있으므로(Paginat
 | 트리거    | focus-visible | `focus-visible:ring` 계열 — [accessibility.md](../../convention/accessibility.md)의 "focus 상태 제거 금지" 준수 |
 | 확인 버튼 | 비활성        | 선택값이 없으면 비활성화 — 선택 해제가 불가하므로 초기값 없이 열었을 때만 해당                                  |
 
+## 모바일 바텀시트
+
+Figma `337:128306`은 캘린더 본문과 footer를 팝오버와 **같은 값**으로 두고, 겉 컨테이너만 바꿨다. 그래서 본문은 그대로 두고 컨테이너만 화면 폭에 따라 바꾼다.
+
+### 팝오버와 다른 점
+
+| 항목       | 팝오버 (`105:193109`)    | 바텀시트 (`337:128306`)                                                   |
+| ---------- | ------------------------ | ------------------------------------------------------------------------- |
+| 위치       | 트리거 기준 `align` 정렬 | 화면 하단 고정 (`fixed inset-x-0 bottom-0`)                               |
+| 폭         | `w-82` (328px)           | 화면 전체 폭 (`w-full`)                                                   |
+| 라운드     | 네 모서리 16px           | 위쪽 두 모서리만 16px (`rounded-t-[1rem]`)                                |
+| 캘린더     | 280px                    | 280px 그대로, 가로 가운데 정렬                                            |
+| 배경       | 없음                     | 딤 배경 `bg-overlay` — 잠정 (아래 "확인 필요" 4 참고)                     |
+| 애니메이션 | fade + zoom              | 아래에서 위로 slide — Modal `sheetOnMobile`과 같은 `slide-in-from-bottom` |
+
+보더(`rgb(0_0_0/0.08)`)·3레이어 그림자·본문 여백(`px-6 py-5`)·footer(`px-4 pb-4`, 버튼 `flex-1`)는 팝오버와 같다.
+
+### 설계 결정
+
+| 결정          | 선택                                                                          | 근거                                                                                                                                                 |
+| ------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 바텀시트 엔진 | Base UI `Dialog` (`@base-ui/react/dialog`)                                    | 하단 고정 패널은 트리거 위치와 무관하고, 딤 배경·포커스 가두기·스크롤 잠금이 필요하다. Modal이 이미 `Dialog`로 같은 형태(`sheetOnMobile`)를 구현했다 |
+| 전환 기준     | `(width < 46.5rem)` — `max-tablet`과 같은 744px                               | Modal `sheetOnMobile`이 `max-tablet:`에서 바텀시트가 되므로 같은 경계를 써야 모달 안에서 열었을 때 두 컴포넌트 형태가 어긋나지 않는다                |
+| 전환 방법     | `useDatePickerLayout` 훅이 `matchMedia`로 판정 → `DatePicker`가 컨테이너 선택 | 팝오버와 다이얼로그는 프리미티브 자체가 달라 CSS 변형자만으로 바꿀 수 없다. `usePaginationSize`와 같은 `useSyncExternalStore` 패턴을 따른다          |
+| SSR 기본값    | `'popover'`                                                                   | 첫 렌더는 항상 닫힌 상태라 트리거만 그려진다. 트리거 마크업은 두 경우가 같아 hydration 불일치가 없다                                                 |
+| 본문 공유     | 캘린더 + footer를 `DatePickerPanel`로 분리해 두 컨테이너가 같이 쓴다          | Figma상 본문이 완전히 같다. 버퍼링 선택 상태(`pendingDate`)·취소/확인 로직은 `DatePicker`에 그대로 두고 `DatePickerPanel`은 props만 받는다           |
+| z-index       | 딤 배경·패널 모두 기존 `--z-popover`(2000)                                    | 바텀시트 폼 모달(`--z-modal-base` + 단계) 안에서 열어도 그 위에 떠야 한다. 새 토큰을 만들 이유가 없다                                                |
+| 닫기 방법     | 취소 버튼, 딤 배경 클릭, ESC                                                  | 팝오버와 같다. 셋 다 선택을 커밋하지 않는다                                                                                                          |
+| 드래그 제스처 | **만들지 않음** — 드래그로 닫기·스냅 포인트 없음                              | Figma에 정의가 없고, Modal 바텀시트도 같은 이유로 보류 중이다 ([modal 확인 필요 2](../modal/README.md#2-바텀시트-상호작용-범위))                     |
+| 호출부 API    | **변경 없음** — 새 prop 없음                                                  | 화면 폭에 따라 자동 전환한다. 호출부가 강제로 고를 필요가 생기면 그때 `layout` prop을 검토한다. `align`은 팝오버일 때만 쓰인다                       |
+| 시트 스타일   | 하단 고정·라운드·`max-h-[85dvh]`·slide 애니메이션                             | Modal `sheetOnMobile`과 같은 값                                                                                                                      |
+
+### 중첩 동작
+
+Modal `sheetOnMobile` 안에서 DatePicker를 열면 바텀시트 위에 바텀시트가 뜬다.
+
+- DatePicker 시트는 Modal 시트보다 위(`--z-popover`)에 뜬다.
+- 딤 배경 클릭·ESC는 DatePicker 시트만 닫는다 — Base UI `Dialog`가 중첩 다이얼로그를 맨 위부터 닫는다.
+- 닫히면 포커스가 DatePicker 트리거로 돌아간다.
+
+위 세 가지는 [스케줄 폼 모달](../../feature/partTime/schedule.md) 병합 후 375×667에서 실측해 이 절에 결과를 기록한다.
+
 ## 접근성
 
 - Base UI `Popover`가 오픈/클릭 아웃사이드/ESC를 담당한다 (Modal의 `Dialog`와 같은 패밀리).
@@ -149,6 +198,8 @@ Figma가 `Hover`/`Disabled`를 명시적으로 정의하고 있으므로(Paginat
 - `disabled` 셀은 `disabled` 속성으로 스크린리더·키보드 모두에서 제외한다.
 - 트리거에 `outline-none`을 쓸 경우 반드시 `focus-visible:ring` 등 대체 스타일을 함께 넣는다 — [accessibility.md](../../convention/accessibility.md)의 "focus 상태 제거 금지".
 - 팝오버 진입/퇴장 애니메이션에는 `motion-reduce:` 대응을 넣는다 (Modal 문서의 동일 체크리스트 항목).
+- 바텀시트는 Figma에 제목이 없으므로 `Dialog.Popup`에 `aria-label="날짜 선택"`을 둬 다이얼로그 이름을 준다. 포커스 가두기·배경 스크롤 잠금은 Base UI `Dialog`가 담당한다.
+- 바텀시트 slide 애니메이션에도 `motion-reduce:animate-none`을 넣는다.
 
 ## 렌더링 경계
 
@@ -160,6 +211,9 @@ Figma가 `Hover`/`Disabled`를 명시적으로 정의하고 있으므로(Paginat
 | `DatePickerCalendar.tsx` | ○              | 3 (DayPicker 콜백)         |
 | `DatePickerCell.tsx`     | ○              | 3 (`onClick` 등)           |
 | `DatePickerPopover.tsx`  | ○              | 3 (`onOpenChange`)         |
+| `DatePickerPanel.tsx`    | ○              | 3 (취소·확인 `onClick`)    |
+| `DatePickerSheet.tsx`    | ○              | 3 (`onOpenChange`)         |
+| `useDatePickerLayout.ts` | ○              | 2 (`matchMedia`)           |
 
 Server Component가 `<DatePicker>`를 렌더해도 부모는 클라이언트가 되지 않는다 (Modal 문서의 동일 규칙).
 
@@ -178,6 +232,8 @@ test/components/_common/DatePicker/datePicker.test.tsx
 | 셀 타입        | 오늘/선택/기본 셀에 각각 올바른 스타일 적용                                      |
 | 비활성         | `disabled` prop 시 트리거 클릭 무반응                                            |
 | 접근성         | 트리거 focus-visible 스타일 존재, `disabled` 셀이 접근성 트리에서 제외           |
+| 레이아웃 전환  | `matchMedia` 모킹으로 744px 미만이면 `dialog`, 이상이면 팝오버로 열림            |
+| 바텀시트 닫기  | 딤 배경 클릭·ESC 시 `onChange` 미호출, 선택값 유지                               |
 
 ## 단계별 PR 계획
 
@@ -189,6 +245,14 @@ GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-star
 | 2    | `feat/common-datepicker-ui`       | `design/common-datepicker`        | `shadcn add calendar popover` 구조를 참고해 `DatePickerCalendar`·`DatePickerPopover`·`DatePickerCell` 커스터마이징 |
 | 3    | `feat/common-datepicker-assemble` | `feat/common-datepicker-ui`       | `DatePicker` 조립 (버퍼링 선택, 접근성, `Button` 기반 취소·확인 footer)                                            |
 | 4    | `feat/common-datepicker-test`     | `feat/common-datepicker-assemble` | Vitest 테스트                                                                                                      |
+
+모바일 바텀시트는 위 스택이 병합된 뒤 `dev`에서 딴 단일 PR(`feat/common-datepicker-bottom-sheet`)로 진행한다. 커밋은 다음 순서로 나눈다.
+
+| 순서 | 타입       | 내용                                                                                 |
+| ---- | ---------- | ------------------------------------------------------------------------------------ |
+| 1    | `docs`     | 이 문서의 "모바일 바텀시트" 절                                                       |
+| 2    | `refactor` | 캘린더 + footer를 `DatePickerPanel`로 분리 — 화면 동작 변화 없음                     |
+| 3    | `feat`     | `DatePickerSheet` + `useDatePickerLayout` 추가, `DatePicker`에서 화면 폭에 따라 전환 |
 
 ## 확인 필요
 
@@ -215,6 +279,14 @@ GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-star
 ### 3. 이전·다음 달 날짜 선택 허용 — 잠정
 
 Figma(`71:70370`)는 이전·다음 달 날짜를 `_Calendar cell`의 `Disabled` 스타일로 그렸다. 현재 구현은 글자색만 `#A4A4A4`로 맞추고 선택은 가능하게 두었다(hover 배경도 적용된다). 선택을 막고 Figma대로 `Disabled`로 처리할지는 팀 의견을 더 받아 확정한다.
+
+### 4. 바텀시트 딤 배경 — 잠정: `bg-overlay`
+
+Figma `337:128306`은 패널만 그렸고 뒤 배경이 없다. Modal 바텀시트와 같은 `bg-overlay`를 잠정 적용한다. 바텀시트 폼 모달 안에서 열면 Modal 딤 위에 한 번 더 어두워진다. 모달 안에서도 딤을 유지할지, 투명하게 둘지 확인이 필요하다.
+
+### 5. 하단 안전 영역 — 확인 필요
+
+iOS 홈 인디케이터가 있는 기기에서는 footer 버튼이 인디케이터와 겹칠 수 있다. Figma와 Modal 바텀시트 모두 안전 영역을 반영하지 않아 현재는 반영하지 않았다. footer 아래 여백을 `pb-[max(1rem,env(safe-area-inset-bottom))]`로 늘릴지 확인이 필요하다.
 
 ## 참고
 
