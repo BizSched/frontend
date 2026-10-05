@@ -10,6 +10,30 @@ afterEach(() => {
 });
 
 describe('UploadInput', () => {
+  it('파일 선택 후 첨부파일 상태를 표시하고 폼 초기화 시 돌아온다', async () => {
+    render(
+      <form aria-label="첨부 폼">
+        <UploadInput label="파일 선택" inputProps={{ name: 'attachment' }} />
+      </form>,
+    );
+    const input = screen.getByLabelText<HTMLInputElement>('파일 선택', {
+      selector: 'input',
+    });
+    fireEvent.change(input, {
+      target: {
+        files: [new File(['test'], 'test.pdf', { type: 'application/pdf' })],
+      },
+    });
+    expect(screen.getByRole('button', { name: '파일 선택' })).toHaveTextContent(
+      '첨부파일',
+    );
+    expect(screen.getByRole('button')).not.toHaveClass('border-dashed');
+    fireEvent.reset(screen.getByRole('form', { name: '첨부 폼' }));
+    expect(
+      await screen.findByText('파일 선택', { selector: 'button span' }),
+    ).toBeInTheDocument();
+  });
+
   it('label로 file input을 연결하고 native props를 전달한다', () => {
     render(
       <UploadInput
