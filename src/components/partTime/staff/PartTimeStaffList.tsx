@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 
+import { openConfirmModal } from '@components/_common/Modal/openConfirmModal';
 import { Pagination } from '@components/_common/Pagination/Pagination';
 import { PartTimeStaffCard } from '@components/partTime/staff/PartTimeStaffCard';
 import { PartTimeStaffDetailPanel } from '@components/partTime/staff/PartTimeStaffDetailPanel';
@@ -117,6 +118,15 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
     );
   };
 
+  const handleDelete = () => {
+    void openConfirmModal({
+      title: '아르바이트생을 삭제하시겠어요?',
+      description: '삭제된 상세 내용은 복구할 수 없습니다.',
+      confirmText: '삭제',
+      cancelText: '취소',
+    });
+  };
+
   if (staffs.length === 0) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-4.5 py-10 max-tablet:gap-2.5">
@@ -144,6 +154,7 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
               staff={listStaff}
               onDetailOpen={() => handleDetailOpen(listStaff.id)}
               onEdit={() => router.push(`/partTime/staff/${listStaff.id}/edit`)}
+              onDelete={handleDelete}
             />
           </li>
         ))}

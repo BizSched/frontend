@@ -10,6 +10,7 @@ interface PartTimeScheduleDaySummaryProps {
   today: string;
   schedules: PartTimeSchedule[];
   onScheduleEdit: (schedule: PartTimeSchedule) => void;
+  onScheduleDelete: (schedule: PartTimeSchedule) => void;
   className?: string;
 }
 
@@ -18,6 +19,7 @@ function PartTimeScheduleDaySummary({
   today,
   schedules,
   onScheduleEdit,
+  onScheduleDelete,
   className,
 }: PartTimeScheduleDaySummaryProps) {
   const titleId = `part-time-schedule-summary-${date}`;
@@ -92,6 +94,7 @@ function PartTimeScheduleDaySummary({
                     <TextButton
                       size="small"
                       aria-label={`${startTime} ~ ${endTime} ${staff.name} 스케쥴 삭제`}
+                      onClick={() => onScheduleDelete(schedule)}
                     >
                       삭제
                     </TextButton>
