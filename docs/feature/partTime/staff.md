@@ -45,7 +45,7 @@
     | 배지·날짜 | 12px                           | 12px                         |
 
 - 빈 목록 — 일러스트 + "등록된 아르바이트생이 없어요." 이 페이지에서만 쓰므로 `PartTimeStaffList` 안에 둔다
-- 삭제 확인 — 공통 삭제 확인 모달([85-121501](https://www.figma.com/design/0UAYWaDS9UNjigV73HWcPZ/BizSched?node-id=85-121501&m=dev)). 제목 "아르바이트생을 삭제하시겠어요?", 경고 "삭제된 상세 내용은 복구할 수 없습니다." 모달 자체는 이 페이지 흐름 밖의 공통 컴포넌트 작업으로 만들고, ⋮ `삭제하기` → 모달 열기 → 취소/확인 연결과 실제 삭제 요청은 모달이 완성된 뒤 함께 연결한다 ("단계별 PR 계획" 참고)
+- 삭제 확인 — 삭제 확인 모달([85-121501](https://www.figma.com/design/0UAYWaDS9UNjigV73HWcPZ/BizSched?node-id=85-121501&m=dev)). 공통 `openConfirmModal`로 연다. 제목 "아르바이트생을 삭제하시겠어요?", 설명 "삭제된 상세 내용은 복구할 수 없습니다." 확인 시 실제 삭제 요청은 API 연동 후 연결한다 ("단계별 PR 계획" 7단계)
 
 ### 상세
 
@@ -177,7 +177,7 @@ API 명세는 [스케쥴 관리](./schedule.md#상태데이터)와 같이 UI를 
 ### 그 외
 
 - **상세 패널은 공통 컴포넌트로 만들지 않는다** — 이 페이지에서만 쓰는 화면이라 도메인 컴포넌트로 둔다. 공통 `Modal`은 중앙 고정 패널이라 위치·크기가 맞지 않아, 같은 Base UI `Dialog`를 직접 쓴다
-- **삭제 확인은 공통 컴포넌트로 만든다** — 기존 `ConfirmModal`은 설명이 일반 텍스트 한 줄이라, Figma 삭제 모달의 경고 아이콘 + `accent/500` 경고 문구를 그대로 표현할 수 없다. 삭제 확인은 다른 도메인(목표·매출 등)에도 반복되므로 공통으로 둔다
+- **삭제 확인은 기존 `ConfirmModal`(`openConfirmModal`)을 쓴다** (2026-10-06 확정) — 매출 카테고리 삭제와 같은 방식으로 맞춘다. Figma 삭제 모달의 경고 아이콘 + `accent/500` 경고 문구는 표현하지 않고, 설명을 일반 텍스트로 보여준다
 - **한 페이지 카드 수는 화면 폭과 관계없이 10개** (2026-10-02 확정) — Figma는 데스크톱 9개, 태블릿·모바일 6개다. 폭마다 다르면 `?page=` 값이 같은 위치를 가리키지 않고, 서버 페이지네이션 크기도 하나로 정할 수 없다. 데스크톱 2열에서 빈칸이 생기지 않도록 짝수로 정했다
 - **메모는 줄바꿈을 유지하는 일반 텍스트** (2026-10-02 확정) — `whitespace-pre-wrap`으로 표시하고, 폼은 `textarea`로 입력받는다. Figma의 굵은 제목·글머리표는 표현하지 않는다. 마크다운 지원은 이후에 검토한다
 - **`?page=`가 전체 페이지 수를 넘으면 마지막 페이지로 보정한다** (2026-10-04 확정) — `replaceState`로 URL을 고치고, 고치기 전 렌더에서도 마지막 페이지를 그려 빈 목록이 깜빡이지 않게 한다. "등록된 아르바이트생이 없어요."는 실제로 0명일 때만 보인다. 삭제 후 현재 페이지가 비면 이전 페이지로 이동하는 것("API 연동 계획" 4)과 같은 방향이다
@@ -187,22 +187,21 @@ API 명세는 [스케쥴 관리](./schedule.md#상태데이터)와 같이 UI를 
 
 ## 단계별 PR 계획
 
-| 단계 | 브랜치                                  | 범위                                                                                                                                                                                                        | 상태                           |
-| ---- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
-| 1    | `feat/part-time-list-docs`              | 아르바이트생 관리 docs 작성 — 이 문서                                                                                                                                                                       | 진행 중                        |
-| 2    | `feat/part-time-list-card`              | `PartTimeStaffCard` large·small(⋮ 메뉴 UI 포함 — 항목 선택 시 동작은 5단계에서 연결), `img_note` 자산, 목록용 FE 타입·목업                                                                                  | 1단계 이후                     |
-| 3    | `feat/part-time-list-detail`            | 공유 부품(`PartTimeStaffProfileLayout`·`FieldRow`·`AttachmentBox`·`AttachmentFile`·`NoteIcon`), `PartTimeStaffDetail`·`WeeklySchedule`·`DetailPanel`, 상세용 FE 타입·목업, 유틸 테스트(미출근 판정·주 계산) | 2단계 이후                     |
-| 4    | `feat/part-time-list-attachment-viewer` | `PartTimeStaffAttachmentViewer`, 상세 패널과의 배치(데스크톱 옆 패널·모바일 하단 시트)                                                                                                                      | 3단계 이후                     |
-| 5    | `feat/part-time-list-ui`                | 페이지 조립 — 목록 그리드·`Pagination`·빈 목록·헤더·플로팅 버튼, 카드 → 상세 연결, ⋮ `수정하기` → 수정 페이지 이동, 없는 `staffId`·범위를 넘는 `page` 처리                                                  | 4단계 이후                     |
-| 6    | 미정                                    | 목록·상세 조회 API 연동 — DTO 타입·Formatter, fetcher, Query Key, prefetch + hydration, 목업 제거(`public/mocks/partTimeStaff/` 포함), 첨부파일 미리보기 실제 기기 확인(확인 필요 6)                        | API 명세 확정                  |
-| 7    | 미정                                    | 삭제 기능 연결 — ⋮ `삭제하기` → 공통 삭제 확인 모달 열기·닫기, 확인에 `useMutation` 연결, 목록 무효화                                                                                                       | 6단계·공통 삭제 확인 모달 이후 |
+| 단계 | 브랜치                                  | 범위                                                                                                                                                                                                        | 상태          |
+| ---- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| 1    | `feat/part-time-list-docs`              | 아르바이트생 관리 docs 작성 — 이 문서                                                                                                                                                                       | 진행 중       |
+| 2    | `feat/part-time-list-card`              | `PartTimeStaffCard` large·small(⋮ 메뉴 UI 포함 — 항목 선택 시 동작은 5단계에서 연결), `img_note` 자산, 목록용 FE 타입·목업                                                                                  | 1단계 이후    |
+| 3    | `feat/part-time-list-detail`            | 공유 부품(`PartTimeStaffProfileLayout`·`FieldRow`·`AttachmentBox`·`AttachmentFile`·`NoteIcon`), `PartTimeStaffDetail`·`WeeklySchedule`·`DetailPanel`, 상세용 FE 타입·목업, 유틸 테스트(미출근 판정·주 계산) | 2단계 이후    |
+| 4    | `feat/part-time-list-attachment-viewer` | `PartTimeStaffAttachmentViewer`, 상세 패널과의 배치(데스크톱 옆 패널·모바일 하단 시트)                                                                                                                      | 3단계 이후    |
+| 5    | `feat/part-time-list-ui`                | 페이지 조립 — 목록 그리드·`Pagination`·빈 목록·헤더·플로팅 버튼, 카드 → 상세 연결, ⋮ `수정하기` → 수정 페이지 이동, 없는 `staffId`·범위를 넘는 `page` 처리                                                  | 4단계 이후    |
+| 6    | 미정                                    | 목록·상세 조회 API 연동 — DTO 타입·Formatter, fetcher, Query Key, prefetch + hydration, 목업 제거(`public/mocks/partTimeStaff/` 포함), 첨부파일 미리보기 실제 기기 확인(확인 필요 6)                        | API 명세 확정 |
+| 7    | 미정                                    | 삭제 기능 연결 — 삭제 확인 모달의 확인에 `useMutation` 연결, 목록 무효화 (⋮ `삭제하기` → 모달 열기는 연결 완료)                                                                                             | 6단계 이후    |
 
 1~5단계는 stacked PR로 진행한다. 각 단계 브랜치는 바로 앞 단계 브랜치에서 분기하고, 1 → 5 순서로 `dev`에 머지한다. 앞 단계 PR이 머지되면 다음 단계 PR의 base를 `dev`로 바꾸고, 2단계부터 PR 본문에 머지 순서를 명시한다.
 
 이 페이지 PR 흐름 밖에서 다룰 작업:
 
 - **사이드바 메뉴 연결** — "아르바이트 > 아르바이트생 관리"가 `disabled`라 진입 경로가 없다. `ROUTE_PATHS`에 `/partTime/staff` 추가와 메뉴 연결은 스케쥴 관리와 함께 다룬다
-- **공통 삭제 확인 모달** — 별도 이슈·브랜치로 `dev`에서 분기한다. ⋮ `삭제하기` 연결(7단계)은 이 모달이 `dev`에 머지된 뒤 진행한다
 - **아르바이트생 추가·수정 페이지** — 3단계의 공유 부품을 가져다 쓴다. [staff-form.md](./staff-form.md) 참고
 
 ## 확인 필요
