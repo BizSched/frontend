@@ -8,6 +8,7 @@
   - 경로는 `app/` 라우트 구조를 따른다. 예: `app/partTime/schedule/` → `feature/partTime/schedule.md`
 - API 명세처럼 도메인 전체에 걸친 내용은 도메인 `README.md`에 한 번만 적고, 페이지 문서에서는 링크한다.
 - 페이지 문서에는 **코드·Figma만 봐서는 알 수 없는 판단 근거**만 남긴다. 컴포넌트 트리 상세, breakpoint별 배치, `convention/`에 이미 있는 규칙은 다시 적지 않는다.
+- 공통 컴포넌트(`_common/`)의 범위·변형·문구 규칙은 [component/](../component/) 문서가 기준이다. 도메인·페이지 문서는 그 결정을 링크로 참조하고 다시 정의하지 않는다. 도메인에서 다른 동작이 필요하면 `component/` 문서를 먼저 고친다.
 - 문서가 추가·삭제되면 [docs/README.md](../README.md)의 인덱스를 함께 갱신한다.
 - 문서에 없거나 **"확인 필요"** 로 표시된 항목은 임의로 확정하지 않는다.
 

@@ -48,7 +48,6 @@ function SalesCategoryModal({
       title: '정말 삭제하시겠어요?',
       description: '삭제된 카테고리는 복구할 수 없습니다.',
       confirmText: '삭제',
-      cancelText: '취소',
     });
 
     if (isConfirmed) {

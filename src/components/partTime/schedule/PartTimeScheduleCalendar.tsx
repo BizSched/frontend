@@ -95,7 +95,6 @@ function PartTimeScheduleCalendar({
       title: '스케쥴을 삭제하시겠어요?',
       description: '삭제된 스케쥴은 복구할 수 없습니다.',
       confirmText: '삭제',
-      cancelText: '취소',
     });
   };
 

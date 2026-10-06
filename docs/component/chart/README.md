@@ -333,20 +333,20 @@ Figma 변수가 모두 [colors.css](../../../src/assets/styles/colors.css)의 �
 
 ## 테스트 전략
 
-[test.md](../../convention/test.md)에 따라 `test/`가 `src/` 구조를 미러링한다. **소스 파일 하나당 테스트 파일 하나**를 두고, 파일명은 소스 파일명을 camelCase로 바꾼 `xxx.test.tsx`를 쓴다. 파일 안에서는 **export된 함수 단위로 `describe`를 나눈다.** 로직 검증은 훅·유틸 테스트에 모으고, 컴포넌트 테스트는 슬롯 렌더·빈 상태 분기·cva·className 병합만 확인한다.
+[test.md](../../convention/test.md)에 따라 `test/`가 `src/` 구조를 미러링한다. **소스 파일 하나당 테스트 파일 하나**를 두고, 파일명은 소스 파일명에 `.test.tsx`를 붙인다. 파일 안에서는 **export된 함수 단위로 `describe`를 나눈다.** 로직 검증은 훅·유틸 테스트에 모으고, 컴포넌트 테스트는 슬롯 렌더·빈 상태 분기·cva·className 병합만 확인한다.
 
 ```
-test/components/_common/Chart/chart.test.tsx
-test/components/_common/Chart/chartRoot.test.tsx
-test/components/_common/Chart/chartPlot.test.tsx
-test/components/_common/Chart/chartBar.test.tsx
-test/components/_common/Chart/chartDonut.test.tsx
-test/components/_common/Chart/chartCenter.test.tsx
-test/components/_common/Chart/chartSeriesLegend.test.tsx
-test/components/_common/Chart/chartEmpty.test.tsx
-test/components/_common/Chart/chartSkeleton.test.tsx
+test/components/_common/Chart/Chart.test.tsx
+test/components/_common/Chart/ChartRoot.test.tsx
+test/components/_common/Chart/ChartPlot.test.tsx
+test/components/_common/Chart/ChartBar.test.tsx
+test/components/_common/Chart/ChartDonut.test.tsx
+test/components/_common/Chart/ChartCenter.test.tsx
+test/components/_common/Chart/ChartSeriesLegend.test.tsx
+test/components/_common/Chart/ChartEmpty.test.tsx
+test/components/_common/Chart/ChartSkeleton.test.tsx
 
-test/providers/chart/chartProvider.test.tsx
+test/providers/chart/ChartProvider.test.tsx
 
 test/hooks/chart/useChartContext.test.tsx
 test/hooks/chart/useChartSeries.test.tsx
@@ -362,16 +362,16 @@ test/lib/utilities/formatCompactKrw.test.ts
 
 | 테스트 파일                  | 검증                                                                                                                                                        |
 | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `chart.test.tsx`             | (유닛) `Object.assign` 합성 — 루트가 `ChartRoot`, 서브컴포넌트 7종이 각 구현과 동일 참조. (통합) 막대·도넛 실사용 조합 렌더, 빈 상태 전환 시 슬롯 표시 변화 |
-| `chartRoot.test.tsx`         | Provider 값 주입, `legend` 배치 클래스, `role="figure"`·`aria-label`, `size` 명시 시 판정 생략                                                              |
-| `chartPlot.test.tsx`         | 슬롯 렌더, `relative` 기본 클래스, className 병합                                                                                                           |
-| `chartBar.test.tsx`          | 계열 수만큼 `Bar` 렌더, 빈 상태 `null`, `tickFormatter` 기본값·교체                                                                                         |
-| `chartDonut.test.tsx`        | 조각 수·색, `size`별 반지름, 빈 상태 단색 링                                                                                                                |
-| `chartCenter.test.tsx`       | `label`·`value` 렌더, `size` cva, className 병합                                                                                                            |
-| `chartSeriesLegend.test.tsx` | `<ul>`·`<li>` 구조, 순서·라벨·색 칩 `aria-hidden`, 빈 상태 `null`                                                                                           |
-| `chartEmpty.test.tsx`        | 빈 상태에서만 `children` 렌더                                                                                                                               |
-| `chartSkeleton.test.tsx`     | Provider 없이 렌더, `type`별 플롯 모양·범례 칩 수, `size`·`legend` 클래스, `role="status"`·`aria-busy`·숨김 텍스트, 도형 `aria-hidden`                      |
-| `chartProvider.test.tsx`     | `useChartSummary` 결과가 컨텍스트에 실리는지, 자식 전달                                                                                                     |
+| `Chart.test.tsx`             | (유닛) `Object.assign` 합성 — 루트가 `ChartRoot`, 서브컴포넌트 7종이 각 구현과 동일 참조. (통합) 막대·도넛 실사용 조합 렌더, 빈 상태 전환 시 슬롯 표시 변화 |
+| `ChartRoot.test.tsx`         | Provider 값 주입, `legend` 배치 클래스, `role="figure"`·`aria-label`, `size` 명시 시 판정 생략                                                              |
+| `ChartPlot.test.tsx`         | 슬롯 렌더, `relative` 기본 클래스, className 병합                                                                                                           |
+| `ChartBar.test.tsx`          | 계열 수만큼 `Bar` 렌더, 빈 상태 `null`, `tickFormatter` 기본값·교체                                                                                         |
+| `ChartDonut.test.tsx`        | 조각 수·색, `size`별 반지름, 빈 상태 단색 링                                                                                                                |
+| `ChartCenter.test.tsx`       | `label`·`value` 렌더, `size` cva, className 병합                                                                                                            |
+| `ChartSeriesLegend.test.tsx` | `<ul>`·`<li>` 구조, 순서·라벨·색 칩 `aria-hidden`, 빈 상태 `null`                                                                                           |
+| `ChartEmpty.test.tsx`        | 빈 상태에서만 `children` 렌더                                                                                                                               |
+| `ChartSkeleton.test.tsx`     | Provider 없이 렌더, `type`별 플롯 모양·범례 칩 수, `size`·`legend` 클래스, `role="status"`·`aria-busy`·숨김 텍스트, 도형 `aria-hidden`                      |
+| `ChartProvider.test.tsx`     | `useChartSummary` 결과가 컨텍스트에 실리는지, 자식 전달                                                                                                     |
 | `useChartContext.test.tsx`   | Provider 안 값 반환, 밖에서 throw                                                                                                                           |
 | `useChartSeries.test.tsx`    | 선언 순서 보존, `label`·`color` 매핑, 빈 `config`                                                                                                           |
 | `useChartSummary.test.tsx`   | wide·long 형태별 합계, 빈 배열·전부 0이면 `isEmpty`, 일부 값 누락                                                                                           |

@@ -180,7 +180,7 @@ src/hooks/overlay/
 ```tsx
 // Confirm 계열 — 단순 확인 모달. 닫기 버튼 없음, 중앙 정렬
 <Modal.Header align="center">
-  <Modal.Title>정말 삭제하시겠어요?</Modal.Title>
+  <Modal.Title>업무를 삭제하시겠어요?</Modal.Title>
   <Modal.Description>삭제된 업무는 복구할 수 없습니다.</Modal.Description>
 </Modal.Header>
 ```
@@ -425,6 +425,19 @@ Figma의 Confirm 계열은 **Body 유무에 따라 상단 여백과 간격이 �
 
 Body가 없을 때 상단 여백을 키워 시각 중심을 맞춘 것이다. 이 규칙은 **`ConfirmModal` 프리셋 안에서** 처리하고 `Modal.Panel`의 variant로 올리지 않는다. Confirm 계열에만 해당하는 규칙을 primitive가 알 필요는 없다.
 
+### 삭제 확인 문구
+
+삭제 대상을 제목에 드러내 사용자가 무엇을 지우는지 바로 알 수 있게 한다.
+
+| 항목          | 형식                                      | 예                                    |
+| ------------- | ----------------------------------------- | ------------------------------------- |
+| `title`       | `{대상}을(를) 삭제하시겠어요?`            | 아르바이트생을 삭제하시겠어요?        |
+| `description` | `삭제된 {대상}은(는) 복구할 수 없습니다.` | 삭제된 카테고리는 복구할 수 없습니다. |
+| `confirmText` | `삭제`                                    |                                       |
+
+- 조사는 대상 단어의 받침에 맞춘다.
+- `ConfirmModal`의 기본값(`confirmText: '확인'`, `cancelText: '취소'`)과 같은 값은 호출부에서 넘기지 않는다. 기본값이 바뀌면 모든 호출부가 함께 따라가야 하기 때문이다.
+
 ## overlay-kit 연동
 
 `stackIndex`를 구하려면 훅을 호출해야 하므로, 컨트롤러를 컴포넌트로 한 겹 감싼다. 훅 호출이 컨트롤러에 머무르고 `ConfirmModal`은 숫자만 받는다. 컨트롤러와 launcher는 프리셋과 같은 폴더에 **파일을 나눠** 둔다.
@@ -466,7 +479,7 @@ overlay-kit이 컨트롤러 콜백에 넘기는 `{ overlayId, isOpen, close, unm
 ```tsx
 // 호출부 — isOpen 상태가 필요 없다
 const isConfirmed = await openConfirmModal({
-  title: '정말 삭제하시겠어요?',
+  title: '업무를 삭제하시겠어요?',
   description: '삭제된 업무는 복구할 수 없습니다.',
   confirmText: '삭제',
 });
@@ -642,6 +655,10 @@ GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-star
 ### 2. 바텀시트 상호작용 범위
 
 Figma에는 모바일 Form 모달이 하단 앵커로만 그려져 있고 **드래그로 닫기·스냅 포인트 같은 제스처는 정의되어 있지 않다.** 스크롤 가능한 패널로만 구현할지 확인이 필요하다.
+
+### 3. 매출 카테고리 삭제 확인 문구
+
+매출 카테고리 삭제 확인은 Figma 디자인대로 `정말 삭제하시겠어요?`를 쓴다([sales/README.md](../../feature/sales/README.md)). "삭제 확인 문구" 형식(`카테고리를 삭제하시겠어요?`)으로 맞출지 기획·디자인 확인이 필요하다.
 
 Provider 위치와 중첩 동작, `folder-structure.md` 갱신은 확정·반영됐다 — "중첩 동작 검증 결과"와 "파일 구성"을 참고한다.
 
