@@ -123,7 +123,6 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
       title: '아르바이트생을 삭제하시겠어요?',
       description: '삭제된 상세 내용은 복구할 수 없습니다.',
       confirmText: '삭제',
-      cancelText: '취소',
     });
   };
 
