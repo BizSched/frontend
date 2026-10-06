@@ -148,6 +148,8 @@ export function TaskList() {
 }
 ```
 
+prefetch가 실패했을 때의 동작과 서버 404(`notFound()`) 처리는 [error-handling.md](./error-handling.md)의 "서버 prefetch 실패" 참고.
+
 ### 금지 — 서버 props와 클라이언트 query를 분리하는 방식
 
 서버에서 API를 직접 호출해 props로 내리고, 클라이언트에서 **별도 query key로 다시 조회**하는 방식은 금지한다. 캐시 키가 분리되어 같은 데이터가 두 벌로 존재하고, 갱신·무효화 시점이 어긋난다.

@@ -154,14 +154,14 @@ else return <Fallback />;
 ```
 
 **왜 문제인가** — 분기 조건이 여러 파일에 흩어지면 새 `errorCode`가 추가될 때 어디를 고쳐야 하는지
-드러나지 않고, 누락돼도 조용히 fallback으로 빠진다. 근거: `docs/architecture/data-flow.md` API 에러 처리
+드러나지 않고, 누락돼도 조용히 fallback으로 빠진다. 근거: `docs/architecture/error-handling.md` 메시지 변환
 (분기 처리 자체는 `ts-pattern`을 활용한다).
 
 **해결** — 도메인별 `format{도메인}Error`에서 `ts-pattern`으로 `errorCode`를 매핑하고, Component는 반환된
 메시지를 표시한다.
 
 **허용 가능한 예외** — 분기가 실제로 두 갈래이고 한 곳에만 존재하는 단순 조건.
-`error.tsx` / `not-found.tsx` 배치 단위와 `throwOnError` 판정 기준은 **아직 미확정**이므로 위반으로 판단하지 않는다.
+처리 위치(`throwOnError`)·경계 파일 배치는 `docs/architecture/error-handling.md` 기준으로 판단한다.
 
 ---
 
@@ -224,12 +224,12 @@ export default function TaskPage() {
 
 ```tsx
 // ❌ 두 방향이 섞여 중첩 구간의 우선순위를 추적할 수 없다
-<div className="max-tablet:gap-4 flex flex-col md:flex-row" />
+<div className="md:flex-row flex flex-col max-tablet:gap-4" />
 ```
 
 ```tsx
 // ✅ desktop-first — 기본이 데스크톱, max-*로 좁혀 나간다
-<div className="max-desktop:gap-6 max-tablet:flex-col max-tablet:gap-4 flex flex-row gap-8" />
+<div className="flex flex-row gap-8 max-desktop:gap-6 max-tablet:flex-col max-tablet:gap-4" />
 ```
 
 **왜 문제인가** — 프로젝트 원칙은 desktop-first다. 접두사 없는 클래스가 데스크톱을 정의하고 `max-*`로
