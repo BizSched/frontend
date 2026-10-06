@@ -7,6 +7,7 @@ import {
   type CalendarDayContent,
 } from '@components/_common/Calendar/Calendar';
 import { CalendarEventDots } from '@components/_common/Calendar/CalendarEventDots';
+import { openConfirmModal } from '@components/_common/Modal/openConfirmModal';
 import { openPartTimeScheduleFormModal } from '@components/partTime/schedule/modal/openPartTimeScheduleFormModal';
 import { PartTimeScheduleChip } from '@components/partTime/schedule/PartTimeScheduleChip';
 import { PartTimeScheduleDaySummary } from '@components/partTime/schedule/PartTimeScheduleDaySummary';
@@ -89,6 +90,15 @@ function PartTimeScheduleCalendar({
     });
   };
 
+  const handleScheduleDelete = () => {
+    void openConfirmModal({
+      title: '스케쥴을 삭제하시겠어요?',
+      description: '삭제된 스케쥴은 복구할 수 없습니다.',
+      confirmText: '삭제',
+      cancelText: '취소',
+    });
+  };
+
   const contentByDate = Object.fromEntries(
     Object.entries(schedulesByDate).map(([date, dateSchedules]) => [
       date,
@@ -121,6 +131,7 @@ function PartTimeScheduleCalendar({
           today={today}
           schedules={selectedDateSchedules}
           onScheduleEdit={handleScheduleEdit}
+          onScheduleDelete={handleScheduleDelete}
           className="w-94.5 shrink-0 max-laptop:w-auto"
         />
       )}
