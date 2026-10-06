@@ -615,7 +615,7 @@ test/components/_common/Modal/openConfirmModal.test.tsx
 
 ## 단계별 PR 계획
 
-GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-started/about-stacked-prs)로 진행한다. 각 브랜치는 바로 아래 브랜치를 base로 하고, 맨 아래만 `dev`를 향한다. 아래부터 Squash Merge하면 남은 PR의 base가 자동으로 리타깃된다.
+GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-started/about-stacked-prs)로 진행한다. 각 브랜치는 바로 아래 브랜치를 base로 하고, 맨 아래만 `dev`를 향한다. 아래부터 Merge commit으로 병합하면 남은 PR의 base가 자동으로 리타깃된다.
 
 | 순서 | 브랜치                      | base                        | 내용                                                               |
 | ---- | --------------------------- | --------------------------- | ------------------------------------------------------------------ |

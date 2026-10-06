@@ -292,7 +292,7 @@ GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-star
 | 4    | `feat/common-dropdown-form`  | `feat/common-dropdown-month` | ④ Form 드롭다운 트리거 + 팝업(large 구분선 variant 포함)                                             |
 | 5    | `feat/common-dropdown-test`  | `feat/common-dropdown-form`  | Vitest 테스트                                                                                        |
 
-아래부터 Squash Merge하면 남은 PR의 base가 자동 리타깃된다.
+아래부터 Merge commit으로 병합하면 남은 PR의 base가 자동 리타깃된다.
 
 ## 확인 필요
 

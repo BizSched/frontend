@@ -403,7 +403,7 @@ GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-star
 | 3    | `feat/common-pagination-hook` | `feat/common-pagination-ui`   | `usePaginationRange` · `usePaginationSize` · `usePageSearchParam` + `Pagination` 조립 |
 | 4    | `feat/common-pagination-test` | `feat/common-pagination-hook` | vitest setup + 테스트                                                                 |
 
-아래부터 Squash Merge하면 남은 PR의 base가 자동 리타깃된다.
+아래부터 Merge commit으로 병합하면 남은 PR의 base가 자동 리타깃된다.
 
 ## 확인 필요
 

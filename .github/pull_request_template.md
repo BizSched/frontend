@@ -1,10 +1,4 @@
----
-name: Pull Request 템플릿
-about: Pull Request 생성 시 사용되는 템플릿입니다.
-title: '[역할-#{이슈번호}] 작업한 내용 (내용은 한글)'
-labels: bug, feature, refactor
-assignees: ''
----
+<!-- PR 제목: [커밋 타입 대문자-#이슈번호] 한글 요약 (예: [FEAT-#152] 아르바이트생 삭제 확인 모달 연결). 규칙은 docs/collaboration/pr-flow.md 참고 -->
 
 ## 작업 요약
 
