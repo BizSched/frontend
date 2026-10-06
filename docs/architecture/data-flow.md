@@ -31,30 +31,43 @@ Formatter가 반환하는 DAO는 **Server Component에서 Client Component로 �
 
 ## API 클라이언트 (Fetcher)
 
-> baseURL·인증·캐시·timeout은 아래와 같이 확정됐다. **서버/클라이언트 분리 방식과 `Fetcher` class 구조는 아직 확정되지 않았으므로**, 해당 부분은 "구현 시 준수할 후보 사양"으로 읽는다.
-
 ### baseURL (확정)
 
 baseURL은 환경변수로 관리한다. client/server 네이밍 규칙은 [env.md](./env.md)의 "client / server 구분"이 단일 출처다.
 
-### 인증 — 쿠키 기반 (확정)
+### 인증 — BFF + httpOnly 쿠키 (확정)
 
-인증은 **쿠키 기반**으로 한다. 토큰을 클라이언트 JS에서 직접 다루지 않는다.
+인증은 **쿠키 기반**으로 하고, 토큰을 클라이언트 JS에서 직접 다루지 않는다. BE가 요구하는 `Authorization: Bearer` 헤더는 Next 서버(BFF)가 쿠키의 토큰으로 붙인다. 로그인·refresh·로그아웃 흐름과 보안 규칙은 [auth.md](./auth.md)가 단일 출처다.
 
-- **브라우저 요청**: fetch에 `credentials: 'include'`를 설정해 쿠키를 자동 전송한다.
-- **서버 요청**: Server Component의 fetch는 **브라우저 쿠키를 자동으로 전달하지 않는다.** 서버에서 보호된 API를 호출할 때는 `cookies()`로 읽어 요청 헤더에 직접 실어야 한다.
+- **서버 요청**: Server Component의 fetch는 브라우저 쿠키를 자동으로 전달하지 않는다. `cookies()`로 access 토큰을 읽어 Bearer 헤더로 BE에 직접 요청한다.
+- **브라우저 요청**: BE를 직접 호출하지 않고 same-origin BFF 경로로 요청한다. BFF가 헤더를 붙여 BE로 전달한다.
 
-이 비대칭 때문에 서버 호출 경로와 브라우저 호출 경로는 최소한 **인증 헤더를 붙이는 지점이 달라진다.** 파일 단위로 분리할지 하나의 Fetcher가 분기할지는 아래 결정 대기 항목 참고.
+### 서버/클라이언트 분리 (확정)
+
+두 경로는 baseURL과 인증 방식이 모두 다르므로 Fetcher를 둘로 나눈다.
+
+| Fetcher         | 요청 대상            | 인증                               |
+| --------------- | -------------------- | ---------------------------------- |
+| `serverFetcher` | BE 직접              | `cookies()`의 토큰을 Bearer 헤더로 |
+| `clientFetcher` | same-origin BFF 경로 | 없음 (BFF가 처리)                  |
+
+- timeout·signal 병합과 에러 변환은 두 Fetcher가 공유하는 공통 코어에 둔다. 인증 헤더 주입은 `serverFetcher`에만 있다.
+- `serverFetcher`는 `next/headers`를 import하므로 클라이언트 번들에 들어갈 수 없다. 단일 인스턴스에서 분기하지 않는다.
+
+### 서버 전용 차단 (확정)
+
+- `server-only` 적용: `serverFetcher`, 토큰 쿠키 읽기·쓰기 유틸, refresh 로직
+- 적용하지 않음: API 함수, `queryOptions`, Formatter, DTO 타입, `ApiError` — 서버·클라이언트가 공유하는 모듈이다
 
 ### 캐시 — SSR 기본 (확정)
 
 **기본값은 SSR(요청마다 새로 조회)** 이다. 서버 fetch는 캐시하지 않는 것을 기본으로 두고, 정적으로 돌릴 구간만 **선언적으로 예외 처리**한다.
 
-| 구간                          | 설정                                                        |
-| ----------------------------- | ----------------------------------------------------------- |
-| 기본 (인증·사용자별 데이터)   | 캐시하지 않음 (`cache: 'no-store'`)                         |
-| 주기적으로 갱신해도 되는 공개 데이터 | `next: { revalidate: <초> }` (ISR)                     |
-| 빌드 시점에 고정 가능한 데이터 | `next: { revalidate: false }` 또는 `use cache` (SSG 성격)   |
+| 구간                                 | 설정                                                      |
+| ------------------------------------ | --------------------------------------------------------- |
+| 기본 (인증·사용자별 데이터)          | 캐시하지 않음 (`cache: 'no-store'`)                       |
+| 주기적으로 갱신해도 되는 공개 데이터 | `next: { revalidate: <초> }` (ISR)                        |
+| 빌드 시점에 고정 가능한 데이터       | `next: { revalidate: false }` 또는 `use cache` (SSG 성격) |
 
 인증 쿠키가 실린 요청은 **절대 캐시하지 않는다.** 요청 간 캐시가 공유되면 다른 사용자의 데이터가 노출된다.
 `use cache` 부분 도입 기준은 [rendering.md](./rendering.md)의 "캐싱 지시어" 참고.
@@ -62,27 +75,22 @@ baseURL은 환경변수로 관리한다. client/server 네이밍 규칙은 [env.
 ### timeout — Fetcher 내부 구현 (확정)
 
 timeout은 `Fetcher` 내부에서 `AbortController`(또는 `AbortSignal.timeout()`)로 구현한다. 호출부마다 개별 구현하지 않는다.
-호출부가 자체 `signal`을 넘길 수 있으므로, Fetcher는 **timeout signal과 호출부 signal을 합쳐서** 전달해야 한다. 기본 timeout 값은 미정.
+호출부가 자체 `signal`을 넘길 수 있으므로, Fetcher는 **timeout signal과 호출부 signal을 합쳐서** 전달해야 한다.
+
+브라우저 요청은 `브라우저 → BFF → BE` 두 홉이므로 **`clientFetcher` timeout은 BFF→BE timeout보다 길어야** 한다. 짧으면 브라우저가 포기한 뒤에도 BFF가 BE 응답을 기다린다.
+
+### retry · 에러 변환 (확정)
+
+Fetcher는 재시도하지 않는다. 재시도 규칙과 Fetcher의 에러 변환 규칙은 [error-handling.md](./error-handling.md)가 단일 출처다.
 
 ### 결정 대기 항목
 
-| 항목                 | 내용                                                                  | 상태      |
-| -------------------- | --------------------------------------------------------------------- | --------- |
-| 서버/클라이언트 분리 | `serverFetcher` / `clientFetcher` 분리 vs 단일 인스턴스 base URL 분기 | 결정 필요 |
-| 서버 전용 차단       | 서버 전용 파일에 `server-only` 적용 범위                              | 결정 필요 |
-| retry                | 재시도 대상·횟수, Fetcher와 TanStack Query 중 담당 레이어             | 결정 필요 |
-| timeout 기본값       | 기본 타임아웃 초 단위 값                                              | 결정 필요 |
-| 공통 Wrapper         | `Fetcher` class, private `_baseUrl`, 인터셉터(인증 헤더·에러 변환)    | 결정 필요 |
+| 항목                               | 내용                                                                                                                                                                                                         | 상태      |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------- |
+| timeout 기본값                     | `clientFetcher`, `serverFetcher`(BFF→BE 포함) 각각의 초 단위 값                                                                                                                                              | 결정 필요 |
+| 공통 코어 형태                     | `Fetcher` class vs 팩토리 함수(예: `createFetcher({ baseUrl, getHeaders })`)                                                                                                                                 | 결정 필요 |
+| 공유 `queryOptions`의 Fetcher 선택 | 서버 prefetch와 클라이언트 `useQuery`가 같은 `queryOptions`를 쓰지만 Fetcher는 다르다. Fetcher 주입(`xxxQueryOptions(fetcher)`) vs 환경 분기 동적 import(`server-only` 모듈이 클라이언트 그래프에 섞일 위험) | 결정 필요 |
 
 ## API 에러 처리
 
-전체 흐름: `API → error formatter → TanStack Query → UI`
-
-- API 클라이언트에서 응답이 실패하면 `ApiError`(errorCode, status)를 throw한다.
-- 도메인별 error formatter(`format{도메인}Error`)가 `errorCode`를 사용자에게 보여줄 한국어 메시지로 매핑한다.
-- TanStack Query의 `throwOnError`로 처리 위치를 분기한다 (예: 404는 컴포넌트에서 처리, 나머지는 Error Boundary로 위임).
-- 컴포넌트는 `format{도메인}Error(error)`가 반환한 메시지를 표시한다.
-- 분기 처리 자체는 `ts-pattern`을 활용한다.
-- 로그는 공통 로그 클래스를 만들어 사용한다. (후순위)
-
-`error.tsx` / `not-found.tsx`의 배치 단위와, 경계·컴포넌트 간 오류 표시 책임 분리는 **아직 정해지지 않았다.** `throwOnError` 판정 기준(status 기반 vs errorCode 기반)도 이 결정에 종속된다.
+전체 흐름은 `API → error formatter → TanStack Query → UI`다. `ApiError`·`NetworkError` 변환, 도메인·공통 formatter, `throwOnError` 기준, `error.tsx`·`not-found.tsx` 배치는 [error-handling.md](./error-handling.md)가 단일 출처다.

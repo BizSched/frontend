@@ -13,15 +13,17 @@ docs/
 
 ## architecture/
 
-| 경로                                                                   | 내용                                                                          |
-| ---------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| [architecture/tech-stack.md](./architecture/tech-stack.md)             | 사용 기술 스택 전체                                                           |
-| [architecture/folder-structure.md](./architecture/folder-structure.md) | 폴더 구성, `(main)` 라우트 그룹, 컴포넌트 분리 기준, 타입 파일 위치           |
-| [architecture/rendering.md](./architecture/rendering.md)               | Server/Client 경계, `"use client"` 허용 트리거, RSC 하이드레이션, `use cache` |
-| [architecture/state-management.md](./architecture/state-management.md) | 상태 범위별 도구 선택, 서버 데이터 3가지 패턴, Query Key 관리                 |
-| [architecture/data-flow.md](./architecture/data-flow.md)               | DTO/DAO 변환, Fetcher, 쿠키 인증, 캐시 정책, 에러 처리                        |
-| [architecture/env.md](./architecture/env.md)                           | 환경변수 파일 구성, client/server 구분                                        |
-| [architecture/routing.md](./architecture/routing.md)                   | Route Config(`ROUTE_PATHS`), Navigation Item 매핑                             |
+| 경로                                                                   | 내용                                                                              |
+| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| [architecture/tech-stack.md](./architecture/tech-stack.md)             | 사용 기술 스택 전체                                                               |
+| [architecture/folder-structure.md](./architecture/folder-structure.md) | 폴더 구성, `(main)` 라우트 그룹, 컴포넌트 분리 기준, 타입 파일 위치               |
+| [architecture/rendering.md](./architecture/rendering.md)               | Server/Client 경계, `"use client"` 허용 트리거, RSC 하이드레이션, `use cache`     |
+| [architecture/state-management.md](./architecture/state-management.md) | 상태 범위별 도구 선택, 서버 데이터 3가지 패턴, Query Key 관리                     |
+| [architecture/data-flow.md](./architecture/data-flow.md)               | DTO/DAO 변환, Fetcher 서버/클라이언트 분리, 캐시 정책, timeout                    |
+| [architecture/auth.md](./architecture/auth.md)                         | BFF + httpOnly 쿠키 인증, 로그인·refresh·로그아웃, CSRF                           |
+| [architecture/error-handling.md](./architecture/error-handling.md)     | 에러 변환·formatter, `throwOnError` 기준, retry, `error.tsx`·`not-found.tsx` 배치 |
+| [architecture/env.md](./architecture/env.md)                           | 환경변수 파일 구성, client/server 구분                                            |
+| [architecture/routing.md](./architecture/routing.md)                   | Route Config(`ROUTE_PATHS`), Navigation Item 매핑                                 |
 
 ## convention/
 

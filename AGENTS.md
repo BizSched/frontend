@@ -19,7 +19,8 @@ Next.js v16 기반 프론트엔드 프로젝트. TailwindCSS v4 + Shadcn/ui, Zus
 | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | 새 컴포넌트/훅 작성                          | `convention/naming.md`, `convention/code-style.md`, `architecture/folder-structure.md`                                                     |
 | 상태 관리 코드 작성                          | `architecture/state-management.md`                                                                                                         |
-| API 연동 / 에러 처리                         | `architecture/data-flow.md`                                                                                                                |
+| API 연동 / 에러 처리                         | `architecture/data-flow.md`, `architecture/error-handling.md`                                                                              |
+| 인증 (로그인·토큰·보호 라우트)               | `architecture/auth.md`                                                                                                                     |
 | 렌더링 경계 / RSC / TanStack Query hydration | `architecture/rendering.md`, `architecture/data-flow.md`, `architecture/state-management.md`                                               |
 | UI/스타일 작업                               | `convention/ui-component.md`, `convention/style.md`                                                                                        |
 | 테스트 작성                                  | `convention/test.md`                                                                                                                       |
