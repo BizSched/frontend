@@ -221,7 +221,7 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
     <div className="flex min-w-0 flex-1">
       <div
         className={cn(
-          'flex min-w-0 flex-1 flex-col px-6 pt-25 pb-13 max-laptop:pt-12 max-laptop:pb-6 max-tablet:px-4 max-tablet:pt-3 max-tablet:pb-4 laptop:basis-200',
+          'flex min-w-0 flex-1 flex-col px-6 pt-25 pb-13 max-desktop:pt-12 max-laptop:pb-6 max-tablet:px-4 max-tablet:pt-3 max-tablet:pb-4 laptop:basis-200',
           previewAttachment && !isViewerCollapsed && VIEWER_SPACE_CLASS_NAME,
         )}
       >

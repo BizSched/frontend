@@ -5,7 +5,7 @@ import { AuthSocialLogin } from '@components/auth/AuthSocialLogin';
 import { SignupForm } from '@components/auth/SignupForm';
 
 export const metadata: Metadata = {
-  title: '회원가입 | BizSched',
+  title: '회원가입',
 };
 
 export default function SignupPage() {

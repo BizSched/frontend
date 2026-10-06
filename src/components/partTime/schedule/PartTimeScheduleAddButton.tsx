@@ -22,7 +22,6 @@ function PartTimeScheduleAddButton() {
       icon={
         <Image src={IcPlusWhite} alt="" width={20} height={20} unoptimized />
       }
-      className="h-10 w-auto min-w-30 py-2.5"
       onClick={handleClick}
     >
       스케쥴 추가

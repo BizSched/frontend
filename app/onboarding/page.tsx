@@ -4,7 +4,7 @@ import { AuthLayout } from '@components/auth/AuthLayout';
 import { OnboardingForm } from '@components/auth/OnboardingForm';
 
 export const metadata: Metadata = {
-  title: '추가 정보 입력 | BizSched',
+  title: '추가 정보 입력',
 };
 
 export default function OnboardingPage() {
