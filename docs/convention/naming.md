@@ -1,6 +1,6 @@
 # 네이밍 규칙
 
-- 파일: `name/Name.tsx` (예: `ModalHeader.tsx`)
+- 파일: 컴포넌트를 export하면 `PascalCase` (예: `ModalHeader.tsx`), 함수를 export하면 `camelCase` (예: `openConfirmModal.tsx`). 함수 파일은 JSX를 포함해 `.tsx`여도 camelCase를 쓴다.
 - 함수: Component는 `function` 선언식, 그 외(hook·util·내부 핸들러)는 화살표 함수
 - 상수: `CONST_VALUE`
 - 이벤트 props: `on대상동작` (예: onClick, onValueChange)

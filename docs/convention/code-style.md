@@ -14,10 +14,27 @@
 
 ```ts
 // ✅ 각 파일에서 직접 import
-import { ModalHeader } from '@components/modal/ModalHeader';
+import { ModalHeader } from '@components/_common/Modal/ModalHeader';
 
 // ❌ index.ts 배럴 경유
-import { ModalHeader } from '@components/modal';
+import { ModalHeader } from '@components/_common/Modal';
+```
+
+## await하지 않는 Promise
+
+결과를 쓰지 않는 Promise는 `void`로 명시한다. 의도적으로 기다리지 않는다는 것을 드러내기 위해서다. ESLint `no-floating-promises`는 lint 속도 때문에 꺼져 있으므로 이 규칙은 리뷰로 지킨다.
+
+```ts
+// ✅ 결과를 쓰지 않는다
+void openConfirmModal({ title: '스케쥴을 삭제하시겠어요?' });
+
+// ✅ 결과를 쓴다
+const isConfirmed = await openConfirmModal({
+  title: '업무를 삭제하시겠어요?',
+});
+
+// ❌ 의도가 드러나지 않는다
+openConfirmModal({ title: '스케쥴을 삭제하시겠어요?' });
 ```
 
 ## enum 대체 방식

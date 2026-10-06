@@ -4,8 +4,6 @@
 
 Tailwind 클래스 순서는 `prettier-plugin-tailwindcss`로 자동 정렬한다.
 
-> **도입 예정**: `.prettierrc`의 `plugins`에 해당 플러그인이 등록되어 있으나 아직 `package.json` 의존성에 없다. 의존성이 추가되기 전까지 Prettier 실행이 실패하므로, 이 규칙은 수동 정렬로 지킨다.
-
 ## 반응형 — desktop-first
 
 **기본 원칙은 desktop-first다.** 디자인이 데스크톱 기준으로 내려오므로, 구현도 같은 방향으로 맞춘다.

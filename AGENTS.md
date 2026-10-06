@@ -1,4 +1,4 @@
-# Agent.md
+# AGENTS.md
 
 ## 프로젝트 개요
 
