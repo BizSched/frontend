@@ -58,6 +58,17 @@ function AppSidebar({
     pathname === ROUTE_PATHS.partTimeStaff() ||
     pathname.startsWith(ROUTE_PATHS.partTimeStaff() + '/');
   const isPartTime = isPartTimeSchedule || isPartTimeStaff;
+  const mobilePageTitle = isDashboard
+    ? '대시보드'
+    : isSales
+      ? '매출 대시보드'
+      : isSalesDetail
+        ? '매출 내역'
+        : isPartTimeSchedule
+          ? '아르바이트생 스케쥴 관리'
+          : isPartTimeStaff
+            ? '아르바이트생 관리'
+            : 'BizSched'; // NOTE : 라우트별 반환 로직 리팩토링 필요
   const handleNavigate = () => setIsOverlayOpen(false);
 
   return (
@@ -87,8 +98,8 @@ function AppSidebar({
           <header className="fixed inset-x-0 top-0 z-30 hidden h-14 items-center justify-between bg-white-50 px-4 max-tablet:flex">
             <div className="flex items-center gap-2">
               <SidebarTrigger />
-              <span className="text-sm font-semibold">
-                {isSales ? '매출 대시보드' : 'Slid to-do'}
+              <span aria-hidden="true" className="text-sm font-semibold">
+                {mobilePageTitle}
               </span>
             </div>
             <Button

@@ -17,7 +17,7 @@ function SalesCategoryButton({ isIconOnly = false }: SalesCategoryButtonProps) {
     <Button
       type="button"
       hierarchy={isIconOnly ? 'primary' : 'secondary'}
-      size="medium"
+      size="small"
       aria-label="카테고리 관리"
       icon={
         <TagIcon
@@ -28,7 +28,7 @@ function SalesCategoryButton({ isIconOnly = false }: SalesCategoryButtonProps) {
       className={cn(
         isIconOnly
           ? 'size-10 bg-slate-50 p-0 shadow-[0_1px_4px_var(--color-slate-600)] hover:bg-slate-100'
-          : 'max-desktop:w-auto max-desktop:text-[10px]',
+          : '',
       )}
       onClick={(event) => {
         const returnFocus = event.currentTarget;

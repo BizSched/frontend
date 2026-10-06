@@ -5,7 +5,7 @@ import { AuthSocialLogin } from '@components/auth/AuthSocialLogin';
 import { LoginForm } from '@components/auth/LoginForm';
 
 export const metadata: Metadata = {
-  title: '로그인 | BizSched',
+  title: '로그인',
 };
 
 export default function LoginPage() {

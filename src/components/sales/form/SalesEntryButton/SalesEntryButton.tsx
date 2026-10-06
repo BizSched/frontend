@@ -18,7 +18,7 @@ function SalesEntryButton({ isIconOnly = false }: SalesEntryButtonProps) {
     <Button
       type="button"
       hierarchy="primary"
-      size="medium"
+      size="small"
       aria-label="오늘 매출 입력"
       icon={
         <Icon
@@ -29,7 +29,7 @@ function SalesEntryButton({ isIconOnly = false }: SalesEntryButtonProps) {
       className={cn(
         isIconOnly
           ? 'size-10 bg-slate-50 p-0 shadow-[0_1px_4px_var(--color-slate-600)] hover:bg-slate-100'
-          : 'max-desktop:w-auto max-desktop:text-[10px]',
+          : '',
       )}
       onClick={(event) => {
         const returnFocus = event.currentTarget;

@@ -8,11 +8,11 @@ import IcPlusWhite from '@assets/icons/ic_plus-white.svg';
 
 function PartTimeStaffHeader() {
   return (
-    <header className="flex items-center justify-between gap-2.5 px-2 max-mobile:hidden">
+    <header className="flex items-center justify-between gap-2.5 px-2 max-mobile:sr-only">
       <h1 className="min-w-0 text-2xl font-semibold tracking-[-0.03em] break-keep text-black max-tablet:text-xl">
         아르바이트생 관리
       </h1>
-      <div className="flex shrink-0 items-center gap-2.5">
+      <div className="flex shrink-0 items-center gap-2.5 max-mobile:hidden">
         <Input
           variant="search"
           aria-label="아르바이트생 검색"
@@ -23,7 +23,6 @@ function PartTimeStaffHeader() {
           size="small"
           nativeButton={false}
           render={<Link href="/partTime/staff/new" />}
-          className="w-auto min-w-33.5"
           icon={
             <Image
               src={IcPlusWhite}
