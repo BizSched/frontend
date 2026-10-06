@@ -4,7 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@lib/utilities/cn';
 
 const buttonVariants = cva(
-  'inline-flex shrink-0 cursor-pointer items-center justify-center gap-1 overflow-hidden rounded-full px-[18px] font-semibold whitespace-nowrap outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-6 [&_svg]:shrink-0',
+  'inline-flex shrink-0 cursor-pointer items-center justify-center gap-1 overflow-hidden rounded-full px-[18px] font-semibold whitespace-nowrap transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-6 [&_svg]:shrink-0',
   {
     variants: {
       hierarchy: {
@@ -16,11 +16,9 @@ const buttonVariants = cva(
           'border border-[#cccccc] text-secondary-300 hover:border-[#bbbbbb] hover:text-accent-300 disabled:border-slate-400 disabled:text-slate-400',
       },
       size: {
-        large:
-          'h-14 w-[13.9375rem] py-3.5 text-lg leading-7 tracking-[-0.03em]',
-        medium:
-          'h-12 w-[11.375rem] py-3 text-base leading-6 tracking-[-0.03em]',
-        small: 'h-11 w-[8.375rem] py-2.5 text-sm leading-5 tracking-[-0.03em]',
+        large: 'h-14 py-3.5 text-lg leading-7 tracking-[-0.03em]',
+        medium: 'h-12 py-3 text-base leading-6 tracking-[-0.03em]',
+        small: 'h-11 py-2.5 text-sm leading-5 tracking-[-0.03em]',
       },
     },
     defaultVariants: {
