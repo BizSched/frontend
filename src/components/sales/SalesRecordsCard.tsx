@@ -1,5 +1,9 @@
+import Link from 'next/link';
+
 import { Card } from '@components/_common/Card/Card';
 import { Table } from '@components/_common/Table/Table';
+
+import { ROUTE_PATHS } from '@lib/utilities/routePaths';
 
 import { SALES_RECORDS, SALES_RECENT_TOTAL } from './salesDashboardData';
 
@@ -17,9 +21,12 @@ function SalesRecordsCard() {
         <Card.Title className="text-2xl font-semibold text-slate-900 max-tablet:text-lg">
           입력한 매출
         </Card.Title>
-        <span className="text-sm font-medium text-primary-700 max-tablet:text-xs">
+        <Link
+          href={ROUTE_PATHS.salesDetails()}
+          className="rounded text-sm font-medium text-primary-700 hover:underline focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none max-tablet:text-xs"
+        >
           모두 보기 <span aria-hidden="true">›</span>
-        </span>
+        </Link>
       </Card.Header>
 
       <div className="flex-1 max-tablet:hidden">
