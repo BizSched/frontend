@@ -21,7 +21,7 @@ Tailwind 클래스 순서는 `prettier-plugin-tailwindcss`로 자동 정렬한�
 
 ```tsx
 // ❌ min-*와 max-*를 섞는다
-<div className="flex flex-col md:flex-row max-tablet:gap-4" />
+<div className="md:flex-row flex flex-col max-tablet:gap-4" />
 ```
 
 ## Breakpoint
@@ -31,21 +31,21 @@ Tailwind 기본 breakpoint(`sm`/`md`/`lg`/`xl`/`2xl`)를 쓰지 않고, **디자
 | 이름      | 값     | 대상    |
 | --------- | ------ | ------- |
 | `desktop` | 1920px | Desktop |
+| `laptop`  | 1024px | Laptop  |
 | `tablet`  | 744px  | Tablet  |
-| `mobile`  | 375px  | Mobile  |
+| `mobile`  | 480px  | Mobile  |
 
 Tailwind v4에서는 `app/globals.css`의 `@theme`에 선언한다.
 
 ```css
 @theme {
-  --breakpoint-mobile: 375px;
+  --breakpoint-mobile: 480px;
   --breakpoint-tablet: 744px;
+  --breakpoint-laptop: 1024px;
   --breakpoint-desktop: 1920px;
 }
 ```
 
-desktop-first이므로 실제로 사용하는 변형은 `max-desktop:`(1920px 미만), `max-tablet:`(744px 미만)이다. 기본 클래스가 1920px 이상 구간을 담당한다.
-
-> **확인 필요**: `desktop` 경계를 1920px로 두면 **1440px·1512px 노트북에서도 `max-desktop:` 레이아웃(= 태블릿 스타일)이 적용된다.** 1920px는 디자인 검수용 최대 폭이고, 실제 데스크톱 사용자 대부분은 1280~1512px 구간에 있다. 검수 viewport 값을 그대로 breakpoint로 쓸지, 아니면 데스크톱 경계를 별도 값(예: 1280px)으로 둘지 확정이 필요하다.
+desktop-first이므로 실제로 사용하는 변형은 `max-desktop:`(1920px 미만), `max-laptop:`(1024px 미만), `max-tablet:`(744px 미만)이다. 기본 클래스가 1920px 이상 구간을 담당한다.
 
 `mobile`(375px)은 그보다 좁은 화면을 따로 다루지 않는 한 변형으로 쓸 일이 없다. 최소 지원 폭의 기준값으로만 둔다.
