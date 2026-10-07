@@ -9,6 +9,8 @@
 | 데이터 페칭    | fetch API (axios 미사용)                       |                |
 | 조건 분기 처리 | ts-pattern                                     |                |
 | 폼             | React Hook Form                                |                |
+| 스키마 검증    | zod                                            | v4             |
+| API 타입 생성  | openapi-typescript                             | v7             |
 | CSS 유틸       | tailwind-merge, clsx, class-variance-authority |                |
 | 테스트         | Vitest                                         |                |
 | 포맷팅/린트    | ESLint, Prettier, Husky                        |                |
@@ -18,5 +20,6 @@
 
 - Shadcn/ui는 Base UI 기반이므로 `@base-ui/react`가 함께 설치된다. `components.json`의 `style`은 `base-nova`.
 - `cva`·`cn` 사용 규칙은 [ui-component.md](../convention/ui-component.md) 참고.
+- zod는 API 응답 검증과 폼 검증에 쓴다. 폼에는 `@hookform/resolvers`의 `zodResolver`로 React Hook Form에 연결한다. DTO 타입 생성·응답 검증 규칙은 [data-flow.md](./data-flow.md) 참고.
 - 데이터 페칭·에러 처리 구성은 [data-flow.md](./data-flow.md), Server/Client 렌더링 경계는 [rendering.md](./rendering.md) 참고.
 - 배포·알림 조건은 [ci.md](../collaboration/ci.md) 참고.
