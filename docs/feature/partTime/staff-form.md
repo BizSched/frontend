@@ -104,7 +104,7 @@
 | 뷰어 접힘          | `PartTimeStaffForm` | `useState`            | 상세 패널과 같다. 접힘에 따라 폼 영역 여백도 바뀐다                              |
 | 수정 대상 상세     | 서버 데이터         | 목업 → TanStack Query | 상세 패널과 같은 Query Key를 쓴다. 수정 성공 시 목록·상세 쿼리를 함께 무효화한다 |
 
-- 검증 라이브러리(zod 등)는 의존성에 없으므로 RHF 기본 `rules`로 처리한다 (스케쥴 모달과 같다)
+- 검증은 RHF 기본 `rules`로 처리한다. 폼 검증은 zod 스키마로 바뀔 수 있다 (스케쥴 모달과 같다)
 - 폼 값 타입은 화면 표시 문자열 기준(`birthDate`·`phone`·`hourlyWage`: string, `gender`: `'female' | 'male' | ''`)으로 두고, `PartTimeStaffDetailItem`으로 바꾸는 변환 함수를 유틸에 둔다
 - 첨부파일 폼 값은 기존 파일(`kind: 'saved'`, `id`·`url`)과 새로 고른 파일(`kind: 'new'`, `File` + object URL)을 함께 담는 FE 타입으로 둔다. 둘 다 목록 식별용 `key`를 가진다(기존 `saved-{id}`, 새 파일은 object URL). 뷰어에는 공통으로 `name`·`type`·`url`만 넘긴다
 

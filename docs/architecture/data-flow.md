@@ -17,6 +17,11 @@ BE에서 온 응답(DTO)을 변환 함수(Formatter)를 통해 FE 구조(DAO)로
 
 > **용어 주의**: 여기서 말하는 DAO는 **DTO를 변환한 프론트엔드 구조**를 가리킨다. 백엔드에서 DAO(Data Access Object)는 데이터 접근 계층을 뜻하므로 같은 단어가 서로 다른 의미로 쓰인다. BE와 소통할 때는 "FE DAO" 또는 "DTO 변환 결과"로 풀어서 말한다.
 
+### DTO 타입과 응답 검증
+
+- DTO 타입은 직접 작성하지 않고 BE OpenAPI 명세에서 `openapi-typescript`로 생성한다. 명세와 타입이 어긋나지 않게 하기 위해서다.
+- 생성된 타입은 컴파일 타임 검사만 하므로, 응답의 런타임 검증은 `zod` 스키마로 한다. 검증은 API 레이어에서 Formatter 호출 전에 한다.
+
 ### 변환 함수 호출 위치
 
 API 호출 함수(예: `getNewsList` 등 `entities`의 API 함수) 내부에서 응답을 받은 직후 변환 함수를 호출해 DAO로 변환한 뒤 return한다. Hook이나 Component 단에서는 변환된 DAO만 사용한다.
