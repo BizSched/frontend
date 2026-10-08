@@ -1,6 +1,7 @@
+import 'dotenv/config';
 import { defineConfig } from 'orval';
 
-const SPEC_URL = 'https://bizsched.store/v3/api-docs';
+const SPEC_URL = `${process.env.BE_BASE_URL}/v3/api-docs`;
 
 export default defineConfig({
   apiClient: {
@@ -13,6 +14,9 @@ export default defineConfig({
         mutator: {
           path: './src/lib/api/customFetcher.ts',
           name: 'customFetcher',
+        },
+        fetch: {
+          includeHttpResponseReturnType: false,
         },
       },
     },

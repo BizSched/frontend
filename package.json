@@ -4,7 +4,6 @@
   "private": true,
   "scripts": {
     "predev": "orval",
-    "prebuild": "orval",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -54,6 +53,7 @@
     "@vitejs/plugin-react": "^6.1.1",
     "@vitest/coverage-v8": "5.0.0",
     "chromatic": "^18.10.1",
+    "dotenv": "^18.0.6",
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
     "eslint-config-prettier": "^10.1.8",
