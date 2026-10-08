@@ -17,10 +17,17 @@ BE에서 온 응답(DTO)을 변환 함수(Formatter)를 통해 FE 구조(DAO)로
 
 > **용어 주의**: 여기서 말하는 DAO는 **DTO를 변환한 프론트엔드 구조**를 가리킨다. 백엔드에서 DAO(Data Access Object)는 데이터 접근 계층을 뜻하므로 같은 단어가 서로 다른 의미로 쓰인다. BE와 소통할 때는 "FE DAO" 또는 "DTO 변환 결과"로 풀어서 말한다.
 
-### DTO 타입과 응답 검증
+### API 타입·클라이언트·zod 생성 (orval)
 
-- DTO 타입은 직접 작성하지 않고 BE OpenAPI 명세에서 `openapi-typescript`로 생성한다. 명세와 타입이 어긋나지 않게 하기 위해서다.
-- 생성된 타입은 컴파일 타임 검사만 하므로, 응답의 런타임 검증은 `zod` 스키마로 한다. 검증은 API 레이어에서 Formatter 호출 전에 한다.
+- DTO 타입과 API 호출 함수는 직접 작성하지 않고 BE OpenAPI 명세에서 `orval`로 생성한다 (`client: 'fetch'`). 명세와 타입이 어긋나지 않게 하기 위해서다.
+- 런타임 검증용 `zod` 스키마도 같은 명세에서 `orval`로 함께 생성한다 (`client: 'zod'`). 타입과 zod 스키마를 손으로 따로 유지하면 BE 명세가 바뀔 때 둘이 어긋날 위험이 있어, 같은 소스에서 동기화해서 생성한다.
+- 생성된 타입은 컴파일 타임 검사만 하므로, 응답의 런타임 검증은 생성된 `zod` 스키마로 한다. 검증은 API 레이어에서 Formatter 호출 전에 한다.
+- **TanStack Query 훅은 생성하지 않는다.** orval의 `react-query` 클라이언트 모드는 쓰지 않고, 생성된 fetch 함수를 가져와 Hook 레이어(`hooks/api/`)에서 직접 `queryOptions`/`useQuery`로 조립한다. 이유:
+  - 생성된 훅은 DTO를 그대로 반환해 Formatter·zod 검증을 끼울 지점이 없다.
+  - `queryKey` 구조가 생성기 컨벤션에 묶여 세밀한 캐시 무효화 전략을 설계하기 어렵다.
+  - 서버 prefetch와 클라이언트 `useQuery`가 같은 `queryOptions`를 공유하는 구조([결정 대기 항목](#결정-대기-항목) 참고)와 맞지 않는다.
+- orval 산출물 위치: `src/lib/api/generated/` (손으로 쓴 Fetcher·API 레이어와 분리 — orval이 `generate` 시 타겟 폴더 내용을 정리(clean)하므로 같은 폴더에 두면 안 됨).
+- orval의 `override.mutator`로 생성된 모든 호출 함수가 `serverFetcher`/`clientFetcher`를 거치도록 연결한다. 자세한 설정은 `orval.config.ts` 참고.
 
 ### 변환 함수 호출 위치
 
