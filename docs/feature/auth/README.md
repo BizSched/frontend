@@ -8,7 +8,7 @@
 
 | 경로          | 화면                | 문서                             |
 | ------------- | ------------------- | -------------------------------- |
-| `/login`      | 로그인              | —                                |
+| `/login`      | 로그인              | [login.md](./login.md)           |
 | `/signup`     | 일반 회원가입       | [signup.md](./signup.md)         |
 | `/onboarding` | 소셜 가입 추가 정보 | [onboarding.md](./onboarding.md) |
 
