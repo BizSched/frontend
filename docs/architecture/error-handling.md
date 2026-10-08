@@ -6,7 +6,7 @@ API 에러의 변환·표시 위치·경계 파일 배치의 단일 출처다. [
 
 `API → error formatter → TanStack Query → UI`
 
-- Fetcher는 실패를 `ApiError(errorCode, status)` 또는 `NetworkError`로 변환해 throw한다.
+- Fetcher는 4xx 실패를 `ApiError(errorCode, status, message)`로, 네트워크 오류를 `NetworkError`로 변환해 throw한다. 5xx는 `ApiError`로 변환하지 않는다.
 - TanStack Query는 `throwOnError`로 처리 위치를 나눈다. 컴포넌트 인라인 처리 또는 Error Boundary(`error.tsx`) 위임이다.
 - 컴포넌트는 `format{도메인}Error(error)`가 반환한 메시지를 표시한다.
 - 분기 처리는 `ts-pattern`을 쓴다.
@@ -14,18 +14,33 @@ API 에러의 변환·표시 위치·경계 파일 배치의 단일 출처다. [
 
 ## Fetcher 에러 변환
 
-| 상황                                        | 변환                               | 이유                                                        |
-| ------------------------------------------- | ---------------------------------- | ----------------------------------------------------------- |
-| 실패 응답, body가 JSON                      | `ApiError(body.errorCode, status)` |                                                             |
-| 실패 응답, body가 JSON이 아님(예: 502 HTML) | `ApiError('UNKNOWN', status)`      | status를 보존해야 처리 위치 판단(`throwOnError`)이 동작한다 |
-| 네트워크 오류 · timeout                     | `NetworkError`                     | 서버 응답이 있는 실패와 구분한다                            |
-| 성공 응답 204 No Content                    | `undefined` 반환                   | 빈 body를 JSON으로 파싱하면 실패한다                        |
+| 상황                                          | 변환                                             | 이유                                                                                  |
+| --------------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------- |
+| 4xx 실패 응답, body가 JSON                    | `ApiError(body.errorCode, status, body.message)` | 화면이 errorCode로 분기한다 (예: `TOKEN_EXPIRED` refresh, `INVALID_CREDENTIALS` 안내) |
+| 4xx 실패 응답, body가 JSON이 아님             | `ApiError('UNKNOWN', status)`                    | status를 보존해야 처리 위치 판단(`throwOnError`)이 동작한다                           |
+| 5xx 실패 응답                                 | `ApiError`로 변환하지 않고 일반 `Error`로 throw  | 지금은 5xx를 상황별로 안내하지 않고 공통 문구로 처리한다                              |
+| 네트워크 오류 · timeout                       | `NetworkError`                                   | 서버 응답이 있는 실패와 구분한다                                                      |
+| 성공 응답, body가 비어 있음(204, 200 빈 body) | `undefined` 반환                                 | 빈 body를 JSON으로 파싱하면 실패한다. BE 로그아웃은 200 + 빈 body다                   |
+
+- BFF가 만든 실패 응답도 BE와 같은 형태라서 같은 규칙으로 변환된다. BFF 에러 계약은 [auth.md](./auth.md)의 "BFF 응답 · 에러 계약" 참고.
+- BFF 5xx(`BFF_UPSTREAM_TIMEOUT` 등)를 처리해야 할 때는 BFF 5xx만 골라 변환하지 않고, status 구분 없이 **5xx 전부를 `ApiError`로 변환**하도록 바꾼다. BFF 5xx만 고르면 분기가 늘고 5xx가 `ApiError`와 일반 `Error` 두 종류로 나뉜다. 이때 `throwOnError`와 retry 기준도 status 기준(5xx는 경계·재시도)으로 함께 바꾼다.
+
+## errorCode 이름
+
+BE와 같은 규칙을 따른다. 기준은 Google API 설계 가이드 [AIP-193](https://google.aip.dev/193)의 `ErrorInfo.reason`이다.
+
+- `UPPER_SNAKE_CASE`, 정규식 `[A-Z][A-Z0-9_]+[A-Z0-9]`, 63자 이하
+- HTTP status가 아니라 원인을 나타낸다. `{대상}_{상태}`(예: `TOKEN_EXPIRED`) 또는 `INVALID_{대상}`(예: `INVALID_CREDENTIALS`)
+- 같은 의미면 BE 코드를 그대로 쓴다. 의미가 다를 때만 새로 만든다.
+- BFF가 만드는 코드는 `BFF_` 접두사를 붙인다. BE errorCode는 enum이 아닌 문자열이라 이름이 겹쳐도 컴파일 단계에서 알 수 없다.
+- BFF 코드는 `as const` 상수 하나에 모으고, BFF와 클라이언트 formatter가 함께 import한다.
 
 ## 메시지 변환 (error formatter)
 
 - 도메인 formatter(`format{도메인}Error`)는 **자기 도메인 errorCode만** 매핑한다.
-- 공통 formatter(`formatCommonError`)는 도메인과 무관한 에러를 매핑한다. `UNAUTHORIZED`, `NetworkError`, 알 수 없는 오류.
-- 메시지는 **도메인 매핑 → 공통 매핑 → 기본 문구** 순서로 찾는다.
+- 공통 formatter(`formatCommonError`)는 도메인과 무관한 에러를 매핑한다. `UNAUTHORIZED`, `NetworkError`, `BFF_` 코드, 알 수 없는 오류.
+- 메시지는 **도메인 매핑 → BE `message` → 공통 매핑 → 기본 문구** 순서로 찾는다. BE `message`는 사용자에게 그대로 보여줄 수 있는 문장이다. 도메인 매핑 다음 단계는 공통 formatter가 맡는다.
+- BFF는 `BFF_` 코드의 `message`를 채우지 않는다. 화면 문구는 FE formatter에서만 관리한다.
 - `ApiError` 판별은 `P.instanceOf(ApiError)`로 한다. 매핑에 없는 errorCode는 `.otherwise()`로 공통 formatter에 넘긴다.
 
 ```ts
@@ -57,7 +72,7 @@ const formatStaffError = (error: unknown) =>
 
 중요도는 에러 객체만 보고 알 수 없으므로 두 단계로 나눈다.
 
-1. QueryClient 공통 옵션(`defaultOptions.queries.throwOnError`)에서 status로 판단한다. 5xx·`NetworkError`는 `true`, 4xx는 `false`.
+1. QueryClient 공통 옵션(`defaultOptions.queries.throwOnError`)에서 에러 종류로 판단한다. `ApiError`(4xx)는 `false`, `ApiError`가 아닌 에러(5xx 포함)와 `NetworkError`는 `true`.
 2. 서브 위젯 쿼리는 자기 `queryOptions`에서 `throwOnError: false`로 덮어쓴다.
 
 기본값을 경계 위임 쪽에 두는 이유는, 덮어쓰기를 빠뜨려도 에러가 조용히 묻히지 않게 하기 위해서다. 쿼리별 핵심/서브 구분은 페이지 설계 문서(`feature/{도메인}/{페이지}.md`)의 "상태·데이터"에 적는다.
@@ -68,20 +83,20 @@ const formatStaffError = (error: unknown) =>
 
 ## 에러별 처리
 
-| 에러                 | 조회 — 핵심 데이터                                                            | 조회 — 서브 위젯 | 변경(mutation)                        |
-| -------------------- | ----------------------------------------------------------------------------- | ---------------- | ------------------------------------- |
-| 401                  | 인증 계층에서 로그인 리다이렉트 ([auth.md](./auth.md))                        | 동일             | 동일                                  |
-| 403                  | 경계 (해당 쿼리에서 `throwOnError: true`로 덮어씀)                            | 인라인           | 토스트                                |
-| 404                  | 서버에서 조회하는 엔터티 페이지는 `notFound()`. 클라이언트 전용 조회는 인라인 | 인라인           | 토스트                                |
-| 400 / 409 / 422      | 인라인                                                                        | 인라인           | 폼 인라인 또는 토스트 (도메인 메시지) |
-| 5xx / `NetworkError` | 경계                                                                          | 인라인           | 토스트, 입력값 보존                   |
+| 에러                 | 조회 — 핵심 데이터                                                                                                                      | 조회 — 서브 위젯 | 변경(mutation)                                          |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ---------------- | ------------------------------------------------------- |
+| 401                  | `TOKEN_EXPIRED`면 브라우저의 `customFetcher`가 refresh 후 재시도, 끝내 실패하면 로그인 페이지로 이동 ([auth.md](./auth.md)의 "Refresh") | 동일             | 동일. 단 로그인 실패(`INVALID_CREDENTIALS`)는 폼 인라인 |
+| 403                  | 경계 (해당 쿼리에서 `throwOnError: true`로 덮어씀)                                                                                      | 인라인           | 토스트                                                  |
+| 404                  | 서버에서 조회하는 엔터티 페이지는 `notFound()`. 클라이언트 전용 조회는 인라인                                                           | 인라인           | 토스트                                                  |
+| 400 / 409 / 422      | 인라인                                                                                                                                  | 인라인           | 폼 인라인 또는 토스트 (도메인 메시지)                   |
+| 5xx / `NetworkError` | 경계                                                                                                                                    | 인라인           | 토스트, 입력값 보존                                     |
 
 ## retry
 
-- Fetcher는 재시도하지 않는다. 재시도는 TanStack Query가 담당한다.
-- **4xx는 재시도하지 않고**, 5xx·`NetworkError`만 재시도한다. 횟수는 기본값(3회)을 쓴다.
+- Fetcher는 재시도하지 않는다. 재시도는 TanStack Query가 담당한다. 예외는 아래 401 refresh 재시도 하나다.
+- **`ApiError`(4xx)는 재시도하지 않고**, `ApiError`가 아닌 에러(5xx 포함)·`NetworkError`만 재시도한다. 횟수는 기본값(3회)을 쓴다.
 - mutation은 재시도하지 않는다. (기본값)
-- 401의 refresh 후 재시도는 인증 계층이 맡는다. ([auth.md](./auth.md))
+- 401 `TOKEN_EXPIRED`는 브라우저의 `customFetcher`가 refresh한 뒤 원래 요청을 1회만 재시도한다. 이 재시도는 TanStack Query의 재시도와 별개이며, refresh가 끝나기 전에는 에러를 밖으로 내보내지 않는다. 흐름은 [auth.md](./auth.md)의 "Refresh"가 단일 출처다.
 - QueryClient 공통 옵션(`defaultOptions.queries.retry`)에 한 번만 설정한다.
 
 ## 경계 파일 배치
@@ -112,13 +127,12 @@ const formatStaffError = (error: unknown) =>
 
 ## 결정 대기 항목
 
-| 항목                   | 내용                                                                                                                                     | 상태      |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | --------- |
-| errorCode 예외         | 같은 status 안에서 errorCode로 처리 위치를 달리해야 하는 경우가 있는지. BE errorCode 명세 확인 후 필요한 경우에만 추가                   | 확인 필요 |
-| errorCode 타입         | union 타입으로 만들어 exhaustive 검사를 할지. DTO 타입은 openapi-typescript로 생성하므로 BE 명세의 errorCode 정의 방식(enum 여부)에 종속 | 결정 필요 |
-| 공통 메시지 문구       | `formatCommonError`의 기본 문구, 경계 화면 문구                                                                                          | 확인 필요 |
-| 그 외 에러의 처리 위치 | `ApiError`·`NetworkError`가 아닌 에러(코드 버그 등)를 경계로 보낼지 인라인으로 처리할지                                                  | 결정 필요 |
-| 서버 에러 "다시 시도"  | Server Component에서 난 에러의 `reset()` 재시도 동작                                                                                     | 확인 필요 |
+| 항목                  | 내용                                                                                                                                  | 상태      |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| errorCode 예외        | 같은 status 안에서 errorCode로 처리 위치를 달리해야 하는 경우가 있는지. BE errorCode 명세 확인 후 필요한 경우에만 추가                | 확인 필요 |
+| errorCode 타입        | union 타입으로 만들어 exhaustive 검사를 할지. BE 명세의 errorCode는 enum이 아닌 문자열이라 orval 생성 타입으로는 union을 얻을 수 없다 | 결정 필요 |
+| 공통 메시지 문구      | `formatCommonError`의 기본 문구, 경계 화면 문구                                                                                       | 확인 필요 |
+| 서버 에러 "다시 시도" | Server Component에서 난 에러의 `reset()` 재시도 동작                                                                                  | 확인 필요 |
 
 ## 참고
 

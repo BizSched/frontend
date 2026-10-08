@@ -1,6 +1,6 @@
 # 폴더 구조 / 컴포넌트 분리 기준
 
-프로젝트 최상위에는 `app/`(Next.js App Router 라우트 진입점), `src/`, `test/`를 나란히 둔다. `src/`는 `components`, `hooks`, `lib`, `stores`, `providers`, `assets`로 구성한다.
+프로젝트 최상위에는 `app/`(Next.js App Router 라우트 진입점), `src/`, `test/`, `proxy.ts`를 나란히 둔다. `proxy.ts`는 Next 16이 `app/`과 같은 위치에서 찾는다. `src/`는 `components`, `hooks`, `lib`, `stores`, `providers`, `assets`로 구성한다.
 
 각 폴더에 대응하는 절대경로 alias는 [naming.md](../convention/naming.md#import-순서--절대경로-alias) 참고.
 
@@ -27,7 +27,8 @@
 
 `layout.tsx`, `page.tsx`, `globals.css`가 여기 위치한다.
 
-- `app/`: `login/`, `signup/`, `onboarding/`, `(main)/`, `layout.tsx`, `page.tsx`
+- `app/`: `api/`, `login/`, `signup/`, `onboarding/`, `(main)/`, `layout.tsx`, `page.tsx`
+- `api/`: BFF Route Handler. 인증 전용 경로(`auth/login/`, `auth/logout/` 등)와 범용 통과 경로(`[...path]/`)를 둔다 ([auth.md](./auth.md)의 "BFF 경로")
 - `(main)/`: `dashboard/`, `partTime/`(`schedule/`, `staff/`), `sales/`(`dashboard/`, `details/`), `task/`(`calendar/`, `form/`, `detail/`), `layout.tsx`
 
 ### 라우트 그룹 `(main)`
@@ -47,7 +48,15 @@
 
 - `components/`: `_common/`(Shadcn/ui 기반으로 재구성한 컴포넌트를 `<Component>/<Component>.tsx`에 둔다 — [ui-component.md](../convention/ui-component.md) 참고), `auth/`(`form/`), `dashboard/`, `landing/`, `partTime/`(`schedule/`, `staff/`), `sales/`(`chart/`, `table/`, `form/`, `category/`), `task/`(`calendar/`, `form/`, `detail/`)
 - `hooks/`: `types/`, `api/`
+  - `api/{도메인}QueryOptions.ts`: `xxxKeys`와 `xxxQueryOptions`. 서버 prefetch와 클라이언트 `useQuery`가 같은 `queryOptions`를 쓰므로 `'use client'`를 붙이지 않는다
+  - `api/use{도메인}.ts`: `queryOptions`를 쓰는 `useQuery`·`useMutation` 훅
 - `lib/`: `utility/`, `api/`, `types/`
+  - `api/customFetcher.ts`: 공통 Fetcher. orval 생성 함수의 mutator
+  - `api/apiError.ts`: `ApiError`·`NetworkError`. 서버·클라이언트 공용
+  - `api/getAuthHeaders.ts`: 쿠키의 access 토큰으로 `Authorization` 헤더를 만드는 헬퍼. `server-only`. 서버 prefetch와 BFF Route Handler가 함께 써서 `bff/` 밖에 둔다
+  - `api/generated/`: orval 생성 요청 함수·zod 스키마. 직접 수정하지 않고, 생성 결과를 커밋한다
+  - `api/entities/{도메인}/`: 생성 함수 호출 → zod 검증 → DAO 변환까지 끝낸 API 함수(`api.ts`)와 DTO → DAO 변환 함수(`to{DAO명}.ts`). Hook·Component는 `api.ts`의 함수만 쓴다
+  - `api/bff/`: BFF Route Handler 유틸 (쿠키 읽기·쓰기, Origin 검사, 에러 응답 변환 등). 모두 `server-only`
 - `providers/`: `auth/`, `partTime/`, `sales/`, `task/`
 - `stores/`: `auth/`, `partTime/`, `sales/`, `task/`
 - `assets/`: `styles/` (전역 CSS 토큰: `breakpoints`, `colors`, `theme`, `typography`)
