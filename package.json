@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "orval",
+    "prebuild": "orval",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -14,7 +16,8 @@
     "prepare": "husky",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "chromatic": "chromatic"
+    "chromatic": "chromatic",
+    "generate:api": "orval"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -60,7 +63,7 @@
     "husky": "^9.1.7",
     "jsdom": "^30.0.1",
     "lint-staged": "^17.5.0",
-    "openapi-typescript": "^7.13.0",
+    "orval": "^8.40.0",
     "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.8.1",
     "storybook": "10.6.0",

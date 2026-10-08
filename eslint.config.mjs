@@ -14,6 +14,7 @@ export default tseslint.config({
     'dist/**',
     'coverage/**',
     '*.config.{js,mjs,ts}',
+    'src/lib/api/generated/**',
   ],
 }, ...nextVitals, ...nextTs, prettierConfig, {
   plugins: { import: importPlugin },

@@ -48,3 +48,6 @@ storybook-static
 
 # docs
 /docs/superpowers
+
+# orval generated output (regenerated via predev/prebuild)
+/src/lib/api/generated
