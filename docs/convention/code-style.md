@@ -6,7 +6,8 @@
   - 예외: 멤버 추가 없이 라이브러리 Props를 그대로 넘길 때는 `type` 별칭을 쓴다 (예: `type RadioGroupProps = RadioGroupPrimitive.Props`). 빈 `interface ... extends X {}`는 ESLint `@typescript-eslint/no-empty-object-type`에 걸린다.
 - 각 파일은 네임드 export를 사용한다. (`export { Components }`)
   - 예외: 프레임워크가 default export를 읽는 파일은 default export를 쓴다. ESLint `import/no-default-export`도 이 파일들에서는 꺼져 있다.
-    - Next.js App Router: `page`, `layout`, `loading`, `error`, `not-found`, `route`
+    - Next.js App Router: `page`, `layout`, `loading`, `error`, `not-found`
+    - Route Handler(`route`)는 default export가 아니라 HTTP 메서드 이름의 named export(`GET`, `POST` 등)를 쓴다. Next가 default export를 읽지 않는다.
     - Storybook(CSF): `.storybook/main.ts`, `.storybook/preview.tsx`, `*.stories.tsx`
 - import는 `index.ts`를 거치지 않고 각 파일에서 직접 named import 한다.
   - `index.ts`로 모아 re-export하는 배럴 파일은 사용하지 않는다.
