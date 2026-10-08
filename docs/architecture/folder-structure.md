@@ -48,8 +48,9 @@
 
 - `components/`: `_common/`(Shadcn/ui 기반으로 재구성한 컴포넌트를 `<Component>/<Component>.tsx`에 둔다 — [ui-component.md](../convention/ui-component.md) 참고), `auth/`(`form/`), `dashboard/`, `landing/`, `partTime/`(`schedule/`, `staff/`), `sales/`(`chart/`, `table/`, `form/`, `category/`), `task/`(`calendar/`, `form/`, `detail/`)
 - `hooks/`: `types/`, `api/`
-  - `api/{도메인}QueryOptions.ts`: `xxxKeys`와 `xxxQueryOptions`. 서버 prefetch와 클라이언트 `useQuery`가 같은 `queryOptions`를 쓰므로 `'use client'`를 붙이지 않는다
-  - `api/use{도메인}.ts`: `queryOptions`를 쓰는 `useQuery`·`useMutation` 훅
+  - `api/{도메인}/`: 도메인별 하위 폴더. `lib/api/entities/{도메인}/`와 폴더명을 맞춘다 — CRUD 도메인은 훅이 여러 개(목록/생성/수정/삭제) 생겨 파일이 금방 늘어나므로, 도메인별로 묶어 `hooks/api/` 바로 아래가 평평해지지 않게 한다
+    - `{도메인}QueryOptions.ts`: `xxxKeys`와 `xxxQueryOptions`. 서버 prefetch와 클라이언트 `useQuery`가 같은 `queryOptions`를 쓰므로 `'use client'`를 붙이지 않는다. 폴더 안이라도 파일명의 `{도메인}` 접두사는 유지한다 — import한 곳에서 파일명만 보고 바로 알아볼 수 있어야 한다
+    - `use{도메인}.ts`: `queryOptions`를 쓰는 `useQuery`·`useMutation` 훅
 - `lib/`: `utility/`, `api/`, `types/`
   - `api/customFetcher.ts`: 공통 Fetcher. orval 생성 함수의 mutator
   - `api/apiError.ts`: `ApiError`·`NetworkError`. 서버·클라이언트 공용
