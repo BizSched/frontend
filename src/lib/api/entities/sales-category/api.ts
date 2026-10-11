@@ -5,8 +5,8 @@ import {
   salesCategoryListResponseSchema,
 } from './toSalesCategory';
 
-export const getSalesCategories = async () => {
-  const response = await findAll();
+export const getSalesCategories = async (options?: RequestInit) => {
+  const response = await findAll(options);
   const dto = salesCategoryListResponseSchema.parse(response);
   return toSalesCategoryList(dto);
 };

@@ -3,10 +3,11 @@
 import { format, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale/ko';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
-import { useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
 
 import { Card } from '@components/_common/Card/Card';
-import { MonthDropdownButton } from '@components/_common/MonthDropdownButton/MonthDropdownButton';
+import { MonthSelectDropdown } from '@components/_common/MonthSelectDropdown/MonthSelectDropdown';
 import { PaginationButton } from '@components/_common/Pagination/PaginationButton';
 import { PaginationContent } from '@components/_common/Pagination/PaginationContent';
 import { PaginationItem } from '@components/_common/Pagination/PaginationItem';
@@ -14,26 +15,77 @@ import { PaginationRoot } from '@components/_common/Pagination/PaginationRoot';
 import { Table } from '@components/_common/Table/Table';
 
 import { useSalesList } from '@hooks/api/sales/useSalesList';
+import { useSalesMonthTotal } from '@hooks/api/sales/useSalesMonthTotal';
 import { useSalesCategoryList } from '@hooks/api/sales-category/useSalesCategoryList';
+import { usePageSearchParam } from '@hooks/pagination/usePageSearchParam';
+
+import { formatSalesError } from '@lib/utilities/sales/formatSalesError';
+import { isSalesMonth } from '@lib/utilities/sales/salesMonth';
 
 const NUMBER_FORMAT = new Intl.NumberFormat('ko-KR');
+const PAGE_SIZE = 10;
 
-function SalesDetailsSection() {
-  // note: 월 선택 UI 추가하기
-  const [page, setPage] = useState(1);
+const createUrl = (pathname: string, searchParams: URLSearchParams) => {
+  const query = searchParams.toString();
 
-  const { data: categories, isLoading: isCategoriesLoading } =
-    useSalesCategoryList();
+  return query ? `${pathname}?${query}` : pathname;
+};
+
+interface SalesDetailsSectionProps {
+  initialMonth: string;
+}
+
+function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { currentPage: page, setCurrentPage } = usePageSearchParam();
+  const monthParam = searchParams.get('month');
+  const month = isSalesMonth(monthParam) ? monthParam : initialMonth;
+
   const {
     data: salesList,
     isLoading: isSalesLoading,
-    isError,
-  } = useSalesList({ page });
+    isError: isSalesError,
+    error: salesError,
+    refetch: refetchSales,
+  } = useSalesList({ month, page, size: PAGE_SIZE });
+  const {
+    data: monthTotal,
+    isLoading: isMonthTotalLoading,
+    isError: isMonthTotalError,
+    error: monthTotalError,
+    refetch: refetchMonthTotal,
+  } = useSalesMonthTotal({ month });
+  const {
+    error: categoriesError,
+    data: categories,
+    isLoading: isCategoriesLoading,
+    isError: isCategoriesError,
+    refetch: refetchCategories,
+  } = useSalesCategoryList();
+  const isLoading =
+    isCategoriesLoading || isSalesLoading || isMonthTotalLoading;
+  const isError = isSalesError || isMonthTotalError || isCategoriesError;
+  const error = salesError || monthTotalError || categoriesError;
+  const totalPages = Math.max(salesList?.totalPage ?? 1, 1);
 
-  const isLoading = isCategoriesLoading || isSalesLoading;
+  useEffect(() => {
+    if (salesList && page > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [page, salesList, setCurrentPage, totalPages]);
 
-  const monthTotal =
-    salesList?.items.reduce((sum, sale) => sum + sale.totalAmount, 0) ?? 0;
+  const handleMonthChange = (selectedMonth: number) => {
+    const nextMonth = `${month.slice(0, 4)}-${String(selectedMonth).padStart(2, '0')}`;
+
+    if (nextMonth === month) return;
+
+    const nextSearchParams = new URLSearchParams(searchParams.toString());
+    nextSearchParams.set('month', nextMonth);
+    nextSearchParams.delete('page');
+    router.push(createUrl(pathname, nextSearchParams));
+  };
 
   return (
     <Card
@@ -44,12 +96,11 @@ function SalesDetailsSection() {
       <div className="space-y-1">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <MonthDropdownButton
-              type="button"
+            <MonthSelectDropdown
+              value={Number(month.slice(5, 7))}
+              onChange={handleMonthChange}
               className="max-desktop:min-w-0 max-desktop:gap-1 max-desktop:text-base"
-            >
-              전체
-            </MonthDropdownButton>
+            />
             <h2
               id="sales-month-title"
               className="text-xl leading-[29px] font-bold text-slate-950 max-desktop:text-lg max-desktop:leading-7"
@@ -58,19 +109,33 @@ function SalesDetailsSection() {
             </h2>
           </div>
           <span className="text-xs leading-4 font-medium text-slate-500">
-            페이지 합계
+            월 전체 합계
           </span>
         </div>
         <p className="text-right text-base leading-6 font-bold text-slate-800 max-desktop:text-sm max-tablet:text-base">
-          합계 {NUMBER_FORMAT.format(monthTotal)} 원
+          합계{' '}
+          {monthTotal === undefined
+            ? '-'
+            : `${NUMBER_FORMAT.format(monthTotal)} 원`}
         </p>
       </div>
 
       <div className="border-b border-slate-500 pb-2">
         {isError ? (
-          <p className="py-8 text-center text-sm text-slate-500">
-            매출 내역을 불러오지 못했습니다.
-          </p>
+          <div className="py-8 text-center text-sm text-slate-500">
+            <p>{formatSalesError(error)}</p>
+            <button
+              type="button"
+              onClick={() => {
+                void refetchSales();
+                void refetchMonthTotal();
+                void refetchCategories();
+              }}
+              className="mt-2 cursor-pointer font-semibold text-slate-700 underline"
+            >
+              다시 시도
+            </button>
+          </div>
         ) : isLoading ? (
           <p className="py-8 text-center text-sm text-slate-500">
             매출 내역을 불러오는 중입니다.
@@ -174,32 +239,31 @@ function SalesDetailsSection() {
             <PaginationButton
               aria-label="이전 페이지"
               disabled={page <= 1}
-              onClick={() => setPage((current) => current - 1)}
+              onClick={() => setCurrentPage(page - 1)}
               className="max-desktop:size-8 max-desktop:rounded-md max-desktop:text-xs"
             >
               <ChevronLeftIcon aria-hidden="true" />
             </PaginationButton>
           </PaginationItem>
-          {Array.from(
-            { length: salesList?.totalPage ?? 1 },
-            (_, index) => index + 1,
-          ).map((pageNumber) => (
-            <PaginationItem key={pageNumber}>
-              <PaginationButton
-                isActive={pageNumber === page}
-                aria-label={`${pageNumber}페이지`}
-                onClick={() => setPage(pageNumber)}
-                className="max-desktop:size-8 max-desktop:rounded-md max-desktop:text-xs"
-              >
-                {pageNumber}
-              </PaginationButton>
-            </PaginationItem>
-          ))}
+          {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+            (pageNumber) => (
+              <PaginationItem key={pageNumber}>
+                <PaginationButton
+                  isActive={pageNumber === page}
+                  aria-label={`${pageNumber}페이지`}
+                  onClick={() => setCurrentPage(pageNumber)}
+                  className="max-desktop:size-8 max-desktop:rounded-md max-desktop:text-xs"
+                >
+                  {pageNumber}
+                </PaginationButton>
+              </PaginationItem>
+            ),
+          )}
           <PaginationItem className="ml-1.5">
             <PaginationButton
               aria-label="다음 페이지"
-              disabled={page >= (salesList?.totalPage ?? 1)}
-              onClick={() => setPage((current) => current + 1)}
+              disabled={page >= totalPages}
+              onClick={() => setCurrentPage(page + 1)}
               className="max-desktop:size-8 max-desktop:rounded-md max-desktop:text-xs"
             >
               <ChevronRightIcon aria-hidden="true" />

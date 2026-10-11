@@ -5,7 +5,8 @@ export const salesCategoryKeys = {
   list: () => [...salesCategoryKeys.all, 'list'] as const,
 };
 
-export const salesCategoryListQueryOptions = () => ({
+export const salesCategoryListQueryOptions = (options?: RequestInit) => ({
   queryKey: salesCategoryKeys.list(),
-  queryFn: () => getSalesCategories(),
+  queryFn: () => getSalesCategories(options),
+  staleTime: 60_000,
 });

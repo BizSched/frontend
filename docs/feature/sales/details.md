@@ -46,7 +46,7 @@
 - `page.tsx`는 Server Component로 둔다. 조회 조건을 URL에서 읽고 첫 목록 prefetch를 담당한다.
 - 월 선택·페이지 이동·모달·행 편집·mutation을 사용하는 가장 말단 영역에만 `"use client"`를 둔다.
 - Server → Client로 넘기는 FE 데이터는 문자열·숫자·배열·일반 객체만 사용한다. `Date` 객체와 서버 전용 모듈을 넘기지 않는다.
-- 서버 fetcher는 쿠키 인증을 명시적으로 전달하고 사용자별 응답을 캐시하지 않는다. 서버/클라이언트 fetcher 구조는 [데이터 흐름 문서의 미확정 사항](../../architecture/data-flow.md#결정-대기-항목)을 확정한 뒤 선택한다.
+- 서버 fetcher는 쿠키 인증을 명시적으로 전달하고 사용자별 응답을 캐시하지 않는다. 서버는 `getAuthHeaders()` 결과를 공통 query options의 두 번째 인자로 전달한다. 클라이언트는 같은 query options를 인증 헤더 없이 사용한다.
 
 [렌더링 금지 목록](../../architecture/rendering.md#금지-목록-리뷰-체크리스트)은 구현 PR에서 항목별로 점검한다.
 

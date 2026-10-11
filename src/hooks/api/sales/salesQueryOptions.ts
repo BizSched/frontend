@@ -1,4 +1,4 @@
-import { getSalesList } from '@lib/api/entities/sales/api';
+import { getSalesList, getSalesMonthTotal } from '@lib/api/entities/sales/api';
 import type {
   FindAll3Params,
   FindSummaryParams,
@@ -12,7 +12,20 @@ export const salesKeys = {
     [...salesKeys.all, 'monthTotal', params] as const,
 };
 
-export const salesListQueryOptions = (params?: FindAll3Params) => ({
+export const salesListQueryOptions = (
+  params?: FindAll3Params,
+  options?: RequestInit,
+) => ({
   queryKey: salesKeys.list(params),
-  queryFn: () => getSalesList(params),
+  queryFn: () => getSalesList(params, options),
+  staleTime: 60_000,
+});
+
+export const salesMonthTotalQueryOptions = (
+  params?: FindSummaryParams,
+  options?: RequestInit,
+) => ({
+  queryKey: salesKeys.monthTotal(params),
+  queryFn: () => getSalesMonthTotal(params, options),
+  staleTime: 60_000,
 });
