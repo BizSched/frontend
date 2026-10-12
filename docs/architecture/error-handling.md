@@ -41,6 +41,7 @@ BE와 같은 규칙을 따른다. 기준은 Google API 설계 가이드 [AIP-193
 - 공통 formatter(`formatCommonError`)는 도메인과 무관한 에러를 매핑한다. `UNAUTHORIZED`, `NetworkError`, `BFF_` 코드, 알 수 없는 오류.
 - 메시지는 **도메인 매핑 → BE `message` → 공통 매핑 → 기본 문구** 순서로 찾는다. BE `message`는 사용자에게 그대로 보여줄 수 있는 문장이다. 도메인 매핑 다음 단계는 공통 formatter가 맡는다.
 - BFF는 `BFF_` 코드의 `message`를 채우지 않는다. 화면 문구는 FE formatter에서만 관리한다.
+- 공통 formatter의 기본 문구는 "일시적인 오류가 발생했어요. 잠시 후 다시 시도해주세요."다. BE `message`도 공통 매핑도 없는 에러(5xx, `NetworkError`, `BFF_` 코드 등)에 쓴다.
 - `ApiError` 판별은 `P.instanceOf(ApiError)`로 한다. 매핑에 없는 errorCode는 `.otherwise()`로 공통 formatter에 넘긴다.
 
 ```ts
@@ -131,7 +132,7 @@ const formatStaffError = (error: unknown) =>
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------- |
 | errorCode 예외        | 같은 status 안에서 errorCode로 처리 위치를 달리해야 하는 경우가 있는지. BE errorCode 명세 확인 후 필요한 경우에만 추가                | 확인 필요 |
 | errorCode 타입        | union 타입으로 만들어 exhaustive 검사를 할지. BE 명세의 errorCode는 enum이 아닌 문자열이라 orval 생성 타입으로는 union을 얻을 수 없다 | 결정 필요 |
-| 공통 메시지 문구      | `formatCommonError`의 기본 문구, 경계 화면 문구                                                                                       | 확인 필요 |
+| 경계 화면 문구        | `error.tsx` 경계 화면 문구                                                                                                            | 확인 필요 |
 | 서버 에러 "다시 시도" | Server Component에서 난 에러의 `reset()` 재시도 동작                                                                                  | 확인 필요 |
 
 ## 참고
