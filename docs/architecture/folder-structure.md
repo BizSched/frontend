@@ -53,6 +53,7 @@
 - `lib/`: `utility/`, `api/`, `types/`
   - `api/customFetcher.ts`: 공통 Fetcher. orval 생성 함수의 mutator
   - `api/apiError.ts`: `ApiError`·`NetworkError`. 서버·클라이언트 공용
+  - `api/bffErrorCodes.ts`: BFF가 만드는 `BFF_` errorCode 상수. BFF와 클라이언트 formatter가 함께 import하므로 `server-only`인 `bff/` 밖에 둔다
   - `api/getAuthHeaders.ts`: 쿠키의 access 토큰으로 `Authorization` 헤더를 만드는 헬퍼. `server-only`. 서버 prefetch와 BFF Route Handler가 함께 써서 `bff/` 밖에 둔다
   - `api/generated/`: orval 생성 요청 함수·zod 스키마. 직접 수정하지 않고, 생성 결과를 커밋한다
   - `api/entities/{도메인}/`: 생성 함수 호출 → zod 검증 → DAO 변환까지 끝낸 API 함수(`api.ts`)와 DTO → DAO 변환 함수(`to{DAO명}.ts`). Hook·Component는 `api.ts`의 함수만 쓴다
