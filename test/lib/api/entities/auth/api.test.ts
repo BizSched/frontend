@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
 
 import { customFetcher } from '@lib/api/customFetcher';
-import { postLogin } from '@lib/api/entities/auth/api';
+import { postLogin, postLogout } from '@lib/api/entities/auth/api';
 
 vi.mock('@lib/api/customFetcher', () => ({ customFetcher: vi.fn() }));
 
@@ -36,5 +36,20 @@ describe('postLogin', () => {
     await expect(
       postLogin({ email: USER.email, password: 'pw' }),
     ).rejects.toBeInstanceOf(ZodError);
+  });
+});
+
+describe('postLogout', () => {
+  beforeEach(() => {
+    vi.mocked(customFetcher).mockReset();
+  });
+
+  it('BFF 로그아웃 경로로 POST 요청한다', async () => {
+    vi.mocked(customFetcher).mockResolvedValue(undefined);
+
+    await expect(postLogout()).resolves.toBeUndefined();
+    expect(customFetcher).toHaveBeenCalledWith('/api/auth/logout', {
+      method: 'POST',
+    });
   });
 });

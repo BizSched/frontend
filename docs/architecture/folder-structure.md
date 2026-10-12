@@ -52,7 +52,9 @@
     - `{도메인}QueryOptions.ts`: `xxxKeys`와 `xxxQueryOptions`. 서버 prefetch와 클라이언트 `useQuery`가 같은 `queryOptions`를 쓰므로 `'use client'`를 붙이지 않는다. 폴더 안이라도 파일명의 `{도메인}` 접두사는 유지한다 — import한 곳에서 파일명만 보고 바로 알아볼 수 있어야 한다
     - `use{도메인}.ts`: `queryOptions`를 쓰는 `useQuery`·`useMutation` 훅
 - `lib/`: `utility/`, `api/`, `types/`
-  - `api/customFetcher.ts`: 공통 Fetcher. orval 생성 함수의 mutator
+  - `api/customFetcher.ts`: 공통 Fetcher. orval 생성 함수의 mutator. 브라우저에서 401 `TOKEN_EXPIRED`를 받으면 refresh 후 1회 재시도한다
+  - `api/sendRequest.ts`: 요청 1회 실행(baseURL, timeout·signal 병합, 에러 변환). `customFetcher`와 `authSession`이 쓰고, 다른 곳에서는 직접 쓰지 않는다
+  - `api/authSession.ts`: 브라우저 세션 처리. refresh(탭 안 single-flight), 세션 정리, 전체 새로고침 로그인 이동(`redirectToLogin`). `customFetcher`와 로그아웃 훅이 함께 써서 따로 둔다
   - `api/apiError.ts`: `ApiError`·`NetworkError`. 서버·클라이언트 공용
   - `api/bffErrorCodes.ts`: BFF가 만드는 `BFF_` errorCode 상수. BFF와 클라이언트 formatter가 함께 import하므로 `server-only`인 `bff/` 밖에 둔다
   - `api/formatCommonError.ts`: 도메인과 무관한 에러의 화면 문구 변환 (공통 formatter)

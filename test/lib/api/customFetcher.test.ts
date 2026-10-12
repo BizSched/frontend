@@ -335,3 +335,185 @@ describe('customFetcher', () => {
     });
   });
 });
+
+describe('customFetcher 브라우저 401 refresh', () => {
+  type Handler = () => Response | Promise<Response>;
+
+  const assign = vi.fn();
+
+  const emptyResponse = () => new Response(null, { status: 204 });
+  const errorResponse = (errorCode: string, status = 401) =>
+    jsonResponse({ code: status, message: '', errorCode }, status);
+
+  const mockRoutes = (routes: Record<string, Handler[]>) => {
+    const fetchMock = vi.fn(async (url: string, init?: RequestInit) => {
+      const key = `${init?.method ?? 'GET'} ${url}`;
+      const handler = routes[key]?.shift();
+      if (!handler) throw new Error(`예상하지 못한 요청: ${key}`);
+      return handler();
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    return fetchMock;
+  };
+
+  const calledKeys = (fetchMock: ReturnType<typeof mockRoutes>) =>
+    fetchMock.mock.calls.map(
+      ([url, init]) => `${init?.method ?? 'GET'} ${url}`,
+    );
+
+  let fetcher: typeof customFetcher;
+
+  beforeEach(async () => {
+    vi.resetModules();
+    ({ customFetcher: fetcher } = await import('@lib/api/customFetcher'));
+    assign.mockReset();
+    vi.stubGlobal('window', { location: { assign } });
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('TOKEN_EXPIRED면 refresh 후 원래 요청을 1회 재시도한다', async () => {
+    const fetchMock = mockRoutes({
+      'GET /api/staff': [
+        () => errorResponse('TOKEN_EXPIRED'),
+        () => jsonResponse({ ok: true }, 200),
+      ],
+      'POST /api/auth/refresh': [emptyResponse],
+    });
+
+    await expect(fetcher('/api/staff')).resolves.toEqual({ ok: true });
+    expect(calledKeys(fetchMock)).toEqual([
+      'GET /api/staff',
+      'POST /api/auth/refresh',
+      'GET /api/staff',
+    ]);
+  });
+
+  it('refresh가 실패해도 다른 탭이 먼저 refresh했을 수 있으므로 원래 요청을 1회 재시도한다', async () => {
+    const fetchMock = mockRoutes({
+      'GET /api/staff': [
+        () => errorResponse('TOKEN_EXPIRED'),
+        () => jsonResponse({ ok: true }, 200),
+      ],
+      'POST /api/auth/refresh': [() => errorResponse('INVALID_REFRESH_TOKEN')],
+    });
+
+    await expect(fetcher('/api/staff')).resolves.toEqual({ ok: true });
+    expect(calledKeys(fetchMock)).not.toContain('DELETE /api/auth/session');
+    expect(assign).not.toHaveBeenCalled();
+  });
+
+  it('재시도도 401이면 세션을 정리하고 로그인 페이지로 이동한 뒤 에러를 던진다', async () => {
+    const fetchMock = mockRoutes({
+      'GET /api/staff': [
+        () => errorResponse('TOKEN_EXPIRED'),
+        () => errorResponse('TOKEN_EXPIRED'),
+      ],
+      'POST /api/auth/refresh': [() => errorResponse('INVALID_REFRESH_TOKEN')],
+      'DELETE /api/auth/session': [emptyResponse],
+    });
+
+    await expect(fetcher('/api/staff')).rejects.toMatchObject({
+      status: 401,
+      errorCode: 'TOKEN_EXPIRED',
+    });
+    expect(calledKeys(fetchMock)).toContain('DELETE /api/auth/session');
+    expect(assign).toHaveBeenCalledWith('/login');
+  });
+
+  it('rotation에 유예가 없으므로 동시에 TOKEN_EXPIRED를 받은 요청들은 refresh를 한 번만 보낸다', async () => {
+    let openRefresh = () => {};
+    const refreshGate = new Promise<void>((resolve) => {
+      openRefresh = resolve;
+    });
+    const fetchMock = mockRoutes({
+      'GET /api/staff': [
+        () => errorResponse('TOKEN_EXPIRED'),
+        () => jsonResponse({ staff: true }, 200),
+      ],
+      'GET /api/sales': [
+        () => errorResponse('TOKEN_EXPIRED'),
+        () => jsonResponse({ sales: true }, 200),
+      ],
+      'POST /api/auth/refresh': [() => refreshGate.then(emptyResponse)],
+    });
+
+    const staff = fetcher('/api/staff');
+    const sales = fetcher('/api/sales');
+    await vi.waitFor(() =>
+      expect(fetchMock.mock.calls.length).toBeGreaterThanOrEqual(3),
+    );
+    openRefresh();
+
+    await expect(Promise.all([staff, sales])).resolves.toEqual([
+      { staff: true },
+      { sales: true },
+    ]);
+    expect(
+      calledKeys(fetchMock).filter((key) => key === 'POST /api/auth/refresh'),
+    ).toHaveLength(1);
+  });
+
+  it.each(['UNAUTHORIZED', 'INVALID_CREDENTIALS'])(
+    '401 %s는 refresh하지 않는다',
+    async (errorCode) => {
+      const fetchMock = mockRoutes({
+        'GET /api/staff': [() => errorResponse(errorCode)],
+      });
+
+      await expect(fetcher('/api/staff')).rejects.toMatchObject({
+        errorCode,
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it.each([
+    ['POST', '/api/auth/login'],
+    ['POST', '/api/auth/refresh'],
+    ['DELETE', '/api/auth/session'],
+  ])(
+    'refresh가 refresh를 부르는 반복을 막기 위해 %s %s 요청은 refresh하지 않는다',
+    async (method, url) => {
+      const fetchMock = mockRoutes({
+        [`${method} ${url}`]: [() => errorResponse('TOKEN_EXPIRED')],
+      });
+
+      await expect(fetcher(url, { method })).rejects.toMatchObject({
+        errorCode: 'TOKEN_EXPIRED',
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it('로그아웃 요청은 refresh 후 재시도한다', async () => {
+    const fetchMock = mockRoutes({
+      'POST /api/auth/logout': [
+        () => errorResponse('TOKEN_EXPIRED'),
+        emptyResponse,
+      ],
+      'POST /api/auth/refresh': [emptyResponse],
+    });
+
+    await expect(
+      fetcher('/api/auth/logout', { method: 'POST' }),
+    ).resolves.toBeUndefined();
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it('서버에서는 refresh하지 않는다', async () => {
+    vi.unstubAllGlobals();
+    vi.stubEnv('BE_BASE_URL', BE_BASE_URL);
+    const fetchMock = mockRoutes({
+      [`GET ${BE_BASE_URL}/api/staff`]: [() => errorResponse('TOKEN_EXPIRED')],
+    });
+
+    await expect(fetcher('/api/staff')).rejects.toMatchObject({
+      errorCode: 'TOKEN_EXPIRED',
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    vi.unstubAllEnvs();
+  });
+});

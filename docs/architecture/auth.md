@@ -49,7 +49,7 @@ BE는 `accessToken` / `refreshToken`을 응답 body로 주고, 보호 API에 `Au
 - **로그아웃**: 로그아웃 Route Handler → access 토큰으로 BE 로그아웃 API 호출 → 성공하면 세 쿠키를 `Max-Age=0`으로 삭제.
   - BE가 401을 주면 쿠키를 지우지 않고 401을 그대로 전달한다. 클라이언트가 refresh 후 로그아웃을 다시 호출한다. 쿠키만 지우면 서버의 refresh 토큰이 만료 전까지 유효하게 남는다.
   - refresh까지 실패하거나 BE가 401 `UNAUTHORIZED`(토큰 없음·잘못됨, refresh 대상 아님)를 주면, 클라이언트가 세션 정리 경로로 쿠키를 지우고 로그인 페이지로 이동한다. 사용자는 언제든 로그아웃할 수 있어야 한다.
-- 로그아웃 후 클라이언트는 `queryClient.clear()`로 이전 사용자 캐시를 지우고 로그인 페이지로 이동한다.
+- 로그아웃 후 클라이언트는 `queryClient.clear()`로 이전 사용자 캐시를 지우고, 전체 새로고침(`window.location.assign`)으로 로그인 페이지에 간다. 클라이언트 이동은 라우터 캐시를 남겨 뒤로가기로 이전 화면이 보일 수 있다.
 - 로그인 성공 후에도 `queryClient.clear()`로 캐시를 지운다. 뒤로가기로 돌아온 로그인 화면에서 다른 계정으로 로그인하면 이전 사용자의 캐시가 남기 때문이다.
 - **회원 탈퇴**(`DELETE /api/users/me`)는 범용 통과 경로로 부른다. 범용 통과는 쿠키를 지우지 않으므로, 탈퇴에 성공하면 클라이언트가 세션 정리 경로를 호출한 뒤 로그아웃과 같이 정리한다.
 
@@ -73,12 +73,12 @@ BFF 경로는 두 종류로 나눈다. 모두 `app/api/` 아래의 Route Handler
 | 인증 전용 | `app/api/auth/*/route.ts` (아래 표)      | 토큰 ↔ 쿠키 변환                             | BE 응답에서 토큰만 뺀 부분. 변환은 API 함수의 Formatter가 맡는다 |
 | 범용 통과 | `app/api/[...path]/route.ts` (catch-all) | 쿠키의 access 토큰을 Bearer 헤더로 붙여 전달 | BE 응답 그대로. 변환은 API 함수의 Formatter가 맡는다             |
 
-| 인증 전용 경로             | BE API                   | 동작                                                                                                                                     |
-| -------------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST /api/auth/login`     | `POST /api/auth/login`   | 토큰·`autoLogin`을 쿠키로 저장하고 사용자 정보만 돌려준다                                                                                |
-| `POST /api/auth/refresh`   | `POST /api/auth/refresh` | refresh 쿠키를 body로 보내고, 성공하면 두 토큰을 `auto_login`에 맞는 수명으로 다시 저장한다. 실패하면 쿠키를 그대로 두고 실패를 전달한다 |
-| `POST /api/auth/logout`    | `POST /api/auth/logout`  | 성공하면 쿠키를 삭제한다. BE가 401을 주면 쿠키를 그대로 두고 401을 전달한다                                                              |
-| `DELETE /api/auth/session` | 없음                     | BE를 호출하지 않고 쿠키만 삭제한다. refresh까지 실패했을 때 클라이언트가 호출한다                                                        |
+| 인증 전용 경로             | BE API                   | 동작                                                                                                                                                                                                                            |
+| -------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /api/auth/login`     | `POST /api/auth/login`   | 토큰·`autoLogin`을 쿠키로 저장하고 사용자 정보만 돌려준다                                                                                                                                                                       |
+| `POST /api/auth/refresh`   | `POST /api/auth/refresh` | refresh 쿠키를 body로 보내고, 성공하면 두 토큰을 `auto_login`에 맞는 수명으로 다시 저장하고 204를 돌려준다. 실패하면 쿠키를 그대로 두고 실패를 전달한다. refresh 쿠키가 없으면 BE를 호출하지 않고 401 `UNAUTHORIZED`를 돌려준다 |
+| `POST /api/auth/logout`    | `POST /api/auth/logout`  | 성공하면 쿠키를 삭제한다. BE가 401을 주면 쿠키를 그대로 두고 401을 전달한다                                                                                                                                                     |
+| `DELETE /api/auth/session` | 없음                     | BE를 호출하지 않고 쿠키만 삭제한다. refresh까지 실패했을 때 클라이언트가 호출한다                                                                                                                                               |
 
 - 범용 통과 경로는 catch-all Route Handler로 한다. BE `Set-Cookie` 제거와 BFF 에러 정규화는 `proxy.ts` rewrite로 구현할 수 없다.
 - 데이터 집계·가공은 BFF에서 하지 않는다. 서버 렌더링 경로와 브라우저 경로가 같은 DTO를 받아야 Formatter를 공유할 수 있다.
@@ -112,6 +112,7 @@ BFF의 실패 응답은 모두 BE `ErrorResponse`와 같은 `{ code, message, er
 | BE 에러 응답                     | BE 값 그대로 | BE 값 그대로                    |
 | 상태 변경 요청의 `Origin` 불일치 | 403          | `BFF_INVALID_ORIGIN`            |
 | 요청 body 검증 실패              | 400          | `VALIDATION_ERROR`              |
+| refresh 요청에 refresh 쿠키 없음 | 401          | `UNAUTHORIZED`                  |
 | BE 요청 timeout                  | 504          | `BFF_UPSTREAM_TIMEOUT`          |
 | BE 연결 실패                     | 502          | `BFF_UPSTREAM_UNAVAILABLE`      |
 | BE 응답 검증 실패                | 502          | `BFF_INVALID_UPSTREAM_RESPONSE` |

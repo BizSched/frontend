@@ -1,4 +1,5 @@
 const ROUTE_PATHS = {
+  login: () => '/login',
   dashboard: () => '/dashboard',
   sales: () => '/sales/dashboard',
   salesDetails: () => '/sales/details',
