@@ -15,6 +15,7 @@ export default defineConfig({
       '@hooks': fromRoot('./src/hooks'),
       '@providers': fromRoot('./src/providers'),
       '@lib': fromRoot('./src/lib'),
+      '@proxy': fromRoot('./proxy.ts'),
       '@stores': fromRoot('./src/stores'),
       '@test': fromRoot('./test'),
     },
