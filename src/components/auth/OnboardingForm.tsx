@@ -12,6 +12,8 @@ import {
   type TermsAgreementValues,
 } from '@components/auth/TermsAgreement';
 
+import { useTerms } from '@hooks/api/terms/useTerms';
+
 import { ROUTE_PATHS } from '@lib/utilities/routePaths';
 
 interface OnboardingFormValues {
@@ -28,11 +30,14 @@ const ONBOARDING_FORM_DEFAULT_VALUES: OnboardingFormValues = {
 
 function OnboardingForm() {
   const router = useRouter();
+  const { data: terms, isError: isTermsError } = useTerms();
+  const isTermsReady = terms !== undefined && !isTermsError;
   const { control, register, handleSubmit } = useForm<OnboardingFormValues>({
     defaultValues: ONBOARDING_FORM_DEFAULT_VALUES,
   });
 
   const handleOnboardingSubmit = () => {
+    if (!isTermsReady) return;
     router.push(ROUTE_PATHS.dashboard());
   };
 
@@ -59,7 +64,7 @@ function OnboardingForm() {
           <TermsAgreement value={field.value} onChange={field.onChange} />
         )}
       />
-      <Button type="submit" className="w-full">
+      <Button type="submit" disabled={!isTermsReady} className="w-full">
         시작하기
       </Button>
     </AuthForm>
