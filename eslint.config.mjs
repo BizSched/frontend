@@ -91,6 +91,7 @@ export default tseslint.config({
           { pattern: '@providers/**', group: 'internal', position: 'before' },
           { pattern: '@stores/**', group: 'internal', position: 'before' },
           { pattern: '@lib/**', group: 'internal', position: 'before' },
+          { pattern: '@proxy', group: 'internal', position: 'before' },
           { pattern: '@types/**', group: 'internal', position: 'before' },
           { pattern: '@test/**', group: 'internal', position: 'before' },
         ],

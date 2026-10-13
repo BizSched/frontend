@@ -17,4 +17,7 @@ class NetworkError extends Error {
   }
 }
 
-export { ApiError, NetworkError };
+const isUnauthorizedError = (error: unknown): error is ApiError =>
+  error instanceof ApiError && error.status === 401;
+
+export { ApiError, isUnauthorizedError, NetworkError };

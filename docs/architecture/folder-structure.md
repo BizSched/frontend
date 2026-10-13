@@ -38,7 +38,7 @@
 - `(main)/` 안: 로그인 후 접근하는 페이지. `(main)/layout.tsx`가 사이드바(`AppSidebar`) 레이아웃을 공통으로 적용한다.
 - `(main)/` 밖: 로그인 없이 접근하는 페이지(`login/`, `signup/`, 랜딩 `page.tsx`)와, 로그인 후라도 가입이 끝나지 않은 단계의 페이지(`onboarding/`). 사이드바를 적용하지 않는다.
 - 괄호 폴더는 URL에 포함되지 않는다. (`app/(main)/sales/dashboard/page.tsx` → `/sales/dashboard`)
-- 새 페이지를 추가할 때는 로그인 필요 여부로 `(main)/` 안·밖을 먼저 결정한다.
+- 새 페이지를 추가할 때는 로그인 필요 여부로 `(main)/` 안·밖을 먼저 결정한다. 로그인 없이 여는 페이지는 `proxy.ts`가 쓰는 공개 목록(`lib/utilities/auth/getAuthRedirectPath.ts`)에도 넣는다 ([auth.md](./auth.md)의 "로그인 상태 판단")
 
 `app/**/page.tsx`·`app/**/layout.tsx`의 렌더링 경계 규칙은 [rendering.md](./rendering.md) 참고.
 
@@ -52,18 +52,22 @@
     - `{도메인}QueryOptions.ts`: `xxxKeys`와 `xxxQueryOptions`. 서버 prefetch와 클라이언트 `useQuery`가 같은 `queryOptions`를 쓰므로 `'use client'`를 붙이지 않는다. 폴더 안이라도 파일명의 `{도메인}` 접두사는 유지한다 — import한 곳에서 파일명만 보고 바로 알아볼 수 있어야 한다
     - `use{도메인}.ts`: `queryOptions`를 쓰는 `useQuery`·`useMutation` 훅
 - `lib/`: `utility/`, `api/`, `types/`
-  - `api/customFetcher.ts`: 공통 Fetcher. orval 생성 함수의 mutator
+  - `api/customFetcher.ts`: 공통 Fetcher. orval 생성 함수의 mutator. 브라우저에서 401 `TOKEN_EXPIRED`를 받으면 refresh 후 1회 재시도한다
+  - `api/sendRequest.ts`: 요청 1회 실행(baseURL, timeout·signal 병합, 에러 변환). `customFetcher`와 `authSession`이 쓰고, 다른 곳에서는 직접 쓰지 않는다
+  - `api/authSession.ts`: 브라우저 세션 처리. refresh(탭 안 single-flight), 세션 정리, 전체 새로고침 로그인 이동(`redirectToLogin`). `customFetcher`와 로그아웃 훅이 함께 써서 따로 둔다
   - `api/apiError.ts`: `ApiError`·`NetworkError`. 서버·클라이언트 공용
+  - `api/bffErrorCodes.ts`: BFF가 만드는 `BFF_` errorCode 상수. BFF와 클라이언트 formatter가 함께 import하므로 `server-only`인 `bff/` 밖에 둔다
+  - `api/formatCommonError.ts`: 도메인과 무관한 에러의 화면 문구 변환 (공통 formatter)
   - `api/getAuthHeaders.ts`: 쿠키의 access 토큰으로 `Authorization` 헤더를 만드는 헬퍼. `server-only`. 서버 prefetch와 BFF Route Handler가 함께 써서 `bff/` 밖에 둔다
   - `api/generated/`: orval 생성 요청 함수·zod 스키마. 직접 수정하지 않고, 생성 결과를 커밋한다
-  - `api/entities/{도메인}/`: 생성 함수 호출 → zod 검증 → DAO 변환까지 끝낸 API 함수(`api.ts`)와 DTO → DAO 변환 함수(`to{DAO명}.ts`). Hook·Component는 `api.ts`의 함수만 쓴다
-  - `api/bff/`: BFF Route Handler 유틸 (쿠키 읽기·쓰기, Origin 검사, 에러 응답 변환 등). 모두 `server-only`
+  - `api/entities/{도메인}/`: 생성 함수 호출 → zod 검증 → DAO 변환까지 끝낸 API 함수(`api.ts`)와 DTO → DAO 변환 함수(`to{DAO명}.ts`), 도메인 에러 문구 변환 함수(`format{도메인}Error.ts`). Hook·Component는 `api.ts`의 함수와 `format{도메인}Error`만 쓴다
+  - `api/bff/`: BFF Route Handler 유틸 (쿠키 읽기·쓰기, Origin 검사, 에러 응답 변환, Origin 검사와 에러 변환을 감싸는 래퍼 `withBffHandler` 등). 모두 `server-only`
 - `providers/`: `auth/`, `partTime/`, `sales/`, `task/`
 - `stores/`: `auth/`, `partTime/`, `sales/`, `task/`
 - `assets/`: `styles/` (전역 CSS 토큰: `breakpoints`, `colors`, `theme`, `typography`)
 
 ## test/ 구조
 
-- `test/`: `fixtures/`, 나머지는 `src/` 구조를 미러링
+- `test/`: `fixtures/`, 나머지는 `src/`·`app/` 구조를 미러링 (예: `app/api/auth/login/route.ts` → `test/app/api/auth/login/route.test.ts`)
 
 파일명·러너 규칙은 [test.md](../convention/test.md) 참고.

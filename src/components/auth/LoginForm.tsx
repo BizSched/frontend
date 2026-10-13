@@ -1,35 +1,69 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { Controller, useForm } from 'react-hook-form';
 
 import { Button } from '@components/_common/Button/Button';
+import { Checkbox } from '@components/_common/Checkbox/Checkbox';
 import { Input } from '@components/_common/Input/Input';
 import { AuthField } from '@components/auth/AuthField';
 import { AuthForm } from '@components/auth/AuthForm';
 import { AuthSwitchLink } from '@components/auth/AuthSwitchLink';
 import { PasswordInput } from '@components/auth/PasswordInput';
 
+import { useLoginMutation } from '@hooks/api/auth/useAuth';
+
+import { formatAuthError } from '@lib/api/entities/auth/formatAuthError';
 import { ROUTE_PATHS } from '@lib/utilities/routePaths';
 
 interface LoginFormValues {
   email: string;
   password: string;
+  autoLogin: boolean;
 }
 
 const LOGIN_FORM_DEFAULT_VALUES: LoginFormValues = {
   email: '',
   password: '',
+  autoLogin: false,
 };
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const LOGIN_FORM_RULES = {
+  email: {
+    required: '이메일을 입력해주세요.',
+    pattern: {
+      value: EMAIL_PATTERN,
+      message: '올바른 이메일 형식이 아닙니다.',
+    },
+  },
+  password: {
+    required: '비밀번호를 입력해주세요.',
+  },
+} as const;
 
 function LoginForm() {
   const router = useRouter();
-  const { register, handleSubmit } = useForm<LoginFormValues>({
+  const {
+    control,
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors },
+  } = useForm<LoginFormValues>({
     defaultValues: LOGIN_FORM_DEFAULT_VALUES,
   });
+  const { mutate: login, isPending, isSuccess } = useLoginMutation();
+  // NOTE: 성공 후 대시보드로 이동하기 전까지 다시 제출하면 refresh 토큰이 추가 발급되므로 버튼을 계속 막는다
+  const isSubmitDisabled = isPending || isSuccess;
 
-  const handleLoginSubmit = () => {
-    router.push(ROUTE_PATHS.dashboard());
+  const handleLoginSubmit = (values: LoginFormValues) => {
+    login(values, {
+      onSuccess: () => router.push(ROUTE_PATHS.dashboard()),
+      onError: (error) =>
+        setError('root.server', { message: formatAuthError(error) }),
+    });
   };
 
   return (
@@ -38,25 +72,58 @@ function LoginForm() {
       className="flex flex-col gap-8"
     >
       <div className="flex flex-col gap-4">
-        <AuthField id="login-email" label="이메일" isLabelHidden>
+        <AuthField
+          id="login-email"
+          label="이메일"
+          isLabelHidden
+          errorMessage={errors.email?.message}
+        >
           <Input
             type="email"
             autoComplete="email"
             placeholder="이메일을 입력해주세요"
-            {...register('email')}
+            {...register('email', LOGIN_FORM_RULES.email)}
           />
         </AuthField>
-        <AuthField id="login-password" label="비밀번호" isLabelHidden>
+        <AuthField
+          id="login-password"
+          label="비밀번호"
+          isLabelHidden
+          errorMessage={errors.password?.message}
+        >
           <PasswordInput
             placeholder="비밀번호를 입력해주세요"
-            {...register('password')}
+            {...register('password', LOGIN_FORM_RULES.password)}
           />
         </AuthField>
+        <Controller
+          control={control}
+          name="autoLogin"
+          render={({ field }) => (
+            <label className="flex w-fit cursor-pointer items-center gap-2 pl-1 text-sm leading-5 tracking-[-0.03em] text-slate-500">
+              <Checkbox
+                checked={field.value}
+                onCheckedChange={(checked) => field.onChange(checked)}
+              />
+              <span>자동 로그인</span>
+            </label>
+          )}
+        />
       </div>
       <div className="flex flex-col gap-6">
-        <Button type="submit" className="w-full">
-          로그인하기
-        </Button>
+        <div className="flex flex-col gap-2">
+          {errors.root?.server && (
+            <p
+              role="alert"
+              className="pl-1 text-sm tracking-[-0.03em] text-warning-500"
+            >
+              {errors.root.server.message}
+            </p>
+          )}
+          <Button type="submit" className="w-full" disabled={isSubmitDisabled}>
+            로그인하기
+          </Button>
+        </div>
         <AuthSwitchLink
           question="BizSched가 처음이신가요?"
           linkLabel="회원가입"

@@ -1,5 +1,11 @@
-import 'dotenv/config';
+import { config } from 'dotenv';
 import { defineConfig } from 'orval';
+
+config({ path: ['.env.local', '.env'], quiet: true });
+
+if (!process.env.BE_BASE_URL) {
+  throw new Error('BE_BASE_URL is not defined. Check .env.local');
+}
 
 const SPEC_URL = `${process.env.BE_BASE_URL}/v3/api-docs`;
 
