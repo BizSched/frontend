@@ -1,12 +1,19 @@
+'use client';
+
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
+import { useState } from 'react';
 
 import { Card } from '@components/_common/Card/Card';
+import { Input } from '@components/_common/Input/Input';
+import { openConfirmModal } from '@components/_common/Modal/openConfirmModal';
 import { MonthDropdownButton } from '@components/_common/MonthDropdownButton/MonthDropdownButton';
 import { PaginationButton } from '@components/_common/Pagination/PaginationButton';
 import { PaginationContent } from '@components/_common/Pagination/PaginationContent';
 import { PaginationItem } from '@components/_common/Pagination/PaginationItem';
 import { PaginationRoot } from '@components/_common/Pagination/PaginationRoot';
 import { Table } from '@components/_common/Table/Table';
+
+import { cn } from '@lib/utilities/cn';
 
 const CATEGORIES = ['상품 판매', '서비스', '배달·온라인', '기타'];
 const MOCK_SALES = [
@@ -22,13 +29,53 @@ const MOCK_SALES = [
   { day: 21, weekday: '월', amounts: [140000, 90000, 77900, 0] },
 ];
 const NUMBER_FORMAT = new Intl.NumberFormat('ko-KR');
-const MONTH_TOTAL = MOCK_SALES.reduce(
-  (sum, sale) =>
-    sum + sale.amounts.reduce((total, amount) => total + amount, 0),
-  0,
-);
-
 function SalesDetailsSection() {
+  const [sales, setSales] = useState(MOCK_SALES);
+  const [editingDay, setEditingDay] = useState<number | null>(null);
+  const [draftAmounts, setDraftAmounts] = useState<number[]>([]);
+  const [hasAmountError, setHasAmountError] = useState(false);
+  const monthTotal = sales.reduce(
+    (sum, sale) =>
+      sum + sale.amounts.reduce((total, amount) => total + amount, 0),
+    0,
+  );
+
+  const handleEdit = (day: number, amounts: number[]) => {
+    setEditingDay(day);
+    setDraftAmounts(amounts);
+    setHasAmountError(false);
+  };
+
+  const handleEditSave = () => {
+    if (
+      draftAmounts.some((amount) => !Number.isInteger(amount) || amount < 0)
+    ) {
+      setHasAmountError(true);
+      return;
+    }
+
+    setSales((currentSales) =>
+      currentSales.map((sale) =>
+        sale.day === editingDay ? { ...sale, amounts: draftAmounts } : sale,
+      ),
+    );
+    setEditingDay(null);
+  };
+
+  const handleDelete = async (day: number) => {
+    const isConfirmed = await openConfirmModal({
+      title: '해당 날짜의 매출 전체를 삭제할까요?',
+      description: '삭제한 내역은 복구할 수 없습니다.',
+      confirmText: '삭제',
+    });
+
+    if (isConfirmed) {
+      setSales((currentSales) =>
+        currentSales.filter((sale) => sale.day !== day),
+      );
+    }
+  };
+
   return (
     <Card
       radius="2xl"
@@ -56,14 +103,17 @@ function SalesDetailsSection() {
           </span>
         </div>
         <p className="text-right text-base leading-6 font-bold text-slate-800 max-desktop:text-sm max-tablet:text-base">
-          합계 {NUMBER_FORMAT.format(MONTH_TOTAL)} 원
+          합계 {NUMBER_FORMAT.format(monthTotal)} 원
         </p>
       </div>
 
       <div className="border-b border-slate-500 pb-2">
         <Table
           aria-label="9월 날짜별 매출 내역"
-          className="table-fixed text-sm max-desktop:text-xs"
+          className={cn(
+            'table-fixed text-sm max-desktop:text-xs',
+            editingDay !== null && 'min-w-[680px]',
+          )}
         >
           <Table.Header>
             <Table.Row className="border-slate-200 hover:bg-transparent">
@@ -77,7 +127,10 @@ function SalesDetailsSection() {
                 <Table.Head
                   key={category}
                   scope="col"
-                  className="h-auto px-1 pb-1 text-right text-xs leading-[17px] text-slate-500 max-tablet:hidden"
+                  className={cn(
+                    'h-auto px-1 pb-1 text-right text-xs leading-[17px] text-slate-500',
+                    editingDay === null && 'max-tablet:hidden',
+                  )}
                 >
                   {category}
                 </Table.Head>
@@ -97,47 +150,121 @@ function SalesDetailsSection() {
             </Table.Row>
           </Table.Header>
           <Table.Body>
-            {MOCK_SALES.map(({ day, weekday, amounts }) => (
-              <Table.Row
-                key={day}
-                className="h-[59px] border-slate-50 hover:bg-transparent max-desktop:h-[55px]"
-              >
-                <Table.Head
-                  scope="row"
-                  className="h-auto px-0 py-3.5 text-sm font-semibold text-slate-950 max-desktop:text-xs"
+            {sales.map(({ day, weekday, amounts }) => {
+              const isEditing = editingDay === day;
+              const visibleAmounts = isEditing ? draftAmounts : amounts;
+              const dailyTotal = visibleAmounts.reduce(
+                (sum, amount) => sum + amount,
+                0,
+              );
+
+              return (
+                <Table.Row
+                  key={day}
+                  className="h-[59px] border-slate-50 hover:bg-transparent max-desktop:h-[55px]"
                 >
-                  <time dateTime={`2026-09-${day}`}>9월 {day}일</time>
-                  <span className="ml-2 text-xs font-medium text-slate-300 max-desktop:ml-1 max-desktop:text-[10px]">
-                    {weekday}
-                  </span>
-                </Table.Head>
-                {amounts.map((amount, index) => (
-                  <Table.Cell
-                    key={CATEGORIES[index]}
-                    className="px-1 py-3.5 text-right font-medium text-slate-600 max-tablet:hidden"
+                  <Table.Head
+                    scope="row"
+                    className="h-auto px-0 py-3.5 text-sm font-semibold text-slate-950 max-desktop:text-xs"
                   >
-                    {NUMBER_FORMAT.format(amount)}
+                    <time dateTime={`2026-09-${day}`}>9월 {day}일</time>
+                    <span className="ml-2 text-xs font-medium text-slate-300 max-desktop:ml-1 max-desktop:text-[10px]">
+                      {weekday}
+                    </span>
+                  </Table.Head>
+                  {visibleAmounts.map((amount, index) => (
+                    <Table.Cell
+                      key={CATEGORIES[index]}
+                      className={cn(
+                        'px-1 py-3.5 text-right font-medium text-slate-600',
+                        editingDay === null && 'max-tablet:hidden',
+                      )}
+                    >
+                      {isEditing ? (
+                        <Input
+                          aria-label={`${CATEGORIES[index]} 9월 ${day}일 매출`}
+                          type="number"
+                          min={0}
+                          step={1}
+                          size="small"
+                          aria-invalid={
+                            hasAmountError &&
+                            (!Number.isInteger(amount) || amount < 0)
+                          }
+                          value={amount}
+                          onChange={(event) =>
+                            setDraftAmounts((currentAmounts) =>
+                              currentAmounts.map(
+                                (currentAmount, amountIndex) =>
+                                  amountIndex === index
+                                    ? Number(event.target.value)
+                                    : currentAmount,
+                              ),
+                            )
+                          }
+                          className="h-9 min-w-20 border-slate-200 px-2 [&_input]:text-right"
+                        />
+                      ) : (
+                        NUMBER_FORMAT.format(amount)
+                      )}
+                    </Table.Cell>
+                  ))}
+                  <Table.Cell className="px-0 py-3.5 text-right font-medium text-slate-950">
+                    ₩{NUMBER_FORMAT.format(dailyTotal)}
                   </Table.Cell>
-                ))}
-                <Table.Cell className="px-0 py-3.5 text-right font-medium text-slate-950">
-                  ₩
-                  {NUMBER_FORMAT.format(
-                    amounts.reduce((sum, amount) => sum + amount, 0),
-                  )}
-                </Table.Cell>
-                <Table.Cell className="px-0 py-3.5 text-right">
-                  <button
-                    type="button"
-                    aria-label={`9월 ${day}일 매출 수정`}
-                    className="cursor-pointer rounded text-xs text-slate-400 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none max-desktop:text-[10px]"
-                  >
-                    수정
-                  </button>
-                </Table.Cell>
-              </Table.Row>
-            ))}
+                  <Table.Cell className="px-0 py-3.5 text-right">
+                    {isEditing ? (
+                      <div className="flex flex-col items-end gap-1">
+                        <button
+                          type="button"
+                          aria-label={`9월 ${day}일 편집 저장`}
+                          onClick={handleEditSave}
+                          className="cursor-pointer rounded text-xs text-slate-400 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none max-desktop:text-[10px]"
+                        >
+                          저장
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={`9월 ${day}일 편집 취소`}
+                          onClick={() => setEditingDay(null)}
+                          className="cursor-pointer rounded text-xs text-slate-400 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none max-desktop:text-[10px]"
+                        >
+                          취소
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-end gap-1">
+                        <button
+                          type="button"
+                          aria-label={`9월 ${day}일 매출 수정`}
+                          disabled={editingDay !== null}
+                          onClick={() => handleEdit(day, amounts)}
+                          className="cursor-pointer rounded text-xs text-slate-400 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none max-desktop:text-[10px]"
+                        >
+                          수정
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={`9월 ${day}일 매출 삭제`}
+                          disabled={editingDay !== null}
+                          onClick={() => void handleDelete(day)}
+                          className="cursor-pointer rounded text-xs text-slate-400 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none max-desktop:text-[10px]"
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    )}
+                  </Table.Cell>
+                </Table.Row>
+              );
+            })}
           </Table.Body>
         </Table>
+        {editingDay !== null && hasAmountError && (
+          <p role="alert" className="mt-2 text-sm text-warning-500">
+            0 이상의 정수로 입력해 주세요.
+          </p>
+        )}
       </div>
 
       <PaginationRoot aria-label="매출 내역 페이지" className="pb-6">
