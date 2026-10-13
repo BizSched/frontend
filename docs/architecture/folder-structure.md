@@ -55,16 +55,17 @@
   - `api/customFetcher.ts`: 공통 Fetcher. orval 생성 함수의 mutator
   - `api/apiError.ts`: `ApiError`·`NetworkError`. 서버·클라이언트 공용
   - `api/bffErrorCodes.ts`: BFF가 만드는 `BFF_` errorCode 상수. BFF와 클라이언트 formatter가 함께 import하므로 `server-only`인 `bff/` 밖에 둔다
+  - `api/formatCommonError.ts`: 도메인과 무관한 에러의 화면 문구 변환 (공통 formatter)
   - `api/getAuthHeaders.ts`: 쿠키의 access 토큰으로 `Authorization` 헤더를 만드는 헬퍼. `server-only`. 서버 prefetch와 BFF Route Handler가 함께 써서 `bff/` 밖에 둔다
   - `api/generated/`: orval 생성 요청 함수·zod 스키마. 직접 수정하지 않고, 생성 결과를 커밋한다
-  - `api/entities/{도메인}/`: 생성 함수 호출 → zod 검증 → DAO 변환까지 끝낸 API 함수(`api.ts`)와 DTO → DAO 변환 함수(`to{DAO명}.ts`). Hook·Component는 `api.ts`의 함수만 쓴다
-  - `api/bff/`: BFF Route Handler 유틸 (쿠키 읽기·쓰기, Origin 검사, 에러 응답 변환 등). 모두 `server-only`
+  - `api/entities/{도메인}/`: 생성 함수 호출 → zod 검증 → DAO 변환까지 끝낸 API 함수(`api.ts`)와 DTO → DAO 변환 함수(`to{DAO명}.ts`), 도메인 에러 문구 변환 함수(`format{도메인}Error.ts`). Hook·Component는 `api.ts`의 함수와 `format{도메인}Error`만 쓴다
+  - `api/bff/`: BFF Route Handler 유틸 (쿠키 읽기·쓰기, Origin 검사, 에러 응답 변환, Origin 검사와 에러 변환을 감싸는 래퍼 `withBffHandler` 등). 모두 `server-only`
 - `providers/`: `auth/`, `partTime/`, `sales/`, `task/`
 - `stores/`: `auth/`, `partTime/`, `sales/`, `task/`
 - `assets/`: `styles/` (전역 CSS 토큰: `breakpoints`, `colors`, `theme`, `typography`)
 
 ## test/ 구조
 
-- `test/`: `fixtures/`, 나머지는 `src/` 구조를 미러링
+- `test/`: `fixtures/`, 나머지는 `src/`·`app/` 구조를 미러링 (예: `app/api/auth/login/route.ts` → `test/app/api/auth/login/route.test.ts`)
 
 파일명·러너 규칙은 [test.md](../convention/test.md) 참고.
