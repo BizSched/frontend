@@ -75,9 +75,9 @@
 | 4    | `feat/sales-details-read-api`  | `dev`                     | 명세 확정, DTO 변환, 월·페이지 조회, 첫 화면 hydration, 로딩·오류 상태 | 월 이동·페이지 이동·재시도와 월 전체 합계 확인      |
 | 5    | `feat/sales-details-write-api` | `dev`                     | 추가·수정·삭제 mutation, 오류 메시지, 목록·합계 갱신                   | 성공·실패 시 데이터와 입력 상태 확인                |
 
-1→2→3은 UI 작업을 stacked PR로 쌓는다. 1이 병합되면 2의 base를 `dev`로, 2가 병합되면 3의 base를 `dev`로 바꾸고 각각 최신 `dev`에 맞춰 브랜치 이력을 정리한다.
+각 PR은 `dev`를 base로 하는 별도 브랜치로 진행하며 stacked PR을 만들지 않는다. 1→2→3은 앞 단계가 병합된 뒤 최신 `dev`에서 다음 브랜치를 만든다. UI가 준비되면 4를 최신 `dev`에서 분기한다.
 
-UI PR 세 개가 모두 `dev`에 병합된 뒤 4를 최신 `dev`에서 분기·병합한다. 5는 4가 병합된 뒤 최신 `dev`에서 분기한다. 따라서 API PR 두 개의 base는 `dev`이며, 동시에 열어 두는 stacked PR은 아니다.
+5는 4의 조회 query·mutation hook이 `dev`에 들어온 뒤 최신 `dev`에서 분기한다. 브라우저의 월·페이지 변경과 mutation은 인증 BFF 프록시가 있어야 동작하므로, 서버 prefetch 성공만으로 클라이언트 조회까지 확인했다고 판단하지 않는다. BFF 작업은 별도 PR로 진행한다.
 
 ## 확인 필요
 
