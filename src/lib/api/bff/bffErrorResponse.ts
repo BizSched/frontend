@@ -8,6 +8,7 @@ import { BFF_ERROR_CODES } from '@lib/api/bffErrorCodes';
 import type { ErrorResponse } from '@lib/api/generated/bizSchedAPI.schemas';
 
 const VALIDATION_ERROR_CODE = 'VALIDATION_ERROR';
+const UNAUTHORIZED_CODE = 'UNAUTHORIZED';
 const INTERNAL_SERVER_ERROR_CODE = 'INTERNAL_SERVER_ERROR';
 
 const createErrorResponse = (status: number, errorCode: string, message = '') =>
@@ -20,6 +21,9 @@ const createInvalidOriginResponse = () =>
 
 const createValidationErrorResponse = () =>
   createErrorResponse(400, VALIDATION_ERROR_CODE);
+
+const createUnauthorizedResponse = () =>
+  createErrorResponse(401, UNAUTHORIZED_CODE);
 
 const isTimeout = (error: NetworkError) =>
   error.cause instanceof Error && error.cause.name === 'TimeoutError';
@@ -48,6 +52,7 @@ const toBffErrorResponse = (error: unknown) =>
 
 export {
   createInvalidOriginResponse,
+  createUnauthorizedResponse,
   createValidationErrorResponse,
   toBffErrorResponse,
 };

@@ -5,6 +5,7 @@ import * as zod from 'zod';
 import { ApiError, NetworkError } from '@lib/api/apiError';
 import {
   createInvalidOriginResponse,
+  createUnauthorizedResponse,
   createValidationErrorResponse,
   toBffErrorResponse,
 } from '@lib/api/bff/bffErrorResponse';
@@ -32,6 +33,15 @@ describe('createValidationErrorResponse', () => {
     ).resolves.toEqual({
       status: 400,
       body: { code: 400, message: '', errorCode: 'VALIDATION_ERROR' },
+    });
+  });
+});
+
+describe('createUnauthorizedResponse', () => {
+  it('401 UNAUTHORIZED를 만든다', async () => {
+    await expect(readResponse(createUnauthorizedResponse())).resolves.toEqual({
+      status: 401,
+      body: { code: 401, message: '', errorCode: 'UNAUTHORIZED' },
     });
   });
 });

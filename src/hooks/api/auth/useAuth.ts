@@ -1,6 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { postLogin } from '@lib/api/entities/auth/api';
+import { isUnauthorizedError } from '@lib/api/apiError';
+import { endSession } from '@lib/api/authSession';
+import { postLogin, postLogout } from '@lib/api/entities/auth/api';
 
 const useLoginMutation = () => {
   const queryClient = useQueryClient();
@@ -12,4 +14,16 @@ const useLoginMutation = () => {
   });
 };
 
-export { useLoginMutation };
+const useLogoutMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: postLogout,
+    onSuccess: () => queryClient.clear(),
+    onError: (error) => {
+      if (isUnauthorizedError(error)) void endSession();
+    },
+  });
+};
+
+export { useLoginMutation, useLogoutMutation };
