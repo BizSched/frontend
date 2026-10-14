@@ -188,8 +188,8 @@ customFetcher(브라우저) ─▶ BFF ─▶ BE
 ## 제약
 
 - BFF를 거치는 요청 body는 4MB를 넘을 수 없다. Vercel Functions는 4.5MB, Routing Middleware(`proxy.ts`)는 4MB가 한도다.
-- 첨부파일(파일당 10MB) 업로드는 BFF를 거치지 않는 방식이 필요하다. 아래 "결정 대기 항목" 참고.
-- 첨부파일 다운로드는 범용 통과 경로로 처리한다. BE의 `downloadUrl`(`/api/staff/{staffId}/attachments/{attachmentId}`)은 BFF 경로와 같아서 `<img src>`·`<a href>`에 그대로 쓰면 쿠키로 인증된다. 응답은 스트리밍이라 응답 크기 제한을 받지 않는다.
+- 첨부파일(BE 기준 파일당 10MB)은 업로드 전에 FE에서 크기를 줄여 이 한도 안에서 BFF로 보낸다. 방식은 [아르바이트 도메인 문서 설계 결정](../feature/partTime/README.md#설계-결정)
+- 첨부파일 다운로드는 범용 통과 경로로 처리한다. BE의 `downloadUrl`(`/api/staff/{staffId}/attachments/{attachmentId}`)은 BFF 경로와 같아서 `<img src>`·`<a href>`에 그대로 쓰면 쿠키로 인증된다. 응답은 스트리밍이라 응답 크기 제한을 받지 않는다. 이 경로의 응답은 `Content-Disposition`을 `inline`으로 바꿔 전달한다(파일명 유지). BE가 `attachment`로 보내 `iframe`의 PDF가 미리보기 대신 다운로드되기 때문이다.
 
 ## 결정 대기 항목
 
@@ -197,7 +197,6 @@ customFetcher(브라우저) ─▶ BFF ─▶ BE
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------- |
 | 다중 탭 refresh    | refresh는 탭 안에서만 하나로 묶는다. 탭 사이에서도 묶을지(Web Locks API 등)는 실제 충돌 빈도를 보고 정한다                                                                                                                                                                                                                                                                                                                           | 결정 필요 |
 | 소셜 로그인        | FE가 소셜 SDK에서 받은 인가 코드를 인증 전용 경로로 보내고, BFF가 BE `POST /api/oauth/{provider}`를 호출한다. 기존 회원은 토큰을 쿠키로 저장하고, 신규 회원은 `tempToken`(30분, 추가 정보 입력에만 사용)을 받는다. 추가 정보 제출(`PATCH /api/users/signup/additional-info`)도 `tempToken`을 Bearer로 보내고 정식 토큰을 받으므로 인증 전용 경로로 둔다. `tempToken` 보관 방식(예: 30분짜리 httpOnly 쿠키)과 `/onboarding` 진입 처리 | 결정 필요 |
-| 첨부파일 전송      | presigned URL로 저장소에 직접 업로드할지. BE 저장소와 API 변경에 종속                                                                                                                                                                                                                                                                                                                                                                | 확인 필요 |
 | 범용 통과 압축     | Vercel CDN은 JSON 등 정해진 MIME 타입 응답을 압축한다. 스트리밍 Route Handler 응답에도 적용되는지 배포 후 응답 헤더(`Content-Encoding`)로 확인한다. 적용되지 않으면 BE와 Next 사이만 압축을 받는 방식(BE 압축 허용 + 헤더 제거)과 비교한다                                                                                                                                                                                           | 확인 필요 |
 | BE 응답 압축       | BE가 `Accept-Encoding: identity`를 따르는지, 응답 압축(`server.compression.enabled`)을 켰는지, `Content-Length` 없는 chunked 요청 body를 받는지 BE에 확인한다                                                                                                                                                                                                                                                                        | 확인 필요 |
 | 스트리밍 응답 크기 | Vercel 문서는 함수 요청·응답 body 한도를 4.5MB로 적고, 스트리밍 응답은 이 한도를 받지 않는다고 가이드에서 안내한다. 10MB 첨부파일 다운로드를 배포 환경에서 확인한다                                                                                                                                                                                                                                                                  | 확인 필요 |
