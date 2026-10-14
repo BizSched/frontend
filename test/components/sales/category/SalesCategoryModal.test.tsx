@@ -83,6 +83,7 @@ beforeEach(() => {
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
   }));
+  Element.prototype.scrollIntoView = vi.fn();
   serverCategories = toCategories(['음료', '디저트']);
   vi.mocked(getSalesCategories).mockImplementation(
     async () => serverCategories,
@@ -147,7 +148,48 @@ describe('SalesCategoryModal', () => {
     expect(getNewNameInput()).toHaveValue('');
   });
 
-  it('추가에 성공하면 저장하지 않은 이름 변경은 서버 값으로 돌아간다', async () => {
+  it('추가하면 새 행이 보이도록 스크롤하고 포커스는 옮기지 않는다', async () => {
+    vi.mocked(createSalesCategory).mockImplementation(async (name) => {
+      serverCategories = toCategories(['음료', '디저트', name]);
+      return serverCategories[2];
+    });
+    await renderSalesCategoryModal();
+
+    getNewNameInput().focus();
+    fireEvent.change(getNewNameInput(), { target: { value: '커피' } });
+    fireEvent.click(getAddButton());
+
+    await waitFor(() =>
+      expect(Element.prototype.scrollIntoView).toHaveBeenCalled(),
+    );
+    expect(
+      vi.mocked(Element.prototype.scrollIntoView).mock.contexts[0],
+    ).toContainElement(getNameInput('커피'));
+    expect(getNewNameInput()).toHaveFocus();
+  });
+
+  it('추가하면 스크린리더에 알리고, 다음 입력에서 알림을 비운다', async () => {
+    vi.mocked(createSalesCategory).mockImplementation(async (name) => {
+      serverCategories = toCategories(['음료', '디저트', name]);
+      return serverCategories[2];
+    });
+    await renderSalesCategoryModal();
+
+    expect(screen.getByRole('status')).toHaveTextContent('');
+    fireEvent.change(getNewNameInput(), { target: { value: '커피' } });
+    fireEvent.click(getAddButton());
+
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent(
+        '커피 카테고리를 추가했습니다.',
+      ),
+    );
+    fireEvent.input(getNameInput('음료'), { target: { value: '주스' } });
+
+    expect(screen.getByRole('status')).toHaveTextContent('');
+  });
+
+  it('추가에 성공해도 저장하지 않은 이름 변경을 유지하고, 되돌리기는 서버 값으로 복원한다', async () => {
     vi.mocked(createSalesCategory).mockImplementation(async (name) => {
       serverCategories = toCategories(['음료', '디저트', name]);
       return serverCategories[2];
@@ -159,7 +201,36 @@ describe('SalesCategoryModal', () => {
     fireEvent.click(getAddButton());
 
     await screen.findByDisplayValue('커피');
+    expect(getNameInput('음료')).toHaveValue('주스');
+
+    fireEvent.click(screen.getByRole('button', { name: '되돌리기' }));
+
     expect(getNameInput('음료')).toHaveValue('음료');
+    expect(getNameInput('커피')).toHaveValue('커피');
+  });
+
+  it('앞 행을 삭제해도 저장하지 않은 이름 변경은 같은 카테고리에 남는다', async () => {
+    vi.mocked(openConfirmModal).mockResolvedValue(true);
+    vi.mocked(deleteSalesCategory).mockImplementation(async () => {
+      serverCategories = serverCategories.slice(1);
+    });
+    vi.mocked(updateSalesCategories).mockResolvedValue([]);
+    await renderSalesCategoryModal();
+
+    fireEvent.change(getNameInput('디저트'), { target: { value: '케이크' } });
+    fireEvent.click(screen.getByRole('button', { name: '음료 카테고리 삭제' }));
+
+    await waitFor(() =>
+      expect(screen.queryByDisplayValue('음료')).not.toBeInTheDocument(),
+    );
+    expect(getNameInput('디저트')).toHaveValue('케이크');
+    fireEvent.click(getSaveButton());
+
+    await waitFor(() =>
+      expect(updateSalesCategories).toHaveBeenCalledWith([
+        { id: 2, name: '케이크', order: 0 },
+      ]),
+    );
   });
 
   it('삭제 확인을 취소하면 요청하지 않는다', async () => {
