@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 
 import { Button } from '@components/_common/Button/Button';
 import { Checkbox } from '@components/_common/Checkbox/Checkbox';
@@ -17,22 +17,35 @@ const TERMS_AGREEMENT_DEFAULT_VALUES: TermsAgreementValues = {};
 interface TermsAgreementProps {
   value: TermsAgreementValues;
   onChange: (value: TermsAgreementValues) => void;
+  errorMessage?: string;
+  disabled?: boolean;
 }
 
-function TermsAgreement({ value, onChange }: TermsAgreementProps) {
+function TermsAgreement({
+  value,
+  onChange,
+  errorMessage,
+  disabled = false,
+}: TermsAgreementProps) {
+  const errorId = useId();
   const { data: terms, isError, isFetching, refetch } = useTerms();
   const latestValue = useRef(value);
+  const isDisabled = useRef(disabled);
   useEffect(() => {
     latestValue.current = value;
-  }, [value]);
+    isDisabled.current = disabled;
+  }, [value, disabled]);
 
   const handleAgreementChange = (id: number, checked: boolean) => {
+    if (isDisabled.current) return;
     onChange({ ...latestValue.current, [id]: checked });
   };
   const handleAllChange = (checked: boolean) => {
+    if (isDisabled.current) return;
     onChange(Object.fromEntries((terms ?? []).map(({ id }) => [id, checked])));
   };
   const handleDocumentOpen = async (document: TermsResponse) => {
+    if (isDisabled.current) return;
     const isAgreed = await openTermsModal({ document });
     if (isAgreed) handleAgreementChange(document.id, true);
   };
@@ -40,7 +53,12 @@ function TermsAgreement({ value, onChange }: TermsAgreementProps) {
     !!terms?.length && terms.every(({ id }) => value[id] === true);
 
   return (
-    <fieldset className="flex flex-col gap-4 rounded-[16px] border border-slate-200 bg-white-50 p-4">
+    <fieldset
+      disabled={disabled}
+      aria-invalid={Boolean(errorMessage)}
+      aria-describedby={errorMessage ? errorId : undefined}
+      className="flex flex-col gap-4 rounded-[16px] border border-slate-200 bg-white-50 p-4"
+    >
       <legend className="sr-only">약관 동의</legend>
       {isError ? (
         <div role="alert" className="flex flex-col items-start gap-2">
@@ -48,7 +66,7 @@ function TermsAgreement({ value, onChange }: TermsAgreementProps) {
           <Button
             type="button"
             hierarchy="tertiary"
-            disabled={isFetching}
+            disabled={isFetching || disabled}
             onClick={() => void refetch()}
           >
             다시 불러오기
@@ -63,7 +81,11 @@ function TermsAgreement({ value, onChange }: TermsAgreementProps) {
       ) : (
         <>
           <label className="flex cursor-pointer items-center gap-2 text-base font-semibold tracking-[-0.03em] text-slate-700">
-            <Checkbox checked={isAllAgreed} onCheckedChange={handleAllChange} />
+            <Checkbox
+              checked={isAllAgreed}
+              onCheckedChange={handleAllChange}
+              disabled={disabled}
+            />
             전체 동의
             <span className="text-sm font-medium text-slate-400">
               (선택 항목 포함)
@@ -78,6 +100,7 @@ function TermsAgreement({ value, onChange }: TermsAgreementProps) {
               >
                 <label className="flex min-w-0 cursor-pointer items-start gap-2 text-sm leading-5 tracking-[-0.03em] text-slate-500">
                   <Checkbox
+                    disabled={disabled}
                     checked={value[document.id] === true}
                     onCheckedChange={(checked) =>
                       handleAgreementChange(document.id, checked)
@@ -100,6 +123,7 @@ function TermsAgreement({ value, onChange }: TermsAgreementProps) {
                 </label>
                 <button
                   type="button"
+                  disabled={disabled}
                   aria-label={`${document.title} 전문 보기`}
                   onClick={() => void handleDocumentOpen(document)}
                   className="shrink-0 cursor-pointer rounded-lg text-sm leading-5 tracking-[-0.03em] text-slate-400 underline underline-offset-2 outline-none hover:text-slate-500 focus-visible:ring-3 focus-visible:ring-ring/50"
@@ -110,6 +134,15 @@ function TermsAgreement({ value, onChange }: TermsAgreementProps) {
             ))}
           </ul>
         </>
+      )}
+      {errorMessage && (
+        <p
+          id={errorId}
+          role="alert"
+          className="text-sm tracking-[-0.03em] text-warning-500"
+        >
+          {errorMessage}
+        </p>
       )}
     </fieldset>
   );

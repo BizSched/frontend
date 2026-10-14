@@ -1,12 +1,94 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
 
+import { ApiError } from '@lib/api/apiError';
 import { customFetcher } from '@lib/api/customFetcher';
-import { postLogin, postLogout } from '@lib/api/entities/auth/api';
+import { postLogin, postLogout, postSignup } from '@lib/api/entities/auth/api';
+import type { SignupRequest } from '@lib/api/generated/bizSchedAPI.schemas';
 
 vi.mock('@lib/api/customFetcher', () => ({ customFetcher: vi.fn() }));
 
 const USER = { id: 1, email: 'owner@bizsched.app', name: '사장님' };
+
+const SIGNUP_REQUEST: SignupRequest = {
+  name: USER.name,
+  email: USER.email,
+  password: 'abcd1234',
+  industry: 'CAFE',
+  termsAgreed: [
+    { termsId: 42, agreed: true },
+    { termsId: 19, agreed: false },
+  ],
+};
+const SIGNUP_RESPONSE = {
+  ...USER,
+  industry: 'CAFE',
+  industryDetail: null,
+  createdAt: '2026-10-14T00:00:00Z',
+};
+
+describe('postSignup', () => {
+  beforeEach(() => {
+    vi.mocked(customFetcher).mockReset();
+  });
+
+  it('생성 함수로 범용 BFF 경로에 요청하고 응답을 검증한다', async () => {
+    vi.mocked(customFetcher).mockResolvedValue(SIGNUP_RESPONSE);
+    await expect(postSignup(SIGNUP_REQUEST)).resolves.toEqual(SIGNUP_RESPONSE);
+    expect(customFetcher).toHaveBeenCalledWith('/api/users/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: USER.email,
+        password: 'abcd1234',
+        name: USER.name,
+        industry: 'CAFE',
+        termsAgreed: SIGNUP_REQUEST.termsAgreed,
+      }),
+    });
+  });
+
+  it('CUSTOM 요청의 직접 입력 업종을 전달한다', async () => {
+    vi.mocked(customFetcher).mockResolvedValue({
+      ...SIGNUP_RESPONSE,
+      industry: 'CUSTOM',
+      industryDetail: '꽃집',
+    });
+    await postSignup({
+      ...SIGNUP_REQUEST,
+      industry: 'CUSTOM',
+      industryDetail: '꽃집',
+    });
+    expect(
+      JSON.parse(vi.mocked(customFetcher).mock.calls[0][1]!.body as string),
+    ).toMatchObject({ industry: 'CUSTOM', industryDetail: '꽃집' });
+  });
+
+  it.each([
+    {},
+    { ...SIGNUP_RESPONSE, createdAt: 'invalid' },
+    { ...SIGNUP_RESPONSE, industry: 'RETAIL' },
+  ])('가입 응답이 계약과 다르면 거부한다: %s', async (response) => {
+    vi.mocked(customFetcher).mockResolvedValue(response);
+    await expect(postSignup(SIGNUP_REQUEST)).rejects.toBeInstanceOf(ZodError);
+  });
+
+  it('잘못된 요청 구조는 HTTP 요청 전에 거부한다', async () => {
+    await expect(
+      postSignup({
+        ...SIGNUP_REQUEST,
+        industry: 'RETAIL',
+      } as unknown as SignupRequest),
+    ).rejects.toBeInstanceOf(ZodError);
+    expect(customFetcher).not.toHaveBeenCalled();
+  });
+
+  it('BE 오류를 폼에서 처리할 수 있도록 그대로 전달한다', async () => {
+    const error = new ApiError('EMAIL_ALREADY_EXISTS', 409);
+    vi.mocked(customFetcher).mockRejectedValue(error);
+    await expect(postSignup(SIGNUP_REQUEST)).rejects.toBe(error);
+  });
+});
 
 describe('postLogin', () => {
   beforeEach(() => {
