@@ -30,8 +30,7 @@ const ONBOARDING_FORM_DEFAULT_VALUES: OnboardingFormValues = {
 
 function OnboardingForm() {
   const router = useRouter();
-  const { data: terms, isError: isTermsError } = useTerms();
-  const isTermsReady = terms !== undefined && !isTermsError;
+  const { isSuccess: isTermsReady } = useTerms();
   const { control, register, handleSubmit } = useForm<OnboardingFormValues>({
     defaultValues: ONBOARDING_FORM_DEFAULT_VALUES,
   });

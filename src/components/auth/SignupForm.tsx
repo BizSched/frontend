@@ -42,8 +42,7 @@ const SIGNUP_FORM_DEFAULT_VALUES: SignupFormValues = {
 
 function SignupForm() {
   const router = useRouter();
-  const { data: terms, isError: isTermsError } = useTerms();
-  const isTermsReady = terms !== undefined && !isTermsError;
+  const { isSuccess: isTermsReady } = useTerms();
   const { control, register, handleSubmit } = useForm<SignupFormValues>({
     defaultValues: SIGNUP_FORM_DEFAULT_VALUES,
   });
