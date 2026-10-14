@@ -6,6 +6,8 @@ import type { UseFormRegisterReturn } from 'react-hook-form';
 import { FormDropdown } from '@components/_common/FormDropdown/FormDropdown';
 import { Input } from '@components/_common/Input/Input';
 
+import { cn } from '@lib/utilities/cn';
+
 const CUSTOM_BUSINESS_TYPE = 'CUSTOM';
 
 const BUSINESS_TYPE_OPTIONS = [
@@ -27,15 +29,23 @@ interface AuthBusinessTypeFieldProps {
   value: string;
   onChange: (value: string) => void;
   customInputProps: UseFormRegisterReturn;
+  errorMessage?: string;
+  customErrorMessage?: string;
+  disabled?: boolean;
 }
 
 function AuthBusinessTypeField({
   value,
   onChange,
   customInputProps,
+  errorMessage,
+  customErrorMessage,
+  disabled = false,
 }: AuthBusinessTypeFieldProps) {
   const labelId = useId();
   const customInputId = useId();
+  const errorId = useId();
+  const customErrorId = useId();
 
   const isCustom = value === CUSTOM_BUSINESS_TYPE;
 
@@ -43,6 +53,7 @@ function AuthBusinessTypeField({
     <div
       role="group"
       aria-labelledby={labelId}
+      aria-describedby={errorMessage ? errorId : undefined}
       data-slot="auth-field"
       className="flex flex-col gap-2"
     >
@@ -55,12 +66,27 @@ function AuthBusinessTypeField({
       <FormDropdown
         value={value || undefined}
         options={BUSINESS_TYPE_OPTIONS}
-        onChange={onChange}
+        onChange={(nextValue) => {
+          if (!disabled) onChange(nextValue);
+        }}
+        disabled={disabled}
         placeholder="업종을 선택해주세요"
         hasDivider={false}
-        className={DROPDOWN_CLASS_NAME}
+        className={cn(
+          DROPDOWN_CLASS_NAME,
+          errorMessage && 'border-warning-500',
+        )}
         contentClassName={DROPDOWN_CONTENT_CLASS_NAME}
       />
+      {errorMessage && (
+        <p
+          id={errorId}
+          role="alert"
+          className="pl-1 text-sm tracking-[-0.03em] text-warning-500"
+        >
+          {errorMessage}
+        </p>
+      )}
       {isCustom && (
         <>
           <label htmlFor={customInputId} className="sr-only">
@@ -68,10 +94,26 @@ function AuthBusinessTypeField({
           </label>
           <Input
             id={customInputId}
+            disabled={disabled}
+            status={customErrorMessage ? 'error' : undefined}
+            aria-invalid={Boolean(customErrorMessage)}
+            aria-describedby={customErrorMessage ? customErrorId : undefined}
             placeholder="업종을 입력해주세요"
-            className="border-slate-200 [&_input::placeholder]:text-slate-400"
+            className={cn(
+              !customErrorMessage && 'border-slate-200',
+              '[&_input::placeholder]:text-slate-400',
+            )}
             {...customInputProps}
           />
+          {customErrorMessage && (
+            <p
+              id={customErrorId}
+              role="alert"
+              className="pl-1 text-sm tracking-[-0.03em] text-warning-500"
+            >
+              {customErrorMessage}
+            </p>
+          )}
         </>
       )}
     </div>

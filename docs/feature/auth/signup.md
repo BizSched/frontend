@@ -26,6 +26,7 @@
 
 - 가입은 mutation이라 `throwOnError`를 쓰지 않고 `onError`에서 처리한다([error-handling.md](../../architecture/error-handling.md)).
 - 가입에 성공하면 `/login`으로 이동한다. 가입 응답에 토큰이 없어 사용자가 직접 로그인한다.
+- 가입 요청 중과 성공 후 이동 전에는 입력·업종·약관 조작을 잠근다. 실패하면 다시 편집할 수 있다.
 - 업종 값은 [README](./README.md#업종) 참고.
 
 ### 입력 검사
@@ -64,6 +65,7 @@
 - `page.tsx`가 서버에서 `termsQueryOptions`로 prefetch하고 `HydrationBoundary`로 넘긴다([rendering.md](../../architecture/rendering.md)의 "하이브리드 데이터 패칭"). 서버 요청은 `next: { revalidate: 3600 }`으로 1시간 캐시한다. 약관은 모든 사용자에게 같은 공개 데이터다.
 - 체크 항목 문구는 약관 `title`, 필수·선택 표시는 `required`, 전문은 `content`로 그린다. 순서는 BE 응답을 따른다.
 - 조회에 실패하면 약관 영역에 "약관을 불러오지 못했어요."와 "다시 불러오기" 버튼을 보여주고, 약관을 불러올 때까지 회원가입 버튼을 비활성화한다. 약관 없이는 `termsAgreed`를 만들 수 없다.
+- 가입 요청이 `REQUIRED_TERMS_NOT_AGREED`로 거부되면 약관 목록을 다시 조회한다. 재조회 중에는 약관 조작과 가입 제출을 막고, 기존 동의는 유지하며 새 필수 항목에 동의하도록 안내한다. 재조회에 실패하면 같은 재시도 UI로 복구한다.
 
 ### 요청 필드
 
@@ -119,7 +121,7 @@
 | 1    | `docs/auth-signup-plan`    | 회원가입 설계 확정, 단계별 PR 계획 (이 문서)                                                                                                                                                           | `dev` |                         |
 | 2    | `feat/api-bff-passthrough` | 범용 통과 `app/api/[...path]/route.ts` — 토큰 경로 차단, 요청 헤더 허용 목록, `Set-Cookie`·hop-by-hop 헤더 제거, 스트림 전달 ([auth.md](../../architecture/auth.md)의 "범용 통과 규칙")                | `dev` | 로컬 구현 완료, PR 대기 |
 | 3    | `feat/auth-signup-terms`   | `getTerms`, `termsQueryOptions`(서버 prefetch, 1시간 캐시), `TermsAgreement`·`TermsModal`을 약관 목록 기반으로 변경(온보딩 포함), 마케팅 체크 하나로 통합, 조회 실패 시 다시 불러오기, `terms.ts` 삭제 | 2단계 | 로컬 구현 완료          |
-| 4    | `feat/auth-signup`         | 공통 이메일 형식 규칙, `SignupForm` 입력 검사, `postSignup`·`formatSignupError`, `useSignupMutation`, 실패 문구 인라인 표시, 성공 시 `/login` 이동                                                     | 3단계 |                         |
+| 4    | `feat/auth-signup`         | 공통 이메일 형식 규칙, `SignupForm` 입력 검사, `postSignup`·`formatSignupError`, `useSignupMutation`, 실패 문구 인라인 표시, 성공 시 `/login` 이동                                                     | 3단계 | 로컬 구현 완료          |
 
 - 2단계는 `dev`에서 분기한다. 3단계부터는 바로 앞 단계 브랜치에서 분기한 stacked PR이고, 앞 단계가 머지되면 base를 `dev`로 바꾼다.
 - 범용 통과는 회원가입뿐 아니라 이후 모든 BFF 경유 API가 함께 쓴다.
@@ -139,6 +141,18 @@
 - 하드코딩 약관과 수신 수단별 체크를 제거했다. API에 요약 필드가 없어 기존 모달 요약도 제거했다.
 - 필수 동의·입력값 검증과 회원가입 API 연동은 4단계에서 진행한다.
 - 새 테스트 14개를 포함한 전체 테스트 367개, ESLint, 변경 파일 Prettier 검사, 타입 검사, 프로덕션 빌드를 통과했다.
+
+### 4단계 구현 결과
+
+- `isValidEmail`을 로그인·회원가입에서 공유한다. 폼의 필수·길이·비밀번호 확인·업종·필수 약관 검증은 React Hook Form의 `rules`로 처리한다.
+- `postSignup`은 생성 요청 함수 `signup`을 호출하고, 요청 구조와 응답을 생성 zod로 검증한다. 업종 값은 생성 타입의 목록을 기준으로 검사한다.
+- `industryDetail`은 `CUSTOM`일 때만 보내고, `termsAgreed`는 API 목록 전체의 동의 여부를 전송한다. 선택 약관의 미동의도 `false`로 포함하며, 빈 목록은 빈 배열로 전송한다.
+- `formatSignupError`는 가입 실패 5개 코드의 문구를 매핑하고, 폼은 해당 필드에 오류를 표시한다. 그 밖의 오류는 공통 formatter를 거쳐 가입 버튼 위에 표시한다. 실패해도 입력값을 유지하고 재제출할 수 있다.
+- 가입 진행 중과 성공 후 이동 전에는 중복 제출을 막고, 성공하면 `/login`으로 이동한다. 가입은 로그인 상태를 만들지 않아 기존 쿼리 캐시를 비우지 않는다.
+- 가입 요청 중에는 계정 정보·업종·약관을 잠가 제출값과 서버 오류의 대상이 어긋나지 않게 한다. 잠금 전에 열린 약관 모달에서 뒤늦게 동의 결과가 도착해도 체크 상태를 바꾸지 않는다.
+- 필수 약관 오류가 발생하면 목록을 재조회해 새 항목을 표시한다. 이 재조회 중·실패 중에는 제출을 막으며, 재조회 실패는 기존 다시 불러오기 버튼으로 복구한다. mount·창 포커스 같은 백그라운드 갱신 중에는 막지 않는다. 기존 목록으로 제출해도 BE가 필수 약관을 다시 검사한다.
+- 업종·약관 컴포넌트에 선택적 오류 표시 props를 추가했다. 온보딩의 기존 제출 동작은 유지한다.
+- 새 테스트 59개를 포함한 전체 테스트 426개, ESLint, 변경 파일 Prettier 검사, 타입 검사, 프로덕션 빌드를 통과했다.
 
 ## 확인 필요
 

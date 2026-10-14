@@ -1,7 +1,12 @@
 import { customFetcher } from '@lib/api/customFetcher';
 import { toLoginUser } from '@lib/api/entities/auth/toLoginUser';
 import { Login1Response } from '@lib/api/generated/auth/auth.zod';
-import type { LoginRequest } from '@lib/api/generated/bizSchedAPI.schemas';
+import type {
+  LoginRequest,
+  SignupRequest,
+} from '@lib/api/generated/bizSchedAPI.schemas';
+import { signup } from '@lib/api/generated/users/users';
+import { SignupBody, SignupResponse } from '@lib/api/generated/users/users.zod';
 
 const LOGIN_PATH = '/api/auth/login';
 const LOGOUT_PATH = '/api/auth/logout';
@@ -21,4 +26,9 @@ const postLogin = async (loginRequest: LoginRequest) => {
 
 const postLogout = () => customFetcher<void>(LOGOUT_PATH, { method: 'POST' });
 
-export { postLogin, postLogout };
+const postSignup = async (signupRequest: SignupRequest) => {
+  const response = await signup(SignupBody.parse(signupRequest));
+  return SignupResponse.parse(response);
+};
+
+export { postLogin, postLogout, postSignup };

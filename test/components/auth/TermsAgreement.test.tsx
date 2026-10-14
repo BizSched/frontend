@@ -120,6 +120,35 @@ describe('TermsAgreement', () => {
     ).not.toBeChecked();
   });
 
+  it('모달을 연 뒤 폼이 잠기면 늦게 도착한 동의를 적용하지 않는다', async () => {
+    let agree!: (value: boolean) => void;
+    vi.mocked(openTermsModal).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          agree = resolve;
+        }),
+    );
+    const onChange = vi.fn();
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false, staleTime: Infinity } },
+    });
+    const content = (disabled: boolean) => (
+      <QueryClientProvider client={client}>
+        <TermsAgreement value={{}} onChange={onChange} disabled={disabled} />
+      </QueryClientProvider>
+    );
+    const { rerender } = render(content(false));
+    fireEvent.click(
+      await screen.findByRole('button', { name: '서비스 이용약관 전문 보기' }),
+    );
+    rerender(content(true));
+    await act(async () => agree(true));
+    expect(onChange).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole('checkbox', { name: '[필수] 서비스 이용약관' }),
+    ).not.toBeChecked();
+  });
+
   it.each([
     ['회원가입', <SignupForm key="signup" />, '회원가입 하기'],
     ['온보딩', <OnboardingForm key="onboarding" />, '시작하기'],
