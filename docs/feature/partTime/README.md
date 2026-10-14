@@ -1,0 +1,139 @@
+# 아르바이트 기능 문서
+
+## 개요
+
+사장님이 아르바이트생을 등록·관리하고, 근무 스케쥴을 월 캘린더로 배정하며 출근 여부를 기록하는 도메인이다. 아르바이트생 관리(목록·상세·추가·수정)와 스케쥴 관리(조회·추가·수정·삭제·출근 확인)로 나뉜다.
+
+## 주요 화면 / 플로우
+
+| 화면                   | 라우트                                             | 문서                             |
+| ---------------------- | -------------------------------------------------- | -------------------------------- |
+| 스케쥴 관리            | `/partTime/schedule`                               | [schedule.md](./schedule.md)     |
+| 아르바이트생 관리      | `/partTime/staff` (상세는 `?staffId=`)             | [staff.md](./staff.md)           |
+| 아르바이트생 추가·수정 | `/partTime/staff/new`, `/partTime/staff/[id]/edit` | [staff-form.md](./staff-form.md) |
+
+- 스케쥴은 등록된 아르바이트생에게만 배정할 수 있다. 아르바이트생 상세의 "이번 주 근무"는 스케쥴 조회 API로 받는다.
+- 아르바이트생을 삭제하면 아직 오지 않은 스케쥴이 함께 삭제된다. 따라서 아르바이트생 삭제 후에는 스케쥴 데이터도 갱신한다.
+
+## API 명세
+
+백엔드 Swagger(`orval` 코드젠, `src/lib/api/generated/staff/`, `src/lib/api/generated/schedule/`)를 기준으로 한다. 목업 UI 단계에서 정한 FE 타입은 그대로 두고, DTO는 API 레이어에서 FE 타입으로 변환한다.
+
+### 아르바이트생
+
+| 용도           | 엔드포인트                                                                | 비고                                                                                               |
+| -------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| 목록 조회      | `GET /api/staff?employmentStatus=&page=&size=` (`findAll1`)               | 이름순, 동명이인은 먼저 등록한 쪽이 앞. 삭제한 아르바이트생은 빠진다. `size` 최대 100              |
+| 상세 조회      | `GET /api/staff/{staffId}` (`findById1`)                                  | 첨부파일 목록 포함. 삭제했거나 다른 사장님의 아르바이트생은 404                                    |
+| 등록           | `POST /api/staff` (`createWithFiles`)                                     | 첨부파일이 없으면 JSON, 있으면 `multipart/form-data`. 등록 시 재직 상태는 `EMPLOYED`               |
+| 수정           | `PATCH /api/staff/{staffId}` (`updateWithFiles`)                          | 보낸 필드만 바뀐다. 첨부파일은 **추가만** 된다. `note`에 `""`를 보내면 지워진다                    |
+| 삭제           | `DELETE /api/staff/{staffId}` (`delete2`)                                 | 되돌릴 수 없다. 아직 오지 않은 스케쥴이 함께 삭제된다. 오늘·지난 스케쥴은 남는다                   |
+| 재직 상태 변경 | `PATCH /api/staff/{staffId}/employment-status` (`changeEmploymentStatus`) | `EMPLOYED`·`ON_LEAVE`·`RESIGNED`. 재직 중이 아니게 바꾸면 아직 오지 않은 스케쥴이 삭제된다         |
+| 첨부파일 받기  | `GET /api/staff/{staffId}/attachments/{attachmentId}`                     | 상세 응답의 `downloadUrl`. `Content-Disposition: attachment`로 내려온다(BFF가 `inline`으로 바꾼다) |
+| 첨부파일 삭제  | `DELETE /api/staff/{staffId}/attachments/{attachmentId}`                  | 204. 한 번에 한 파일                                                                               |
+
+- 입력 규칙: `name` 1~30자(유일한 필수값), `phone` `010-0000-0000`, `birthDate` `yyyy-MM-dd`, `gender` `MALE`·`FEMALE`, `hourlyWage` 0 이상 정수, `note` 최대 500자.
+- 첨부파일 제한: jpg·jpeg·png·pdf·doc·docx만 받는다. 파일당 10MB, 아르바이트생 한 명당 10개까지다. 수정 시 기존 개수와 새 개수의 합이 10을 넘으면 400이다. 한 파일이라도 제한에 걸리면 그 요청의 파일은 하나도 저장되지 않는다.
+- 동명이인과 연락처 중복을 허용한다.
+- 첨부파일 업로드는 BFF 요청 body 한도(4MB)에 걸린다. 업로드 경로는 [auth.md 결정 대기 항목](../../architecture/auth.md#결정-대기-항목)의 "첨부파일 전송"을 따른다.
+- 첨부파일 다운로드는 범용 통과 경로를 쓴다. `downloadUrl`을 그대로 `src`에 넣으면 쿠키로 인증된다 ([auth.md 제약](../../architecture/auth.md#제약)).
+
+### 스케쥴
+
+| 용도      | 엔드포인트                                                          | 비고                                                                                   |
+| --------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| 기간 조회 | `GET /api/schedules?from=&to=&staffId=&page=&size=` (`findAll2`)    | 날짜순, 같은 날은 시작 시각순. `from`·`to` 필수, 양 끝 포함 최대 42일. `size` 최대 100 |
+| 등록      | `POST /api/schedules` (`create2`)                                   | 같은 아르바이트생의 같은 날 근무와 시간이 겹치면 409                                   |
+| 수정      | `PATCH /api/schedules/{scheduleId}` (`update2`)                     | 보낸 필드만 바뀐다. `staffId` 변경 가능. `memo`에 `""`를 보내면 지워진다               |
+| 삭제      | `DELETE /api/schedules/{scheduleId}` (`delete3`)                    | 되돌릴 수 없다. 출근 확인한 스케쥴, 삭제한 아르바이트생의 스케쥴도 지울 수 있다        |
+| 출근 확인 | `PATCH /api/schedules/{scheduleId}/attendance` (`changeAttendance`) | `status`: `ATTENDED`·`ABSENT`. `ATTENDED`가 조회 응답의 `isCheckedIn: true`다          |
+
+- 입력 규칙: `workDate` `yyyy-MM-dd`, `startTime`·`endTime` `HH:mm`이며 **마감이 시작보다 뒤여야 한다**. `memo` 최대 500자.
+- 배정 대상: 삭제되지 않고 재직 중(`EMPLOYED`)인 아르바이트생만 배정할 수 있다. 그 외는 `STAFF_NOT_EMPLOYED`로 거부된다.
+- 시간 겹침: 같은 아르바이트생의 같은 날 근무와 겹치면 409 `SCHEDULE_TIME_CONFLICT`이고, `data`에 부딪힌 스케쥴(`conflictingScheduleId`, `conflictStart`, `conflictEnd`)이 담긴다. 경계가 맞닿는 것(09:00~~12:00과 12:00~~16:00)은 겹침이 아니다. 수정 시 자기 자신은 겹침 검사에서 빠진다.
+- 출근 확인: 당일을 포함한 과거 근무만 바꿀 수 있고, 아직 오지 않은 근무는 400이다. 등록·수정의 `isCheckedIn`도 같은 규칙이다.
+- 삭제한 아르바이트생: 지난 스케쥴은 조회 응답에 `staff.isDeleted: true`로 남는다. 이 스케쥴을 수정하면 404 `STAFF_NOT_FOUND`이고, 삭제는 된다.
+
+### DTO → FE 타입
+
+변환 함수는 `src/lib/api/entities/{staff,schedule}/`에 둔다. 컴포넌트는 FE 타입만 받는다.
+
+| FE 타입                                 | DTO                                       | 변환                                                                                       |
+| --------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `PartTimeStaffListItem`                 | 목록 `items[]`                            | 그대로. `phone`은 비어 있을 수 있다                                                        |
+| `PartTimeStaffDetailItem`               | 상세 응답                                 | `note` → `memo`, `gender` `MALE`·`FEMALE` → `male`·`female`. 선택 필드는 비어 있을 수 있다 |
+| `PartTimeStaffAttachment`               | `attachments[]`                           | `fileName` → `name`, `downloadUrl` → `url`, `contentType` → `type`(`pdf`·`image`)          |
+| `PartTimeSchedule`                      | 기간 조회 `items[]`                       | `workDate` → `date`, `memo`가 없으면 `''`                                                  |
+| `PartTimeStaffShift`                    | 기간 조회 `items[]` (`staffId` + 주 범위) | `workDate` → `date`                                                                        |
+| `PartTimeStaff` (스케쥴 필터·모달 옵션) | 아르바이트생 목록 `items[]`               | 목록에는 삭제한 아르바이트생이 없으므로 `isDeleted: false`. 범위는 "설계 결정"             |
+
+## 상태 관리 포인트
+
+- 아르바이트생 목록·상세, 스케쥴 기간 조회는 TanStack Query로 관리한다. 첫 화면은 `page.tsx`에서 요청 단위 QueryClient로 prefetch하고 `HydrationBoundary`로 넘긴다 ([data-flow.md](../../architecture/data-flow.md)).
+- query options와 key는 매출과 같이 `src/hooks/api/{staff,schedule}/`에 둔다. 무효화 범위는 아래와 같다.
+
+| 변경                  | 무효화                                                          |
+| --------------------- | --------------------------------------------------------------- |
+| 아르바이트생 등록     | 아르바이트생 목록                                               |
+| 아르바이트생 수정     | 아르바이트생 목록·해당 상세. 이름이 바뀌면 스케쥴 조회도        |
+| 아르바이트생 삭제     | 아르바이트생 목록·해당 상세, 스케쥴 조회 전체                   |
+| 재직 상태 변경        | 아르바이트생 목록·해당 상세, 스케쥴 조회 전체                   |
+| 스케쥴 등록·수정·삭제 | 스케쥴 조회 전체 (월 캘린더와 아르바이트생 상세의 이번 주 근무) |
+| 출근 확인             | 스케쥴 조회 전체                                                |
+
+- 에러 문구는 BE `message`를 쓴다 ("설계 결정"). 409 `SCHEDULE_TIME_CONFLICT`, `STAFF_NOT_EMPLOYED`, 404 `STAFF_NOT_FOUND`, 출근 확인 400 모두 BE가 사용자용 문장을 준다.
+
+## 주요 컴포넌트
+
+- 화면별 컴포넌트는 페이지 문서를 따른다. 스케쥴은 `src/components/partTime/schedule/`, 아르바이트생은 `src/components/partTime/staff/`에 둔다.
+- 컴포넌트는 목업 단계부터 FE 타입만 쓰므로, API 연동에서는 데이터 출처(목업 → query)만 바꾼다.
+
+## API 연동 PR 계획
+
+| 순서 | 브랜치                                   | 범위                                                                                                                                         | 선행 |
+| ---- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
+| 1    | `docs/part-time-api`                     | 이 문서, 페이지 문서의 API 연동 계획·PR 계획 갱신                                                                                            | —    |
+| 2    | `feat/part-time-staff-read-api`          | 아르바이트생 목록·상세 조회, DTO 변환, prefetch + hydration, 목업 제거, 첨부파일 받기 응답 `inline` 변경(BFF) ([staff.md](./staff.md) 6단계) | 1    |
+| 3    | `feat/part-time-schedule-read-api`       | 스케쥴 기간 조회, 필터·모달 옵션을 아르바이트생 목록으로 교체, 상세 "이번 주 근무" 연결 ([schedule.md](./schedule.md) 4단계)                 | 2    |
+| 4    | `feat/part-time-schedule-write-api`      | 스케쥴 등록·수정·삭제, 출근 확인 ([schedule.md](./schedule.md) 5·6단계)                                                                      | 3    |
+| 5    | `feat/part-time-staff-delete-api`        | 아르바이트생 삭제 ([staff.md](./staff.md) 7단계)                                                                                             | 2    |
+| 6    | `feat/part-time-staff-write-api`         | 아르바이트생 등록·수정, 첨부파일 크기 줄이기·전송·삭제 ([staff-form.md](./staff-form.md) 4단계)                                              | 2    |
+| 7    | `feat/part-time-staff-employment-status` | 카드·상세의 재직 상태 표시, 상세에서 재직 상태 변경 ([staff.md](./staff.md) 8단계)                                                           | 2    |
+
+- 아르바이트생 조회를 스케쥴보다 먼저 한다. 스케쥴 필터와 모달 옵션이 아르바이트생 목록을 쓰기 때문이다.
+- 각 PR은 선행 PR 브랜치에서 분기하고, 선행 PR이 머지되면 base를 `dev`로 바꾼다.
+
+## 설계 결정
+
+API 명세와 FE 설계가 다른 곳은 BE 명세를 따르고, 명세로 정할 수 없는 화면 동작은 사용자 확인으로 정했다 (2026-10-14 확정).
+
+| 항목                         | 결정                                                                                                                                                                                                | 근거                                                                                                                      |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| 목록 페이지 크기 상한        | 월 캘린더와 필터·모달 드롭다운은 `size=100`으로 받고, `totalPage`까지 다음 페이지를 이어서 받는다                                                                                                   | `size` 최대 100. 화면은 기간 안의 스케쥴과 아르바이트생 전체를 한 번에 그린다                                             |
+| 아르바이트생 목록 범위       | 목록 API 응답 그대로 휴직·퇴사자를 포함해 보여준다. `employmentStatus` 필터는 쓰지 않는다                                                                                                           | BE가 퇴사는 목록에 남기고, 목록에서 지우는 것은 삭제로 나눴다                                                             |
+| 재직 상태 표시               | 카드는 휴직·퇴사일 때만 이름 옆에 배지를 붙인다. 재직은 표시하지 않는다                                                                                                                             | 목록에 휴직·퇴사자가 함께 나와 구분이 필요하다. 대부분이 재직이라 모든 카드에 붙이면 정보가 묻힌다                        |
+| 재직 상태 변경               | 상세 헤더의 이름 옆 상태 드롭다운(공통 `Dropdown`, 재직·휴직·퇴사)으로 바꾼다. 추가·수정 폼에는 두지 않는다                                                                                         | BE가 재직 상태를 별도 API로 나눴다. 폼에 넣으면 제출 요청이 늘어 실패 처리가 복잡해진다                                   |
+| 재직 상태 변경 확인          | 휴직·퇴사로 바꿀 때만 확인 모달(`openConfirmModal`)을 띄운다. 문구는 "아직 오지 않은 근무 스케쥴이 삭제돼요. 다시 재직으로 바꿔도 복구되지 않아요." 재직으로 바꿀 때는 바로 바꾼다                  | 휴직·퇴사로 바꾸면 BE가 아직 오지 않은 스케쥴을 지우고 되돌릴 수 없다                                                     |
+| 모달 드롭다운 범위           | `employmentStatus=EMPLOYED`로 받은 재직자만 보여준다                                                                                                                                                | 재직자가 아니면 등록이 `STAFF_NOT_EMPLOYED`로 거부된다                                                                    |
+| 캘린더 필터 범위             | 목록 API의 아르바이트생 전체(휴직·퇴사자 포함)                                                                                                                                                      | 휴직·퇴사자의 지난 스케쥴이 캘린더에 남는다                                                                               |
+| 삭제한 아르바이트생의 스케쥴 | 캘린더와 날짜 상세에서 숨긴다. 필터 목록에도 나오지 않는다                                                                                                                                          | 스케쥴 화면은 현재 관리 중인 아르바이트생의 근무를 본다. BE 응답에는 남으므로 `staff.isDeleted`로 거른다                  |
+| 비어 있는 선택 필드          | `phone`·`birthDate`·`gender`·`hourlyWage`·`note`를 FE 타입에서도 비어 있을 수 있는 값으로 둔다. 상세 인적 사항의 빈 값은 `-`로 표시한다. 첨부파일·메모는 비면 영역을 그리지 않는 기존 결정을 따른다 | BE는 이름만 필수로 받는다. `-`는 폼 시급 placeholder와 같은 표기이고, 빈칸이면 라벨만 남아 깨진 화면처럼 보인다           |
+| 첨부파일 형식                | FE는 jpg·jpeg·png·pdf만 받는다. BE가 받는 doc·docx는 받지 않는다                                                                                                                                    | 브라우저가 doc·docx를 그리지 못해 미리보기 원칙을 지킬 수 없다                                                            |
+| 첨부파일 미리보기            | 올린 첨부파일은 모두 뷰어에서 미리보기로 보여준다. BFF가 첨부파일 받기 응답의 `Content-Disposition`을 `inline`으로 바꿔 전달한다(파일명 유지)                                                       | BE 응답이 `attachment`라 `iframe`의 PDF가 다운로드된다. BE 변경 없이 FE 쪽에서 해결한다                                   |
+| 첨부파일 크기 줄이기         | 이미지는 업로드 전에 긴 변 2000px 이하, JPEG 품질 0.8로 다시 인코딩한다. HEIC도 브라우저가 열 수 있으면 JPEG로 바뀐다. WebP는 쓰지 않는다                                                           | BFF 요청 body 한도(4MB) 안에 넣는다. BE가 jpg·jpeg·png만 받고, Safari는 canvas에서 WebP를 인코딩하지 못한다               |
+| 큰 PDF                       | 3.5MB를 넘는 PDF는 고르지 않은 것으로 두고 토스트로 "3.5MB 이하 파일만 올릴 수 있어요."를 띄운다                                                                                                    | 브라우저에서 PDF를 줄일 수 없다. multipart 오버헤드를 두고 4MB 아래로 맞춘다. 이유가 보이지 않으면 막힌 원인을 알 수 없다 |
+| 첨부파일 요청 단위           | 파일은 한 요청에 하나씩 수정 API(`PATCH`, `multipart`)로 보낸다. 등록은 정보만 JSON으로 `POST`한 뒤 파일을 하나씩 올린다                                                                            | 여러 파일을 한 요청에 담으면 4MB를 넘는다. BE 수정 API가 파일을 추가만 해서 나눠 보낼 수 있다                             |
+| 에러 문구                    | 도메인 매핑을 두지 않고 BE `message`를 보여준다. mutation 에러는 토스트로 띄운다. 시간 겹침 409의 합치기 안내는 두지 않는다                                                                         | [error-handling.md](../../architecture/error-handling.md)의 메시지 우선순위. 모달에 필드 에러 자리가 없다                 |
+| 자정을 넘는 근무             | 허용하지 않는다. 마감이 시작보다 늦어야 하고, 시작 = 마감도 막는다                                                                                                                                  | BE는 마감이 시작보다 뒤여야 한다                                                                                          |
+| 미래 근무의 출근 확인        | 날짜 상세에서 내일 이후 근무의 체크박스를 비활성화한다                                                                                                                                              | BE는 당일을 포함한 과거 근무만 받는다                                                                                     |
+| 글자 수                      | 이름 30자·메모 500자를 UTF-16 단위로 센다. 이모지 등은 2자로 센다                                                                                                                                   | BE 상한을 넘지 않도록 BE와 같은 단위로 센다                                                                               |
+| 메모 길이                    | 스케쥴·아르바이트생 메모 모두 500자에서 입력을 막는다                                                                                                                                               | BE 최대 500자. 이름 30자와 같은 방식                                                                                      |
+
+## 확인 필요
+
+도메인 공통으로 남은 결정은 없다. 첨부파일 미리보기·HEIC 변환의 실제 기기 확인은 [staff.md 확인 필요 6](./staff.md#확인-필요)에서 다룬다.
+
+## 참고
+
+- 공통 규칙은 [docs/README.md](../../README.md) 참고
+- [데이터 흐름](../../architecture/data-flow.md), [에러 처리](../../architecture/error-handling.md), [인증 — 제약](../../architecture/auth.md#제약)

@@ -47,6 +47,7 @@
 도메인(기능)별로 하위 폴더를 둔다.
 
 - `components/`: `_common/`(Shadcn/ui 기반으로 재구성한 컴포넌트를 `<Component>/<Component>.tsx`에 둔다 — [ui-component.md](../convention/ui-component.md) 참고), `auth/`(`form/`), `dashboard/`, `landing/`, `partTime/`(`schedule/`, `staff/`), `sales/`(`chart/`, `table/`, `form/`, `category/`), `task/`(`calendar/`, `form/`, `detail/`)
+  - 도메인 하위 폴더 안에 기능 단위 폴더를 한 단계 더 둘 수 있다 (예: `partTime/schedule/modal/`). 한 기능의 파일(모달과 컨트롤러·launcher·하위 컴포넌트 등)이 여러 개라 상위 폴더의 다른 파일과 섞일 때 쓴다. 폴더명은 도메인 폴더처럼 소문자로 시작한다. 컴포넌트 폴더가 아니라 기능을 묶는 폴더이기 때문이다
 - `hooks/`: `types/`, `api/`
   - `api/{도메인}/`: 도메인별 하위 폴더. `lib/api/entities/{도메인}/`와 폴더명을 맞춘다 — CRUD 도메인은 훅이 여러 개(목록/생성/수정/삭제) 생겨 파일이 금방 늘어나므로, 도메인별로 묶어 `hooks/api/` 바로 아래가 평평해지지 않게 한다
     - `{도메인}QueryOptions.ts`: `xxxKeys`와 `xxxQueryOptions`. 서버 prefetch와 클라이언트 `useQuery`가 같은 `queryOptions`를 쓰므로 `'use client'`를 붙이지 않는다. 폴더 안이라도 파일명의 `{도메인}` 접두사는 유지한다 — import한 곳에서 파일명만 보고 바로 알아볼 수 있어야 한다

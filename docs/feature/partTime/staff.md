@@ -44,6 +44,7 @@
     | 번호      | 14px                           | 12px                         |
     | 배지·날짜 | 12px                           | 12px                         |
 
+- 재직 상태 배지 — 휴직·퇴사인 아르바이트생 카드에만 이름 옆에 배지를 붙인다. 재직은 표시하지 않는다 ([도메인 문서 설계 결정](./README.md#설계-결정))
 - 빈 목록 — 일러스트 + "등록된 아르바이트생이 없어요." 이 페이지에서만 쓰므로 `PartTimeStaffList` 안에 둔다
 - 삭제 확인 — 삭제 확인 모달([85-121501](https://www.figma.com/design/0UAYWaDS9UNjigV73HWcPZ/BizSched?node-id=85-121501&m=dev)). 공통 `openConfirmModal`로 연다. 제목 "아르바이트생을 삭제하시겠어요?", 설명 "삭제된 상세 내용은 복구할 수 없습니다." 확인 시 실제 삭제 요청은 API 연동 후 연결한다 ("단계별 PR 계획" 7단계)
 
@@ -58,6 +59,8 @@ Figma의 상세 노드는 **패널 껍데기 + 내용**으로 나뉜다. 데스�
   - 인적 사항이 2열에서 1열(생년월일·성별·번호·시급, 간격 8px)로 바뀐다
   - 주간 스케쥴이 칩에서 날짜 + 6px 점으로 바뀐다
   - 첨부파일이 없으면 첨부파일 박스를, 메모가 없으면 본문을 그리지 않는다 (2026-10-04 확정). Figma에 빈 상태가 없고, 빈 박스는 정보 없이 자리만 차지한다
+- 재직 상태 변경 — 헤더 이름 옆에 상태 드롭다운(공통 `Dropdown`, 재직·휴직·퇴사)을 둔다. 휴직·퇴사로 바꿀 때만 `openConfirmModal`로 확인한다. 문구는 [도메인 문서 설계 결정](./README.md#설계-결정)
+- 인적 사항의 빈 값(생년월일·성별·번호·시급)은 `-`로 표시한다
 - `PartTimeStaffWeeklySchedule` — "N월 N째 주 근무 스케쥴". 7일 날짜 + 근무일 칩, 744px 미만은 날짜 + 점. 상세에만 있다. 칩 내용과 상태는 "주간 스케쥴 칩" 참고
   - 주는 월요일에 시작한다 (2026-10-04 확정). 공통 `Calendar`(`weekStartsOn={1}`)와 맞춘다
   - 제목은 오늘이 속한 주를 "10월 둘째 주"처럼 서수로 쓴다 (2026-10-04 확정). "1째 주"는 자연스럽지 않다. 몇째 주인지는 오늘이 속한 달의 1일이 들어 있는 주를 첫째 주로 센다
@@ -108,14 +111,16 @@ Figma의 상세 노드는 **패널 껍데기 + 내용**으로 나뉜다. 데스�
 | 아르바이트생 상세      | 서버 데이터      | 목업 → TanStack Query               | 목록 응답에 없는 필드(성별·시급·첨부파일·메모)를 상세 조회로 받는다고 가정. API 명세 확정 시 다시 판단                                     |
 | 이번 주 근무           | 서버 데이터      | 목업 → TanStack Query               | 상세 타입에 넣지 않고 따로 받는다. 스케쥴 조회 API를 재사용할 여지("API 연동 계획" 3)가 있어, 근무 필드 이름을 `PartTimeSchedule`과 맞춘다 |
 
-API 명세는 [스케쥴 관리](./schedule.md#상태데이터)와 같이 UI를 먼저 구현한 뒤 API 연동 단계에서 정하고, 도메인 문서(`feature/partTime/README.md`)에 작성한다. 목업 단계에서는 UI가 쓰는 FE 타입만 둔다. 스케쥴 관리의 `PartTimeStaff`(`id`·`name`·`isDeleted`)는 필터용 최소 타입이라 이 페이지의 필드를 더하지 않고, 목록·상세용 타입을 따로 둔다.
+API 명세와 DTO → FE 타입 변환은 [도메인 문서](./README.md#api-명세)를 따른다. 스케쥴 관리의 `PartTimeStaff`(`id`·`name`·`isDeleted`)는 필터용 최소 타입이라 이 페이지의 필드를 더하지 않고, 목록·상세용 타입을 따로 둔다.
 
 ### API 연동 계획
 
 1. 목록: Query Key에 `page`를 넣는다. 첫 화면은 `page.tsx`에서 `prefetchQuery` → `HydrationBoundary` → `useQuery`
 2. 상세: `?staffId=`가 있으면 클라이언트에서 단건 조회한다. 카드에 이미 있는 이름·번호는 목록 캐시로 먼저 그린다. URL로 바로 들어와 현재 페이지에 없는 `staffId`도 단건 조회로 그린다. 지금 상세 패널은 상세 데이터 전체가 있어야 그리므로, 목록 항목으로 먼저 그리고 상세 전용 필드는 로딩 상태로 두도록 6단계에서 패널 입력을 바꾼다. 목록·상세 어디에도 없는 `staffId`(숫자가 아닌 값 포함)로 들어오면 패널을 열지 않고 `?staffId=`를 `replace`로 지운다 (2026-10-04 확정). Figma에 안내 화면이 없고, 목록이 그대로 보이므로 다음 동작으로 바로 이어진다. "없음"은 단건 조회가 끝난 뒤(없는 아르바이트생 응답)에만 판정한다. 조회 중인 `staffId`를 없는 것으로 보면 응답 전에 URL이 지워진다. 패널은 데이터가 없으면 닫기 버튼만 그려, 어떤 경우에도 닫을 수 있게 둔다
-3. 이번 주 근무 스케쥴은 스케쥴 조회 API를 `staffId`·주 범위로 재사용할 수 있는지 명세 확정 시 확인한다
-4. 삭제: `useMutation` 성공 시 목록 쿼리를 무효화하고, 현재 페이지가 비면 이전 페이지로 이동한다
+3. 이번 주 근무는 스케쥴 기간 조회를 `staffId`와 이번 주 월~일(`from`·`to`)로 호출해 받는다. 스케쥴 관리와 같은 query options를 써서, 스케쥴이 바뀌면 함께 갱신된다
+4. 삭제: `useMutation` 성공 시 목록·해당 상세 쿼리를 무효화하고, 현재 페이지가 비면 이전 페이지로 이동한다. 아직 오지 않은 스케쥴이 함께 삭제되므로 스케쥴 조회도 무효화한다
+5. 목록 응답은 이름순이고, 휴직·퇴사자를 포함해 그대로 보여준다. 카드·상세에 재직 상태를 표시하고 상세에서 바꿀 수 있다 ([도메인 문서 설계 결정](./README.md#설계-결정))
+6. 재직 상태 변경: `useMutation` 성공 시 목록·해당 상세 쿼리를 무효화한다. 휴직·퇴사로 바꾸면 아직 오지 않은 스케쥴이 삭제되므로 스케쥴 조회도 무효화한다
 
 ## 렌더링 경계
 
@@ -183,25 +188,26 @@ API 명세는 [스케쥴 관리](./schedule.md#상태데이터)와 같이 UI를 
 - **`?page=`가 전체 페이지 수를 넘으면 마지막 페이지로 보정한다** (2026-10-04 확정) — `replaceState`로 URL을 고치고, 고치기 전 렌더에서도 마지막 페이지를 그려 빈 목록이 깜빡이지 않게 한다. "등록된 아르바이트생이 없어요."는 실제로 0명일 때만 보인다. 삭제 후 현재 페이지가 비면 이전 페이지로 이동하는 것("API 연동 계획" 4)과 같은 방향이다
 - **`?staffId=`·URL 보정은 `router`가 아니라 `window.history.pushState`·`replaceState`로 바꾼다** — `router.push`·`replace`는 검색 파라미터만 바뀌어도 서버에서 `page.tsx`를 다시 렌더한다. 서버는 `staffId`를 쓰지 않으므로 왕복 없이 URL만 바꾸고, Next.js가 `useSearchParams`를 함께 갱신한다. 페이지 이동(`?page=`)은 서버 prefetch 대상이라 `router.push`를 유지한다
 - **상세 패널 열기는 `pushState`, 닫기는 연 방식에 따라 나눈다** — 카드로 열었으면 닫기(×·Esc·dim)가 `router.back()`이라 히스토리에 같은 목록 항목이 쌓이지 않는다. URL로 바로 들어와 연 경우는 이전 항목이 이 페이지가 아니므로 `replaceState`로 `?staffId=`만 지운다. 라우팅이 아니라 목록 스크롤 위치도 유지된다
-- **삭제된 아르바이트생은 목록에 나오지 않는다** — 스케쥴 관리에서 `isDeleted`를 숨기기로 한 것과 맞춘다. 서버가 삭제를 soft delete로 처리하면 목록 API가 제외해 주는지 명세 확정 시 확인한다
+- **삭제된 아르바이트생은 목록에 나오지 않는다** — 스케쥴 관리에서 `isDeleted`를 숨기기로 한 것과 맞춘다. 목록 API가 삭제한 아르바이트생을 빼서 내려주고, 상세는 404다
 
 ## 단계별 PR 계획
 
-| 단계 | 브랜치                                  | 범위                                                                                                                                                                                                        | 상태          |
-| ---- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
-| 1    | `feat/part-time-list-docs`              | 아르바이트생 관리 docs 작성 — 이 문서                                                                                                                                                                       | 진행 중       |
-| 2    | `feat/part-time-list-card`              | `PartTimeStaffCard` large·small(⋮ 메뉴 UI 포함 — 항목 선택 시 동작은 5단계에서 연결), `img_note` 자산, 목록용 FE 타입·목업                                                                                  | 1단계 이후    |
-| 3    | `feat/part-time-list-detail`            | 공유 부품(`PartTimeStaffProfileLayout`·`FieldRow`·`AttachmentBox`·`AttachmentFile`·`NoteIcon`), `PartTimeStaffDetail`·`WeeklySchedule`·`DetailPanel`, 상세용 FE 타입·목업, 유틸 테스트(미출근 판정·주 계산) | 2단계 이후    |
-| 4    | `feat/part-time-list-attachment-viewer` | `PartTimeStaffAttachmentViewer`, 상세 패널과의 배치(데스크톱 옆 패널·모바일 하단 시트)                                                                                                                      | 3단계 이후    |
-| 5    | `feat/part-time-list-ui`                | 페이지 조립 — 목록 그리드·`Pagination`·빈 목록·헤더·플로팅 버튼, 카드 → 상세 연결, ⋮ `수정하기` → 수정 페이지 이동, 없는 `staffId`·범위를 넘는 `page` 처리                                                  | 4단계 이후    |
-| 6    | 미정                                    | 목록·상세 조회 API 연동 — DTO 타입·Formatter, fetcher, Query Key, prefetch + hydration, 목업 제거(`public/mocks/partTimeStaff/` 포함), 첨부파일 미리보기 실제 기기 확인(확인 필요 6)                        | API 명세 확정 |
-| 7    | 미정                                    | 삭제 기능 연결 — 삭제 확인 모달의 확인에 `useMutation` 연결, 목록 무효화 (⋮ `삭제하기` → 모달 열기는 연결 완료)                                                                                             | 6단계 이후    |
+| 단계 | 브랜치                                   | 범위                                                                                                                                                                                                                                                               | 상태        |
+| ---- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------- |
+| 1    | `feat/part-time-list-docs`               | 아르바이트생 관리 docs 작성 — 이 문서                                                                                                                                                                                                                              | 머지 (#120) |
+| 2    | `feat/part-time-list-card`               | `PartTimeStaffCard` large·small(⋮ 메뉴 UI 포함 — 항목 선택 시 동작은 5단계에서 연결), `img_note` 자산, 목록용 FE 타입·목업                                                                                                                                         | 머지 (#124) |
+| 3    | `feat/part-time-list-detail`             | 공유 부품(`PartTimeStaffProfileLayout`·`FieldRow`·`AttachmentBox`·`AttachmentFile`·`NoteIcon`), `PartTimeStaffDetail`·`WeeklySchedule`·`DetailPanel`, 상세용 FE 타입·목업, 유틸 테스트(미출근 판정·주 계산)                                                        | 머지 (#127) |
+| 4    | `feat/part-time-list-attachment-viewer`  | `PartTimeStaffAttachmentViewer`, 상세 패널과의 배치(데스크톱 옆 패널·모바일 하단 시트)                                                                                                                                                                             | 머지 (#128) |
+| 5    | `feat/part-time-list-ui`                 | 페이지 조립 — 목록 그리드·`Pagination`·빈 목록·헤더·플로팅 버튼, 카드 → 상세 연결, ⋮ `수정하기` → 수정 페이지 이동, 없는 `staffId`·범위를 넘는 `page` 처리                                                                                                         | 머지 (#136) |
+| 6    | `feat/part-time-staff-read-api`          | 목록·상세 조회 API 연동 — DTO 변환, fetcher, Query Key, prefetch + hydration, 목업 제거(`public/mocks/partTimeStaff/` 포함), 첨부파일 받기 응답의 `Content-Disposition`을 BFF에서 `inline`으로 변경, 빈 값 `-` 표시, 첨부파일 미리보기 실제 기기 확인(확인 필요 6) | 5단계 이후  |
+| 7    | `feat/part-time-staff-delete-api`        | 삭제 기능 연결 — 삭제 확인 모달의 확인에 `useMutation` 연결, 목록·상세·스케쥴 조회 무효화 (⋮ `삭제하기` → 모달 열기는 연결 완료)                                                                                                                                   | 6단계 이후  |
+| 8    | `feat/part-time-staff-employment-status` | 재직 상태 — 카드·상세에 표시, 상세에서 재직 상태 변경 API 연결, 목록·상세·스케쥴 조회 무효화                                                                                                                                                                       | 6단계 이후  |
 
-1~5단계는 stacked PR로 진행한다. 각 단계 브랜치는 바로 앞 단계 브랜치에서 분기하고, 1 → 5 순서로 `dev`에 머지한다. 앞 단계 PR이 머지되면 다음 단계 PR의 base를 `dev`로 바꾸고, 2단계부터 PR 본문에 머지 순서를 명시한다.
+1~~5단계는 `dev`에 머지했다. 6~~8단계 순서와 브랜치 분기는 [도메인 문서 API 연동 PR 계획](./README.md#api-연동-pr-계획)을 따른다. 이번 주 근무 연결은 스케쥴 조회 API 연동에서 한다.
 
 이 페이지 PR 흐름 밖에서 다룰 작업:
 
-- **사이드바 메뉴 연결** — "아르바이트 > 아르바이트생 관리"가 `disabled`라 진입 경로가 없다. `ROUTE_PATHS`에 `/partTime/staff` 추가와 메뉴 연결은 스케쥴 관리와 함께 다룬다
+- **사이드바 메뉴 연결 완료** — 스케쥴 관리와 함께 연결했다 ([schedule.md](./schedule.md#단계별-pr-계획))
 - **아르바이트생 추가·수정 페이지** — 3단계의 공유 부품을 가져다 쓴다. [staff-form.md](./staff-form.md) 참고
 
 ## 확인 필요
@@ -217,6 +223,6 @@ API 명세는 [스케쥴 관리](./schedule.md#상태데이터)와 같이 UI를 
 5. **주 이동** — 이전·다음 주로 이동하는 기능이 필요한지. 넣는다면 달이 걸친 주를 어느 달의 몇째 주로 부를지도 함께 정한다
 6. **첨부파일 미리보기가 안 되는 경우** — PDF·이미지 형식이어도 아래 경우는 뷰어에 보이지 않을 수 있다. 목업 파일로는 서버 응답 헤더와 실제 업로드 파일을 확인할 수 없어, API 연동 단계(6단계)에서 실제 파일 URL로 데스크톱 브라우저와 모바일 기기(Android Chrome·iOS Safari)에서 직접 확인한다:
    - 모바일 PDF: Android Chrome은 `iframe` 안 PDF를 그리지 못하고(빈 화면 또는 다운로드 버튼), iOS Safari는 첫 페이지만 보이거나 스크롤되지 않을 수 있다. 실제 기기로 확인한 뒤, 모바일에서 "새 탭에서 열기" 링크를 둘지 정한다. 다운로드 버튼을 두지 않기로 한 결정(2026-10-02)과 함께 다시 의논한다
-   - HEIC 이미지: iPhone 사진 기본 형식이라 업로드가 잦을 수 있으나 Safari에서만 보인다. 업로드 시 JPG 변환 또는 업로드 제한을 BE·추가·수정 폼과 정한다
-   - 파일 응답 헤더: `Content-Disposition: attachment`이면 다운로드되고, `X-Frame-Options`·CSP `frame-ancestors`가 막으면 PDF가 빈칸이 된다. PDF는 `Content-Type: application/pdf`여야 한다. API 명세 확정 시 BE와 확인한다
-   - 형식 판별: 뷰어는 서버가 주는 `type`(`pdf`·`image`)만 보고 그리는 방식을 고른다. `type`이 실제 파일과 다르거나 그 외 형식(hwp·docx 등)이 올 수 있는지 명세 확정 시 확인한다
+   - HEIC 이미지: BE가 jpg·jpeg·png만 받는다. 추가·수정 폼은 업로드 전에 이미지를 JPEG로 다시 인코딩하므로, 브라우저가 HEIC를 열 수 있으면 JPEG로 바뀐다. Safari 외 브라우저에서 HEIC를 고를 때의 동작을 실제 기기로 확인한다 ([staff-form.md 첨부파일](./staff-form.md#첨부파일))
+   - 파일 응답 헤더: BE 다운로드 응답은 `Content-Disposition: attachment`라 BFF가 `inline`으로 바꿔 전달한다 ([도메인 문서 설계 결정](./README.md#설계-결정)). 배포 환경에서 PDF가 뷰어에 그려지는지 확인한다. `Content-Type`은 업로드할 때의 타입이다. `X-Frame-Options`·CSP `frame-ancestors`가 막으면 PDF가 빈칸이 된다.
+   - 형식 판별: 뷰어의 `type`(`pdf`·`image`)은 응답의 `contentType`(MIME)으로 정한다. FE는 jpg·jpeg·png·pdf만 받으므로 doc·docx는 오지 않는다
