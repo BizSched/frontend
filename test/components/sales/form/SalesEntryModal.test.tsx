@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   cleanup,
   fireEvent,
@@ -13,9 +14,18 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { SalesEntryModal } from '@components/sales/form/SalesEntryModal/SalesEntryModal';
 
+import { salesCategoryKeys } from '@hooks/api/sales-category/salesCategoryQueryOptions';
+
 import { OverlayProvider } from '@providers/overlay/OverlayProvider';
 
+import { createSale } from '@lib/api/entities/sales/api';
 import { CALENDAR_TIME_ZONE } from '@lib/utilities/calendar/calendarDate';
+
+vi.mock('@lib/api/entities/sales/api', () => ({ createSale: vi.fn() }));
+
+const categories = ['상품 판매', '서비스', '배달·온라인', '기타'].map(
+  (name, index) => ({ id: index + 1, name }),
+);
 
 const originalMatchMedia = window.matchMedia;
 
@@ -28,18 +38,26 @@ const mockMatchMedia = () => {
   }));
 };
 
-const renderSalesEntryModal = () =>
+const renderSalesEntryModal = (close = vi.fn()) => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  queryClient.setQueryData(salesCategoryKeys.list(), categories);
   render(
-    <OverlayProvider>
-      <SalesEntryModal
-        overlayId="test"
-        isOpen={true}
-        close={() => {}}
-        unmount={() => {}}
-        returnFocus={document.body}
-      />
-    </OverlayProvider>,
+    <QueryClientProvider client={queryClient}>
+      <OverlayProvider>
+        <SalesEntryModal
+          overlayId="test"
+          isOpen={true}
+          close={close}
+          unmount={() => {}}
+          returnFocus={document.body}
+        />
+      </OverlayProvider>
+    </QueryClientProvider>,
   );
+  return close;
+};
 
 afterEach(() => {
   cleanup();
@@ -115,5 +133,48 @@ describe('sales entry modal', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(
       '미래 날짜는 선택할 수 없습니다.',
     );
+  });
+
+  it('저장하면 카테고리 ID별 금액과 합계로 생성하고 모달을 닫는다.', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-10-13T03:00:00Z'));
+    vi.mocked(createSale).mockResolvedValue({} as never);
+    mockMatchMedia();
+    const close = renderSalesEntryModal();
+    fireEvent.change(screen.getByLabelText('상품 판매'), {
+      target: { value: '1,000' },
+    });
+    fireEvent.change(screen.getByLabelText('기타'), {
+      target: { value: '500' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '저장' }));
+
+    await waitFor(() => expect(close).toHaveBeenCalled());
+    expect(createSale).toHaveBeenCalledWith({
+      date: '2026-10-13',
+      sales: [
+        { categoryId: 1, amount: 1000 },
+        { categoryId: 2, amount: 0 },
+        { categoryId: 3, amount: 0 },
+        { categoryId: 4, amount: 500 },
+      ],
+      totalAmount: 1500,
+    });
+  });
+
+  it('생성에 실패하면 입력을 유지하고 오류를 표시한다.', async () => {
+    vi.mocked(createSale).mockRejectedValue(new Error('save failed'));
+    mockMatchMedia();
+    const close = renderSalesEntryModal();
+    fireEvent.change(screen.getByLabelText('상품 판매'), {
+      target: { value: '1000' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '저장' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      '매출 내역을 불러오지 못했습니다.',
+    );
+    expect(screen.getByLabelText('상품 판매')).toHaveValue('1000');
+    expect(close).not.toHaveBeenCalled();
   });
 });

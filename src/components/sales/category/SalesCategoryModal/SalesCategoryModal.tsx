@@ -1,8 +1,8 @@
 'use client';
 
 import { PlusIcon } from 'lucide-react';
-import { useRef } from 'react';
-import { useFieldArray, useForm } from 'react-hook-form';
+import { useRef, useState } from 'react';
+import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 
 import { Button } from '@components/_common/Button/Button';
 import { Input } from '@components/_common/Input/Input';
@@ -10,16 +10,21 @@ import { Modal } from '@components/_common/Modal/Modal';
 import { openConfirmModal } from '@components/_common/Modal/openConfirmModal';
 import { TextButton } from '@components/_common/TextButton/TextButton';
 
+import { useCreateSalesCategory } from '@hooks/api/sales-category/useCreateSalesCategory';
+import { useDeleteSalesCategory } from '@hooks/api/sales-category/useDeleteSalesCategory';
+import { useSalesCategoryList } from '@hooks/api/sales-category/useSalesCategoryList';
+import { useUpdateSalesCategories } from '@hooks/api/sales-category/useUpdateSalesCategories';
 import { useOverlayStackIndex } from '@hooks/overlay/useOverlayStackIndex';
 
-import { cn } from '@lib/utilities/cn';
+import { formatSalesError } from '@lib/utilities/sales/formatSalesError';
 
-const MOCK_CATEGORIES = [
-  { name: '상품 판매', color: 'bg-primary-700' },
-  { name: '서비스', color: 'bg-secondary-500' },
-  { name: '배달·온라인', color: 'bg-primary-500' },
-  { name: '기타', color: 'bg-primary-400' },
-];
+const MAX_CATEGORY_COUNT = 10;
+const MAX_CATEGORY_NAME_LENGTH = 10;
+const DUPLICATED_NAME_MESSAGE = '중복된 이름입니다.';
+
+interface SalesCategoryFormValues {
+  categories: { categoryId: number; name: string; color: string }[];
+}
 
 interface SalesCategoryModalProps {
   overlayId: string;
@@ -38,12 +43,56 @@ function SalesCategoryModal({
 }: SalesCategoryModalProps) {
   const stackIndex = useOverlayStackIndex(overlayId);
   const panelRef = useRef<HTMLDivElement>(null);
-  const { control, register, reset } = useForm({
-    defaultValues: { categories: MOCK_CATEGORIES, newCategoryName: '' },
-  });
-  const { fields, remove } = useFieldArray({ control, name: 'categories' });
+  const { data: categories = [] } = useSalesCategoryList();
+  const createCategory = useCreateSalesCategory();
+  const deleteCategory = useDeleteSalesCategory();
+  const updateCategories = useUpdateSalesCategories();
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [mutationError, setMutationError] = useState<unknown>(null);
+  const isPending =
+    createCategory.isPending ||
+    deleteCategory.isPending ||
+    updateCategories.isPending;
 
-  const handleCategoryDelete = async (index: number) => {
+  // NOTE: 추가·삭제 후 다시 조회되면 values가 바뀌어 폼을 서버 값으로 다시 채운다. 저장하지 않은 이름 변경은 버린다 (docs/feature/sales/README.md "카테고리 관리")
+  const { control, register, reset, handleSubmit } =
+    useForm<SalesCategoryFormValues>({
+      values: {
+        categories: categories.map(({ id, name, color }) => ({
+          categoryId: id,
+          name,
+          color,
+        })),
+      },
+    });
+  const { fields } = useFieldArray({ control, name: 'categories' });
+  const names = (useWatch({ control, name: 'categories' }) ?? []).map(
+    ({ name }) => name.trim(),
+  );
+  const isNameDuplicated = (index: number) =>
+    names.some((name, i) => i !== index && name === names[index]);
+  const canSave = names.every(
+    (name, index) => name !== '' && !isNameDuplicated(index),
+  );
+
+  const trimmedNewName = newCategoryName.trim();
+  const isNewNameDuplicated = categories.some(
+    ({ name }) => name.trim() === trimmedNewName,
+  );
+  const canAdd =
+    trimmedNewName !== '' &&
+    !isNewNameDuplicated &&
+    categories.length < MAX_CATEGORY_COUNT;
+
+  const handleCategoryAdd = () => {
+    setMutationError(null);
+    createCategory.mutate(trimmedNewName, {
+      onSuccess: () => setNewCategoryName(''),
+      onError: setMutationError,
+    });
+  };
+
+  const handleCategoryDelete = async (categoryId: number) => {
     const isConfirmed = await openConfirmModal({
       title: '정말 삭제하시겠어요?',
       description: '삭제된 카테고리는 복구할 수 없습니다.',
@@ -51,9 +100,22 @@ function SalesCategoryModal({
     });
 
     if (isConfirmed) {
-      remove(index);
+      setMutationError(null);
+      deleteCategory.mutate(categoryId, { onError: setMutationError });
     }
   };
+
+  const handleSave = handleSubmit((values) => {
+    setMutationError(null);
+    updateCategories.mutate(
+      values.categories.map(({ categoryId, name }, order) => ({
+        id: categoryId,
+        name: name.trim(),
+        order,
+      })),
+      { onSuccess: close, onError: setMutationError },
+    );
+  });
 
   return (
     <Modal
@@ -80,7 +142,7 @@ function SalesCategoryModal({
           <Modal.CloseButton className="sr-only focus:not-sr-only" />
         </Modal.Header>
         <Modal.Body className="flex-initial space-y-3.5 border-b border-slate-300 py-5">
-          {fields.map(({ id, name, color }, index) => (
+          {fields.map(({ id, categoryId, name, color }, index) => (
             <div
               key={id}
               className="flex items-center justify-between border-b border-slate-200 pb-3 max-tablet:pb-2"
@@ -88,23 +150,31 @@ function SalesCategoryModal({
               <div className="flex min-w-0 flex-1 items-center gap-3">
                 <span
                   aria-hidden="true"
-                  className={cn(
-                    'size-3 shrink-0 rounded-[2px] max-tablet:size-2',
-                    color,
+                  style={{ backgroundColor: color }}
+                  className="size-3 shrink-0 rounded-[2px] max-tablet:size-2"
+                />
+                <div className="min-w-0 flex-1">
+                  <Input
+                    size="small"
+                    aria-label={`${name} 카테고리 이름`}
+                    aria-invalid={isNameDuplicated(index)}
+                    maxLength={MAX_CATEGORY_NAME_LENGTH}
+                    {...register(`categories.${index}.name`)}
+                    className="max-w-[327px] border-[#ccc] font-medium text-slate-800 max-tablet:h-7 max-tablet:px-2 max-tablet:py-1"
+                  />
+                  {isNameDuplicated(index) && (
+                    <p className="mt-1 text-xs text-warning-500">
+                      {DUPLICATED_NAME_MESSAGE}
+                    </p>
                   )}
-                />
-                <Input
-                  size="small"
-                  aria-label={`${name} 카테고리 이름`}
-                  {...register(`categories.${index}.name`)}
-                  className="max-w-[327px] border-[#ccc] font-medium text-slate-800 max-tablet:h-7 max-tablet:px-2 max-tablet:py-1"
-                />
+                </div>
               </div>
               <div className="flex w-[208.5px] shrink-0 justify-end">
                 <TextButton
                   type="button"
                   aria-label={`${name} 카테고리 삭제`}
-                  onClick={() => void handleCategoryDelete(index)}
+                  disabled={isPending}
+                  onClick={() => void handleCategoryDelete(categoryId)}
                   className="max-tablet:text-xs max-tablet:leading-4"
                 >
                   삭제
@@ -118,18 +188,29 @@ function SalesCategoryModal({
                 aria-hidden="true"
                 className="size-3 shrink-0 rounded-[2px] bg-primary-700 max-tablet:size-2"
               />
-              <Input
-                size="small"
-                aria-label="새 카테고리 이름"
-                placeholder="새 카테고리 이름"
-                {...register('newCategoryName')}
-                className="max-w-[327px] border-[#ccc] font-medium max-tablet:h-6 max-tablet:px-2 max-tablet:py-1 max-tablet:text-xs"
-              />
+              <div className="min-w-0 flex-1">
+                <Input
+                  size="small"
+                  aria-label="새 카테고리 이름"
+                  placeholder="새 카테고리 이름"
+                  aria-invalid={trimmedNewName !== '' && isNewNameDuplicated}
+                  maxLength={MAX_CATEGORY_NAME_LENGTH}
+                  value={newCategoryName}
+                  onChange={(event) => setNewCategoryName(event.target.value)}
+                  className="max-w-[327px] border-[#ccc] font-medium max-tablet:h-6 max-tablet:px-2 max-tablet:py-1 max-tablet:text-xs"
+                />
+                {trimmedNewName !== '' && isNewNameDuplicated && (
+                  <p className="mt-1 text-xs text-warning-500">
+                    {DUPLICATED_NAME_MESSAGE}
+                  </p>
+                )}
+              </div>
             </div>
             <Button
               type="button"
               size="small"
-              disabled
+              disabled={!canAdd || isPending}
+              onClick={handleCategoryAdd}
               icon={
                 <PlusIcon aria-hidden="true" className="max-tablet:hidden" />
               }
@@ -138,18 +219,30 @@ function SalesCategoryModal({
               추가
             </Button>
           </div>
+          {mutationError !== null && (
+            <p role="alert" className="text-sm text-warning-500">
+              {formatSalesError(mutationError)}
+            </p>
+          )}
         </Modal.Body>
         <Modal.Footer className="justify-end [&>*]:flex-none">
           <Button
             type="button"
             hierarchy="tertiary"
+            disabled={isPending}
             onClick={() => reset()}
             size="small"
             className="h-10 w-auto"
           >
             되돌리기
           </Button>
-          <Button type="button" size="small" className="h-10 w-auto">
+          <Button
+            type="button"
+            size="small"
+            disabled={!canSave || isPending}
+            onClick={() => void handleSave()}
+            className="h-10 w-auto"
+          >
             저장
           </Button>
         </Modal.Footer>
