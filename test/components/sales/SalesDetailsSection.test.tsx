@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import {
   cleanup,
   fireEvent,
@@ -13,16 +14,118 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { openConfirmModal } from '@components/_common/Modal/openConfirmModal';
 import { SalesDetailsSection } from '@components/sales/SalesDetailsSection/SalesDetailsSection';
 
+import { salesKeys } from '@hooks/api/sales/salesQueryOptions';
+import { salesCategoryKeys } from '@hooks/api/sales-category/salesCategoryQueryOptions';
+
+import {
+  deleteSale,
+  getSalesList,
+  getSalesMonthTotal,
+  updateSale,
+} from '@lib/api/entities/sales/api';
+import type { SalesList } from '@lib/api/entities/sales/toSalesList';
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: vi.fn() }),
+  usePathname: () => '/sales/details',
+  useSearchParams: () => new URLSearchParams('month=2026-09'),
+}));
+
+vi.mock('@lib/api/entities/sales/api', () => ({
+  getSalesList: vi.fn(),
+  getSalesMonthTotal: vi.fn(),
+  updateSale: vi.fn(),
+  deleteSale: vi.fn(),
+}));
+
 vi.mock('@components/_common/Modal/openConfirmModal', () => ({
   openConfirmModal: vi.fn(),
 }));
 
-const renderSalesDetailsSection = () => render(<SalesDetailsSection />);
+const categories = ['상품 판매', '서비스', '배달·온라인', '기타'].map(
+  (name, index) => ({ id: index + 1, name }),
+);
+let salesList: SalesList;
+
+const renderSalesDetailsSection = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  queryClient.setQueryData(
+    salesKeys.list({ month: '2026-09', page: 1, size: 10 }),
+    salesList,
+  );
+  queryClient.setQueryData(salesKeys.monthTotal({ month: '2026-09' }), 1000000);
+  queryClient.setQueryData(salesCategoryKeys.list(), categories);
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <SalesDetailsSection initialMonth="2026-09" />
+    </QueryClientProvider>,
+  );
+};
 
 const getSeptemberThirtiethRow = () =>
   screen.getByRole('row', { name: /9월 30일/ });
 
 beforeEach(() => {
+  vi.resetAllMocks();
+  salesList = {
+    page: 1,
+    size: 10,
+    totalCount: 2,
+    totalPage: 1,
+    items: [
+      {
+        id: 42,
+        date: '2026-09-30',
+        sales: categories.map((category, index) => ({
+          categoryId: category.id,
+          name: category.name,
+          amount: [183400, 148700, 351900, 72300][index],
+        })),
+        totalAmount: 756300,
+      },
+      {
+        id: 43,
+        date: '2026-09-29',
+        sales: categories.map((category, index) => ({
+          categoryId: category.id,
+          name: category.name,
+          amount: [372000, 191500, 142900, 75600][index],
+        })),
+        totalAmount: 782000,
+      },
+    ],
+  };
+  vi.mocked(getSalesList).mockImplementation(async () => salesList);
+  vi.mocked(getSalesMonthTotal).mockResolvedValue(1000000);
+  vi.mocked(updateSale).mockImplementation(async (salesId, body) => {
+    const sale = salesList.items.find((item) => item.id === salesId)!;
+    const updated = {
+      ...sale,
+      sales: body.sales.map((item) => ({
+        ...item,
+        amount: item.amount ?? 0,
+        name:
+          categories.find((category) => category.id === item.categoryId)
+            ?.name ?? '',
+      })),
+      totalAmount: body.totalAmount,
+    };
+    salesList = {
+      ...salesList,
+      items: salesList.items.map((item) =>
+        item.id === salesId ? updated : item,
+      ),
+    };
+    return updated;
+  });
+  vi.mocked(deleteSale).mockImplementation(async (salesId) => {
+    salesList = {
+      ...salesList,
+      items: salesList.items.filter((item) => item.id !== salesId),
+    };
+  });
   vi.mocked(openConfirmModal).mockReset();
 });
 
@@ -32,6 +135,50 @@ afterEach(() => {
 });
 
 describe('SalesDetailsSection', () => {
+  it('수정 실패 시 입력 초안과 오류를 유지한다', async () => {
+    vi.mocked(updateSale).mockRejectedValue(new Error('save failed'));
+    renderSalesDetailsSection();
+    fireEvent.click(screen.getByRole('button', { name: '9월 30일 매출 수정' }));
+    const input = screen.getByRole('spinbutton', {
+      name: '상품 판매 9월 30일 매출',
+    });
+    fireEvent.change(input, { target: { value: '999999' } });
+    fireEvent.click(screen.getByRole('button', { name: '9월 30일 편집 저장' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      '매출 내역을 불러오지 못했습니다.',
+    );
+    expect(input).toHaveValue(999999);
+  });
+
+  it('전체 교체 시 현재 목록에서 빠진 카테고리의 기존 금액도 유지한다', async () => {
+    salesList.items[0].sales.push({
+      categoryId: 99,
+      name: '이전 카테고리',
+      amount: 100,
+    });
+    renderSalesDetailsSection();
+    fireEvent.click(screen.getByRole('button', { name: '9월 30일 매출 수정' }));
+    fireEvent.click(screen.getByRole('button', { name: '9월 30일 편집 저장' }));
+    await waitFor(() =>
+      expect(updateSale).toHaveBeenCalledWith(
+        42,
+        expect.objectContaining({
+          sales: expect.arrayContaining([{ categoryId: 99, amount: 100 }]),
+          totalAmount: 756400,
+        }),
+      ),
+    );
+  });
+
+  it('삭제 실패 시 행을 유지하고 오류를 표시한다', async () => {
+    vi.mocked(openConfirmModal).mockResolvedValue(true);
+    vi.mocked(deleteSale).mockRejectedValue(new Error('delete failed'));
+    renderSalesDetailsSection();
+    fireEvent.click(screen.getByRole('button', { name: '9월 30일 매출 삭제' }));
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+    expect(getSeptemberThirtiethRow()).toBeInTheDocument();
+  });
+
   it.each(['-1', '1.5'])(
     '금액 %s는 저장하지 않고 편집 초안을 유지한다',
     (amount) => {
@@ -110,7 +257,7 @@ describe('SalesDetailsSection', () => {
     ).toBeDisabled();
   });
 
-  it('편집을 저장하면 수정한 금액을 표시한다', () => {
+  it('편집을 저장하면 수정한 금액을 표시한다', async () => {
     renderSalesDetailsSection();
     fireEvent.click(
       within(getSeptemberThirtiethRow()).getByRole('button', {
@@ -125,7 +272,23 @@ describe('SalesDetailsSection', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: '9월 30일 편집 저장' }));
 
-    expect(getSeptemberThirtiethRow()).toHaveTextContent('999,999');
+    await waitFor(() =>
+      expect(updateSale).toHaveBeenCalledWith(42, {
+        sales: [
+          { categoryId: 1, amount: 999999 },
+          { categoryId: 2, amount: 148700 },
+          { categoryId: 3, amount: 351900 },
+          { categoryId: 4, amount: 72300 },
+        ],
+        totalAmount: 1572899,
+      }),
+    );
+    await waitFor(() =>
+      expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument(),
+    );
+    await waitFor(() =>
+      expect(getSeptemberThirtiethRow()).toHaveTextContent('999,999'),
+    );
   });
 
   it('삭제 확인을 취소하면 해당 날짜 행을 유지한다', async () => {
@@ -142,6 +305,7 @@ describe('SalesDetailsSection', () => {
       await screen.findByRole('row', { name: /9월 30일/ }),
     ).toBeInTheDocument();
     expect(openConfirmModal).toHaveBeenCalledTimes(1);
+    expect(deleteSale).not.toHaveBeenCalled();
   });
 
   it('삭제를 확인하면 해당 날짜 행을 제거한다', async () => {
@@ -165,5 +329,6 @@ describe('SalesDetailsSection', () => {
       ).not.toBeInTheDocument(),
     );
     expect(openConfirmModal).toHaveBeenCalledTimes(1);
+    expect(deleteSale).toHaveBeenCalledWith(42);
   });
 });

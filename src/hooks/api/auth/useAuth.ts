@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { isUnauthorizedError } from '@lib/api/apiError';
 import { endSession } from '@lib/api/authSession';
-import { postLogin, postLogout } from '@lib/api/entities/auth/api';
+import { postLogin, postLogout, postSignup } from '@lib/api/entities/auth/api';
 
 const useLoginMutation = () => {
   const queryClient = useQueryClient();
@@ -26,4 +26,6 @@ const useLogoutMutation = () => {
   });
 };
 
-export { useLoginMutation, useLogoutMutation };
+const useSignupMutation = () => useMutation({ mutationFn: postSignup });
+
+export { useLoginMutation, useLogoutMutation, useSignupMutation };

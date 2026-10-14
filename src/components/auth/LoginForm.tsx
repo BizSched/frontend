@@ -14,6 +14,7 @@ import { PasswordInput } from '@components/auth/PasswordInput';
 import { useLoginMutation } from '@hooks/api/auth/useAuth';
 
 import { formatAuthError } from '@lib/api/entities/auth/formatAuthError';
+import { isValidEmail } from '@lib/utilities/auth/isValidEmail';
 import { ROUTE_PATHS } from '@lib/utilities/routePaths';
 
 interface LoginFormValues {
@@ -28,15 +29,11 @@ const LOGIN_FORM_DEFAULT_VALUES: LoginFormValues = {
   autoLogin: false,
 };
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 const LOGIN_FORM_RULES = {
   email: {
     required: '이메일을 입력해주세요.',
-    pattern: {
-      value: EMAIL_PATTERN,
-      message: '올바른 이메일 형식이 아닙니다.',
-    },
+    validate: (value: string) =>
+      isValidEmail(value) || '올바른 이메일 형식이 아닙니다.',
   },
   password: {
     required: '비밀번호를 입력해주세요.',
