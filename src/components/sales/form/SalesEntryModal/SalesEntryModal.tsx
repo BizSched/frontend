@@ -9,12 +9,17 @@ import { DatePicker } from '@components/_common/DatePicker/DatePicker';
 import { Input } from '@components/_common/Input/Input';
 import { Modal } from '@components/_common/Modal/Modal';
 
+import { useCreateSale } from '@hooks/api/sales/useCreateSale';
+import { useSalesCategoryList } from '@hooks/api/sales-category/useSalesCategoryList';
 import { useOverlayStackIndex } from '@hooks/overlay/useOverlayStackIndex';
 
 import { formatCalendarDate } from '@lib/utilities/calendar/calendarDate';
+import { formatSalesError } from '@lib/utilities/sales/formatSalesError';
 
-const MOCK_CATEGORIES = ['상품 판매', '서비스', '배달·온라인', '기타'];
 const NUMBER_FORMAT = new Intl.NumberFormat('ko-KR');
+
+// NOTE: 카테고리를 마운트 뒤에 받으면 기본값 없이 등록된 입력은 undefined로 시작한다
+const normalizeAmount = (value = '') => value.replaceAll(',', '').trim();
 
 interface SalesEntryFormValues {
   date: Date;
@@ -38,6 +43,8 @@ function SalesEntryModal({
 }: SalesEntryModalProps) {
   const stackIndex = useOverlayStackIndex(overlayId);
   const panelRef = useRef<HTMLDivElement>(null);
+  const { data: categories = [] } = useSalesCategoryList();
+  const createSale = useCreateSale();
   const {
     control,
     register,
@@ -47,15 +54,31 @@ function SalesEntryModal({
   } = useForm<SalesEntryFormValues>({
     defaultValues: {
       date: new Date(),
-      amounts: MOCK_CATEGORIES.map(() => ({ value: '' })),
+      amounts: categories.map(() => ({ value: '' })),
     },
   });
-  const amounts = useWatch({ control, name: 'amounts' });
-  const parsedAmounts = amounts.map(({ value }) =>
-    Number(value.replaceAll(',', '').trim()),
-  );
+  const toAmounts = (amounts: SalesEntryFormValues['amounts']) =>
+    categories.map((_, index) =>
+      Number(normalizeAmount(amounts[index]?.value)),
+    );
+  const parsedAmounts = toAmounts(useWatch({ control, name: 'amounts' }));
   const isTotalAvailable = parsedAmounts.every(Number.isFinite);
   const total = parsedAmounts.reduce((sum, amount) => sum + amount, 0);
+
+  const handleSave = ({ date, amounts }: SalesEntryFormValues) => {
+    const values = toAmounts(amounts);
+    createSale.mutate(
+      {
+        date: formatCalendarDate(date),
+        sales: categories.map(({ id }, index) => ({
+          categoryId: id,
+          amount: values[index],
+        })),
+        totalAmount: values.reduce((sum, amount) => sum + amount, 0),
+      },
+      { onSuccess: close },
+    );
+  };
 
   return (
     <Modal
@@ -81,7 +104,7 @@ function SalesEntryModal({
           </Modal.Title>
           <Modal.CloseButton className="sr-only focus:not-sr-only" />
         </Modal.Header>
-        <form className="contents" onSubmit={handleSubmit(() => {})}>
+        <form className="contents" onSubmit={handleSubmit(handleSave)}>
           <Modal.Body className="flex-initial space-y-3.5 max-tablet:space-y-2.5">
             <div className="w-[328px] max-w-full space-y-2">
               <span
@@ -120,24 +143,22 @@ function SalesEntryModal({
               {errors.date && <p role="alert">{errors.date.message}</p>}
             </div>
             <div className="space-y-3.5 border-b border-slate-300 py-5">
-              {MOCK_CATEGORIES.map((category, index) => (
+              {categories.map((category, index) => (
                 <div
-                  key={category}
+                  key={category.id}
                   className="flex items-center justify-between gap-3"
                 >
                   <label
                     htmlFor={`sales-entry-amount-${index}`}
                     className="shrink-0 text-base font-medium text-slate-950 max-tablet:w-[93px]"
                   >
-                    {category}
+                    {category.name}
                   </label>
                   <div className="w-[222px] min-w-0 max-tablet:flex-1">
                     <Input
                       {...register(`amounts.${index}.value`, {
                         validate: (value) => {
-                          const normalizedValue = value
-                            .replaceAll(',', '')
-                            .trim();
+                          const normalizedValue = normalizeAmount(value);
 
                           return (
                             normalizedValue === '' ||
@@ -176,6 +197,11 @@ function SalesEntryModal({
               <InfoIcon aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
               <p>이미 매출이 있는 날짜는 기존 내역에서 수정해 주세요.</p>
             </div>
+            {createSale.isError && (
+              <p role="alert" className="text-sm text-warning-500">
+                {formatSalesError(createSale.error)}
+              </p>
+            )}
           </Modal.Body>
           <Modal.Footer className="justify-end [&>*]:flex-none">
             <Button
@@ -187,7 +213,12 @@ function SalesEntryModal({
             >
               초기화
             </Button>
-            <Button type="submit" size="small" className="h-10 w-auto">
+            <Button
+              type="submit"
+              size="small"
+              disabled={createSale.isPending || categories.length === 0}
+              className="h-10 w-auto"
+            >
               저장
             </Button>
           </Modal.Footer>
