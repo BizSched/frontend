@@ -2,8 +2,8 @@
 
 import { Button } from '@components/_common/Button/Button';
 import { Modal } from '@components/_common/Modal/Modal';
-import type { TermsDocument } from '@components/auth/terms';
 
+import type { TermsResponse } from '@lib/api/generated/bizSchedAPI.schemas';
 import { cn } from '@lib/utilities/cn';
 
 const FOOTER_BUTTON_CLASS_NAME =
@@ -14,7 +14,7 @@ interface TermsModalProps {
   onOpenChange: (open: boolean) => void;
   onAgree: () => void;
   onExitComplete?: () => void;
-  document: TermsDocument;
+  document: TermsResponse;
   stackIndex?: number;
 }
 
@@ -49,13 +49,6 @@ function TermsModal({
           <Modal.CloseButton />
         </Modal.Header>
         <Modal.Body className="flex flex-col gap-4">
-          {document.summary && (
-            <ul className="flex flex-col gap-1 rounded-[16px] bg-slate-50 p-4 text-sm tracking-[-0.03em] text-slate-500">
-              {document.summary.map((line) => (
-                <li key={line}>{line}</li>
-              ))}
-            </ul>
-          )}
           <p className="text-sm leading-6 tracking-[-0.03em] whitespace-pre-line text-slate-400">
             {document.content}
           </p>

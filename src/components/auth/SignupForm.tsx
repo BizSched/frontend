@@ -16,6 +16,8 @@ import {
   type TermsAgreementValues,
 } from '@components/auth/TermsAgreement';
 
+import { useTerms } from '@hooks/api/terms/useTerms';
+
 import { ROUTE_PATHS } from '@lib/utilities/routePaths';
 
 interface SignupFormValues {
@@ -40,11 +42,13 @@ const SIGNUP_FORM_DEFAULT_VALUES: SignupFormValues = {
 
 function SignupForm() {
   const router = useRouter();
+  const { isSuccess: isTermsReady } = useTerms();
   const { control, register, handleSubmit } = useForm<SignupFormValues>({
     defaultValues: SIGNUP_FORM_DEFAULT_VALUES,
   });
 
   const handleSignupSubmit = () => {
+    if (!isTermsReady) return;
     router.push(ROUTE_PATHS.dashboard());
   };
 
@@ -103,7 +107,7 @@ function SignupForm() {
         )}
       />
       <div className="flex flex-col gap-6">
-        <Button type="submit" className="w-full">
+        <Button type="submit" disabled={!isTermsReady} className="w-full">
           회원가입 하기
         </Button>
         <AuthSwitchLink
