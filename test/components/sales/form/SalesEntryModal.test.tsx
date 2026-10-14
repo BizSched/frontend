@@ -15,6 +15,8 @@ import { SalesEntryModal } from '@components/sales/form/SalesEntryModal/SalesEnt
 
 import { OverlayProvider } from '@providers/overlay/OverlayProvider';
 
+import { CALENDAR_TIME_ZONE } from '@lib/utilities/calendar/calendarDate';
+
 const originalMatchMedia = window.matchMedia;
 
 const mockMatchMedia = () => {
@@ -43,6 +45,7 @@ afterEach(() => {
   cleanup();
   window.matchMedia = originalMatchMedia;
   vi.restoreAllMocks();
+  vi.useRealTimers();
 });
 
 describe('sales entry modal', () => {
@@ -92,11 +95,14 @@ describe('sales entry modal', () => {
   });
 
   it('미래 날짜는 오류로 표시된다.', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-10-13T18:00:00Z'));
     mockMatchMedia();
     renderSalesEntryModal();
     const tomorrow = addDays(new Date(), 1);
     const tomorrowLabel = new Intl.DateTimeFormat('ko-KR', {
       dateStyle: 'full',
+      timeZone: CALENDAR_TIME_ZONE,
     }).format(tomorrow);
 
     fireEvent.click(
