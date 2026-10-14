@@ -19,6 +19,9 @@ const createErrorResponse = (status: number, errorCode: string, message = '') =>
 const createInvalidOriginResponse = () =>
   createErrorResponse(403, BFF_ERROR_CODES.invalidOrigin);
 
+const createPathNotAllowedResponse = () =>
+  createErrorResponse(404, BFF_ERROR_CODES.pathNotAllowed);
+
 const createValidationErrorResponse = () =>
   createErrorResponse(400, VALIDATION_ERROR_CODE);
 
@@ -52,6 +55,7 @@ const toBffErrorResponse = (error: unknown) =>
 
 export {
   createInvalidOriginResponse,
+  createPathNotAllowedResponse,
   createUnauthorizedResponse,
   createValidationErrorResponse,
   toBffErrorResponse,

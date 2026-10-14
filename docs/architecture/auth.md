@@ -98,10 +98,35 @@ orval이 생성한 auth 요청 함수(`login1`, `refresh`, `logout`)는 BE 계�
 ### 범용 통과 규칙
 
 - 요청이나 응답에 토큰이 오가는 경로는 전달하지 않는다. 인증 전용 핸들러를 거치지 않으면 토큰이 담긴 BE 응답이 브라우저로 나간다. 대상은 `auth/*`, `oauth/*`, `users/signup/additional-info`(소셜 가입 마무리. 응답에 토큰이 있고 요청에 `tempToken`이 필요하다)다. BE에 이런 경로가 추가되면 이 목록에 더한다.
-- 요청 헤더는 `Content-Type`, `Accept`, `Accept-Language`만 전달하고 `Authorization`을 붙인다. 브라우저의 `Cookie`, `Host`, `Origin`은 BE로 보내지 않는다.
-- BE 응답의 `Set-Cookie`와 hop-by-hop 헤더는 제거한다.
-- 요청·응답 body는 스트림으로 전달한다. 응답을 버퍼링하면 배포 환경의 응답 크기 제한에 걸린다.
+  - `users/signup`(일반 가입)은 응답에 토큰이 없어 전달한다. `users/signup/additional-info`는 정확히 일치할 때만 막는다.
+  - 차단 검사는 대소문자를 구분하지 않는다. BE 경로 매칭 설정이 바뀌어도 우회되지 않게 한다.
+  - 경로 세그먼트에 `/`·`\`가 들어 있으면 전달하지 않는다. Next는 `%2F`를 디코딩해 세그먼트 하나로 넘기므로(`auth%2Flogin` → `['auth/login']`) 차단 검사를 지나친 뒤 BE에서 `auth/login`으로 해석될 수 있다. `.`·`..` 세그먼트는 Next가 라우팅 전에 정규화한다.
+  - BE URL은 세그먼트마다 `encodeURIComponent`로 다시 인코딩해 만든다. Next가 한 번 디코딩한 값(`%3F` → `?`, `%252F` → `%2F`)을 그대로 이으면 쿼리나 경로 구분자로 바뀐다.
+  - 전달하지 않는 경로는 BE를 호출하지 않고 404 `BFF_PATH_NOT_ALLOWED`를 돌려준다.
+- 요청 헤더는 `Content-Type`, `Accept`, `Accept-Language`만 전달하고 `Authorization`을 붙인다. 브라우저의 `Cookie`, `Host`, `Origin`, `Authorization`은 BE로 보내지 않는다. 빠뜨린 헤더가 새지 않도록 제거 목록이 아니라 허용 목록으로 둔다.
+- BE에는 `Accept-Encoding: identity`를 보낸다. Node `fetch`는 기본으로 `Accept-Encoding: gzip, deflate`를 보내고, 압축 응답을 자동으로 풀면서 `Content-Encoding`·`Content-Length`(압축 크기)는 그대로 남긴다. 그대로 전달하면 브라우저가 풀린 본문을 다시 풀려다 실패하거나, 본문이 압축 크기에서 잘린다. 압축하지 않은 응답을 받으면 `Content-Length`가 유지되어 다운로드 진행률도 보인다. 브라우저 구간 압축은 배포 환경 CDN이 맡는다.
+- BE 응답의 `Set-Cookie`와 hop-by-hop 헤더(`Connection`, `Keep-Alive`, `Proxy-Connection`, `TE`, `Transfer-Encoding`, `Upgrade`, `Trailer`, `Proxy-Authenticate`, `Proxy-Authorization`, `Connection`에 적힌 헤더)는 제거한다. BE 쿠키가 우리 도메인 쿠키로 저장되면 인증 쿠키를 덮어쓸 수 있다.
+- BE가 `identity`를 무시하고 압축 응답을 주면 `Content-Encoding`과 `Content-Length`를 제거한다. 본문은 이미 풀려 있다.
+- 요청·응답 body는 스트림으로 전달한다. 응답을 버퍼링하면 배포 환경의 응답 크기 제한(4.5MB)에 걸린다. `GET`·`HEAD`에는 body를 넣지 않는다.
+  - 스트림 요청 body는 `Content-Length` 없이 `Transfer-Encoding: chunked`로 전송된다. 요청 `Content-Length`는 허용 목록에 넣지 않는다.
+- BE 요청 timeout은 응답 헤더를 받을 때까지만 건다(10초, 서버 요청 기준과 같다). body 전송 중에 timeout을 걸면 큰 첨부파일 다운로드가 중간에 끊긴다. body 전송 시간은 배포 환경의 함수 최대 실행 시간이 제한한다.
+- 브라우저가 요청을 취소하면 BE 요청도 취소한다.
+- BE 응답은 status와 body를 바꾸지 않고 전달한다. 4xx·5xx도 그대로이며, 해석은 브라우저의 `customFetcher`가 맡는다.
+  - redirect 응답도 자동으로 따라가지 않는다(`redirect: 'manual'`). 다른 경로를 호출하지 않고 BE의 3xx 응답을 그대로 전달한다.
 - access 쿠키가 없으면 헤더 없이 전달한다. 401 판단은 BE가 한다.
+- 응답은 캐시하지 않는다(`cache: 'no-store'`). 사용자마다 토큰이 다르다.
+- `HEAD`·`OPTIONS`는 열지 않는다. same-origin이라 CORS preflight가 없다.
+  - Next의 자동 메서드 구현을 막기 위해 두 메서드를 명시적으로 405로 처리하고, `Allow`에는 `GET, POST, PUT, PATCH, DELETE`를 넣는다.
+
+### 범용 통과 구현 · 검증
+
+- `app/api/[...path]/route.ts`: `GET`·`POST`·`PUT`·`PATCH`·`DELETE` 진입점. `withBffHandler`가 상태 변경 요청의 Origin을 검사하고 실패를 BFF 에러 응답으로 변환한다.
+- `src/lib/api/bff/proxyRequest.ts`: 경로 차단, URL 재인코딩, 헤더 필터링, 쿠키 기반 인증 헤더와 요청·응답 스트림 전달을 담당한다. JSON 파싱이나 DTO 검증은 하지 않는다.
+- 스트림 요청에는 Node `fetch`가 요구하는 `duplex: 'half'`를 넣는다. 응답 헤더를 받으면 timeout 타이머를 해제하고, 요청 취소 signal은 응답 body 전송 중에도 유지한다.
+- `test/app/api/[...path]/route.test.ts`와 `test/lib/api/bff/proxyRequest.test.ts`에서 메서드·Origin, 경로 차단 우회, 요청 헤더 허용 목록, 응답 쿠키·hop-by-hop 헤더 제거, status·body 보존, timeout·취소를 검증한다. 로컬 HTTP 서버를 사용해 실제 Node `fetch`의 chunked 업로드와 압축 응답 처리도 검증한다.
+- BE 설정과 Vercel 배포 환경의 압축·다운로드 검증은 아래 "결정 대기 항목"으로 유지한다.
+
+참고: [Next.js Route Handler](https://nextjs.org/docs/app/api-reference/file-conventions/route), [Node Undici의 스트림 요청·duplex](https://github.com/nodejs/undici#requestduplex).
 
 ## BFF 응답 · 에러 계약
 
@@ -112,6 +137,7 @@ BFF의 실패 응답은 모두 BE `ErrorResponse`와 같은 `{ code, message, er
 | BE 에러 응답                     | BE 값 그대로 | BE 값 그대로                    |
 | 상태 변경 요청의 `Origin` 불일치 | 403          | `BFF_INVALID_ORIGIN`            |
 | 요청 body 검증 실패              | 400          | `VALIDATION_ERROR`              |
+| 범용 통과로 전달하지 않는 경로   | 404          | `BFF_PATH_NOT_ALLOWED`          |
 | refresh 요청에 refresh 쿠키 없음 | 401          | `UNAUTHORIZED`                  |
 | BE 요청 timeout                  | 504          | `BFF_UPSTREAM_TIMEOUT`          |
 | BE 연결 실패                     | 502          | `BFF_UPSTREAM_UNAVAILABLE`      |
@@ -167,8 +193,11 @@ customFetcher(브라우저) ─▶ BFF ─▶ BE
 
 ## 결정 대기 항목
 
-| 항목            | 내용                                                                                                                                                                                                                                                                                                                                                                                                                                 | 상태      |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------- |
-| 다중 탭 refresh | refresh는 탭 안에서만 하나로 묶는다. 탭 사이에서도 묶을지(Web Locks API 등)는 실제 충돌 빈도를 보고 정한다                                                                                                                                                                                                                                                                                                                           | 결정 필요 |
-| 소셜 로그인     | FE가 소셜 SDK에서 받은 인가 코드를 인증 전용 경로로 보내고, BFF가 BE `POST /api/oauth/{provider}`를 호출한다. 기존 회원은 토큰을 쿠키로 저장하고, 신규 회원은 `tempToken`(30분, 추가 정보 입력에만 사용)을 받는다. 추가 정보 제출(`PATCH /api/users/signup/additional-info`)도 `tempToken`을 Bearer로 보내고 정식 토큰을 받으므로 인증 전용 경로로 둔다. `tempToken` 보관 방식(예: 30분짜리 httpOnly 쿠키)과 `/onboarding` 진입 처리 | 결정 필요 |
-| 첨부파일 전송   | presigned URL로 저장소에 직접 업로드할지. BE 저장소와 API 변경에 종속                                                                                                                                                                                                                                                                                                                                                                | 확인 필요 |
+| 항목               | 내용                                                                                                                                                                                                                                                                                                                                                                                                                                 | 상태      |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------- |
+| 다중 탭 refresh    | refresh는 탭 안에서만 하나로 묶는다. 탭 사이에서도 묶을지(Web Locks API 등)는 실제 충돌 빈도를 보고 정한다                                                                                                                                                                                                                                                                                                                           | 결정 필요 |
+| 소셜 로그인        | FE가 소셜 SDK에서 받은 인가 코드를 인증 전용 경로로 보내고, BFF가 BE `POST /api/oauth/{provider}`를 호출한다. 기존 회원은 토큰을 쿠키로 저장하고, 신규 회원은 `tempToken`(30분, 추가 정보 입력에만 사용)을 받는다. 추가 정보 제출(`PATCH /api/users/signup/additional-info`)도 `tempToken`을 Bearer로 보내고 정식 토큰을 받으므로 인증 전용 경로로 둔다. `tempToken` 보관 방식(예: 30분짜리 httpOnly 쿠키)과 `/onboarding` 진입 처리 | 결정 필요 |
+| 첨부파일 전송      | presigned URL로 저장소에 직접 업로드할지. BE 저장소와 API 변경에 종속                                                                                                                                                                                                                                                                                                                                                                | 확인 필요 |
+| 범용 통과 압축     | Vercel CDN은 JSON 등 정해진 MIME 타입 응답을 압축한다. 스트리밍 Route Handler 응답에도 적용되는지 배포 후 응답 헤더(`Content-Encoding`)로 확인한다. 적용되지 않으면 BE와 Next 사이만 압축을 받는 방식(BE 압축 허용 + 헤더 제거)과 비교한다                                                                                                                                                                                           | 확인 필요 |
+| BE 응답 압축       | BE가 `Accept-Encoding: identity`를 따르는지, 응답 압축(`server.compression.enabled`)을 켰는지, `Content-Length` 없는 chunked 요청 body를 받는지 BE에 확인한다                                                                                                                                                                                                                                                                        | 확인 필요 |
+| 스트리밍 응답 크기 | Vercel 문서는 함수 요청·응답 body 한도를 4.5MB로 적고, 스트리밍 응답은 이 한도를 받지 않는다고 가이드에서 안내한다. 10MB 첨부파일 다운로드를 배포 환경에서 확인한다                                                                                                                                                                                                                                                                  | 확인 필요 |

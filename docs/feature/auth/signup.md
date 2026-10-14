@@ -114,15 +114,21 @@
 
 ## 단계별 PR 계획
 
-| 단계 | 브랜치                     | 범위                                                                                                                                                                                                   | 분기  | 상태 |
-| ---- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----- | ---- |
-| 1    | `docs/auth-signup-plan`    | 회원가입 설계 확정, 단계별 PR 계획 (이 문서)                                                                                                                                                           | `dev` |      |
-| 2    | `feat/api-bff-passthrough` | 범용 통과 `app/api/[...path]/route.ts` — 토큰 경로 차단, 요청 헤더 허용 목록, `Set-Cookie`·hop-by-hop 헤더 제거, 스트림 전달 ([auth.md](../../architecture/auth.md)의 "범용 통과 규칙")                | `dev` |      |
-| 3    | `feat/auth-signup-terms`   | `getTerms`, `termsQueryOptions`(서버 prefetch, 1시간 캐시), `TermsAgreement`·`TermsModal`을 약관 목록 기반으로 변경(온보딩 포함), 마케팅 체크 하나로 통합, 조회 실패 시 다시 불러오기, `terms.ts` 삭제 | 2단계 |      |
-| 4    | `feat/auth-signup`         | 공통 이메일 형식 규칙, `SignupForm` 입력 검사, `postSignup`·`formatSignupError`, `useSignupMutation`, 실패 문구 인라인 표시, 성공 시 `/login` 이동                                                     | 3단계 |      |
+| 단계 | 브랜치                     | 범위                                                                                                                                                                                                   | 분기  | 상태                    |
+| ---- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----- | ----------------------- |
+| 1    | `docs/auth-signup-plan`    | 회원가입 설계 확정, 단계별 PR 계획 (이 문서)                                                                                                                                                           | `dev` |                         |
+| 2    | `feat/api-bff-passthrough` | 범용 통과 `app/api/[...path]/route.ts` — 토큰 경로 차단, 요청 헤더 허용 목록, `Set-Cookie`·hop-by-hop 헤더 제거, 스트림 전달 ([auth.md](../../architecture/auth.md)의 "범용 통과 규칙")                | `dev` | 로컬 구현 완료, PR 대기 |
+| 3    | `feat/auth-signup-terms`   | `getTerms`, `termsQueryOptions`(서버 prefetch, 1시간 캐시), `TermsAgreement`·`TermsModal`을 약관 목록 기반으로 변경(온보딩 포함), 마케팅 체크 하나로 통합, 조회 실패 시 다시 불러오기, `terms.ts` 삭제 | 2단계 |                         |
+| 4    | `feat/auth-signup`         | 공통 이메일 형식 규칙, `SignupForm` 입력 검사, `postSignup`·`formatSignupError`, `useSignupMutation`, 실패 문구 인라인 표시, 성공 시 `/login` 이동                                                     | 3단계 |                         |
 
 - 2단계는 `dev`에서 분기한다. 3단계부터는 바로 앞 단계 브랜치에서 분기한 stacked PR이고, 앞 단계가 머지되면 base를 `dev`로 바꾼다.
 - 범용 통과는 회원가입뿐 아니라 이후 모든 BFF 경유 API가 함께 쓴다.
+
+### 2단계 구현 결과
+
+- 범용 Route Handler와 `lib/api/bff/proxyRequest.ts`를 추가했다. 상세 구현과 검증 범위는 [인증 문서](../../architecture/auth.md#범용-통과-구현--검증)를 따른다.
+- 새 테스트 47개를 포함한 전체 테스트 353개, ESLint, 변경 파일 Prettier 검사, 타입 검사, 프로덕션 빌드를 통과했다.
+- BE의 압축·chunked 요청 지원과 Vercel의 압축·10MB 다운로드 확인은 [결정 대기 항목](../../architecture/auth.md#결정-대기-항목)으로 남긴다.
 
 ## 확인 필요
 
