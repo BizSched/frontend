@@ -1,13 +1,26 @@
+'use client';
+
 import Image from 'next/image';
 
 import { Card } from '@components/_common/Card/Card';
 
+import { useSalesChart } from '@hooks/api/sales/useSalesChart';
+
+import { formatSalesError } from '@lib/utilities/sales/formatSalesError';
+
 import Plus from '@assets/icons/ic_plus-white.svg';
 
-import { SALES_MONTH_LABEL } from './salesDashboardData';
 import { SalesWeeklyChart } from './SalesWeeklyChart';
 
-function SalesChartCard() {
+interface SalesChartCardProps {
+  month: string;
+  date: string;
+}
+
+function SalesChartCard({ month, date }: SalesChartCardProps) {
+  const { data, error } = useSalesChart({ unit: 'MONTH', date });
+  const monthLabel = `${Number(month.slice(5))}월`;
+
   return (
     <Card
       radius="2xl"
@@ -20,7 +33,7 @@ function SalesChartCard() {
             매출 차트
           </Card.Title>
           <span className="rounded-full border border-slate-100 px-3 py-1 text-sm font-semibold text-slate-800 max-tablet:text-xs">
-            {SALES_MONTH_LABEL} <span aria-hidden="true">⌄</span>
+            {monthLabel} <span aria-hidden="true">⌄</span>
           </span>
         </div>
         <div className="flex items-center rounded-lg bg-slate-50 p-[3px] text-xs font-medium max-tablet:hidden">
@@ -47,7 +60,13 @@ function SalesChartCard() {
         <Image src={Plus} alt="" width={24} height={24} />
       </span>
 
-      <SalesWeeklyChart />
+      {data ? (
+        <SalesWeeklyChart chart={data} monthLabel={monthLabel} />
+      ) : (
+        <p className="flex flex-1 items-center justify-center text-sm text-slate-500">
+          {error ? formatSalesError(error) : '불러오는 중'}
+        </p>
+      )}
     </Card>
   );
 }
