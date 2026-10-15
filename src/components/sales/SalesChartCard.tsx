@@ -1,11 +1,13 @@
 'use client';
 
 import Image from 'next/image';
+import { useState } from 'react';
 
 import { Card } from '@components/_common/Card/Card';
 
 import { useSalesChart } from '@hooks/api/sales/useSalesChart';
 
+import { cn } from '@lib/utilities/cn';
 import { formatSalesError } from '@lib/utilities/sales/formatSalesError';
 
 import Plus from '@assets/icons/ic_plus-white.svg';
@@ -17,8 +19,16 @@ interface SalesChartCardProps {
   date: string;
 }
 
+const CHART_TABS = [
+  { unit: 'WEEK', desktop: '주', mobile: '일간' },
+  { unit: 'MONTH', desktop: '월', mobile: '주간' },
+  { unit: 'YEAR', desktop: '연', mobile: '월간' },
+] as const;
+
 function SalesChartCard({ month, date }: SalesChartCardProps) {
-  const { data, error } = useSalesChart({ unit: 'MONTH', date });
+  const [unit, setUnit] =
+    useState<(typeof CHART_TABS)[number]['unit']>('MONTH');
+  const { data, error } = useSalesChart({ unit, date });
   const monthLabel = `${Number(month.slice(5))}월`;
 
   return (
@@ -37,20 +47,38 @@ function SalesChartCard({ month, date }: SalesChartCardProps) {
           </span>
         </div>
         <div className="flex items-center rounded-lg bg-slate-50 p-[3px] text-xs font-medium max-tablet:hidden">
-          <span className="px-3 py-2">주</span>
-          <span className="rounded-md bg-primary-100 px-3 py-2 shadow-sm">
-            월
-          </span>
-          <span className="px-3 py-2">연</span>
+          {CHART_TABS.map((tab) => (
+            <button
+              key={tab.unit}
+              type="button"
+              aria-pressed={unit === tab.unit}
+              onClick={() => setUnit(tab.unit)}
+              className={cn(
+                'cursor-pointer rounded-md px-3 py-2',
+                unit === tab.unit && 'bg-primary-100 shadow-sm',
+              )}
+            >
+              {tab.desktop}
+            </button>
+          ))}
         </div>
       </Card.Header>
 
       <div className="hidden self-end rounded-lg bg-slate-50 p-[3px] text-xs font-medium max-tablet:flex">
-        <span className="rounded-md bg-primary-100 px-3 py-2 shadow-sm">
-          일간
-        </span>
-        <span className="px-3 py-2">주간</span>
-        <span className="px-3 py-2">월간</span>
+        {CHART_TABS.map((tab) => (
+          <button
+            key={tab.unit}
+            type="button"
+            aria-pressed={unit === tab.unit}
+            onClick={() => setUnit(tab.unit)}
+            className={cn(
+              'cursor-pointer rounded-md px-3 py-2',
+              unit === tab.unit && 'bg-primary-100 shadow-sm',
+            )}
+          >
+            {tab.mobile}
+          </button>
+        ))}
       </div>
 
       <span

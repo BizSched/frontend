@@ -1,16 +1,24 @@
 import '@testing-library/jest-dom/vitest';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { cleanup, render, screen, within } from '@testing-library/react';
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { SalesCategoryCard } from '@components/sales/SalesCategoryCard';
+import { SalesChartCard } from '@components/sales/SalesChartCard';
 import { SalesRecordsCard } from '@components/sales/SalesRecordsCard';
 import { SalesSummaryCards } from '@components/sales/SalesSummaryCards';
 
 import { salesKeys } from '@hooks/api/sales/salesQueryOptions';
 import { salesCategoryKeys } from '@hooks/api/sales-category/salesCategoryQueryOptions';
 
+import type { SalesChart } from '@lib/api/entities/sales/toSalesChart';
 import type { SalesList } from '@lib/api/entities/sales/toSalesList';
 import type { SalesRatio } from '@lib/api/entities/sales/toSalesRatio';
 import type { SalesSummary } from '@lib/api/entities/sales/toSalesSummary';
@@ -88,6 +96,73 @@ const renderWith = (queryClient: QueryClient, ui: React.ReactElement) =>
   render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
 
 afterEach(cleanup);
+
+describe('SalesChartCard', () => {
+  it('주·월·연 탭이 WEEK·MONTH·YEAR 데이터를 선택하고 모바일 탭도 같은 상태를 보여준다', () => {
+    const queryClient = createQueryClient();
+    const date = '2026-10-15';
+    for (const unit of ['WEEK', 'MONTH', 'YEAR'] as const) {
+      const chart: SalesChart = {
+        unit,
+        categories: [{ categoryId: 1, name: '음료', color: '#F26B1D' }],
+        rows: [{ label: unit, totalAmount: 1000, '1': 1000 }],
+      };
+      queryClient.setQueryData(salesKeys.chart({ unit, date }), chart);
+    }
+
+    renderWith(queryClient, <SalesChartCard month={MONTH} date={date} />);
+
+    expect(screen.getByRole('button', { name: '월' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(screen.getByRole('button', { name: '주간' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    fireEvent.click(screen.getByRole('button', { name: '주' }));
+    expect(screen.getByRole('button', { name: '일간' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(
+      screen.getByRole('figure', { name: /일별 매출/ }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '연' }));
+    expect(screen.getByRole('button', { name: '월간' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(
+      screen.getByRole('figure', { name: /월별 매출/ }),
+    ).toBeInTheDocument();
+  });
+
+  it('새 단위 응답을 기다리는 동안 이전 차트를 유지한다', () => {
+    const queryClient = createQueryClient();
+    const date = '2026-10-15';
+    const chart: SalesChart = {
+      unit: 'MONTH',
+      categories: [{ categoryId: 1, name: '음료', color: '#F26B1D' }],
+      rows: [{ label: '2주', totalAmount: 1000, '1': 1000 }],
+    };
+    queryClient.setQueryData(salesKeys.chart({ unit: 'MONTH', date }), chart);
+    queryClient.setQueryDefaults(salesKeys.chart({ unit: 'WEEK', date }), {
+      queryFn: () => new Promise(() => {}),
+    });
+
+    renderWith(queryClient, <SalesChartCard month={MONTH} date={date} />);
+    fireEvent.click(screen.getByRole('button', { name: '주' }));
+
+    expect(screen.getByRole('button', { name: '주' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(
+      screen.getByRole('figure', { name: /주차별 매출/ }),
+    ).toBeInTheDocument();
+  });
+});
 
 describe('SalesSummaryCards', () => {
   it('changeRate가 null이면 전월 대비에 -와 비교할 데이터 없음을 표시한다', () => {
