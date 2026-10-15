@@ -2,24 +2,26 @@
 
 import { Chart } from '@components/_common/Chart/Chart';
 
-import {
-  SALES_CATEGORIES,
-  SALES_MONTH_LABEL,
-  SALES_WEEKS,
-} from './salesDashboardData';
+import type { SalesChart } from '@lib/api/entities/sales/toSalesChart';
 
-const SALES_CHART_CONFIG = Object.fromEntries(
-  SALES_CATEGORIES.map(({ key, label, color }) => [key, { label, color }]),
-);
+interface SalesWeeklyChartProps {
+  chart: SalesChart;
+  monthLabel: string;
+}
 
-const WEEKLY_SALES = SALES_WEEKS.map((week) => ({ ...week }));
+function SalesWeeklyChart({ chart, monthLabel }: SalesWeeklyChartProps) {
+  const config = Object.fromEntries(
+    chart.categories.map(({ categoryId, name, color }) => [
+      String(categoryId),
+      { label: name, color },
+    ]),
+  );
 
-function SalesWeeklyChart() {
   return (
     <Chart
-      config={SALES_CHART_CONFIG}
-      data={WEEKLY_SALES}
-      aria-label={`${SALES_MONTH_LABEL} 주차별 매출`}
+      config={config}
+      data={chart.rows}
+      aria-label={`${monthLabel} 주차별 매출`}
       className="min-h-0 flex-1"
     >
       <Chart.Plot className="min-h-0 flex-1 [&_[data-slot=chart]]:aspect-auto [&_[data-slot=chart]]:h-full">
