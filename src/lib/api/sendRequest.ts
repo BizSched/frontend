@@ -1,5 +1,6 @@
 import { ApiError, NetworkError } from '@lib/api/apiError';
 import type { ErrorResponse } from '@lib/api/generated/bizSchedAPI.schemas';
+import type { CustomFetcherOptions } from '@lib/types/customFetcher';
 
 const SERVER_TIMEOUT_MS = 10_000;
 const BROWSER_TIMEOUT_MS = 15_000;
@@ -77,28 +78,33 @@ const toFailure = (status: number, text: string) => {
 
 const sendRequest = async <T>(
   url: string,
-  options?: RequestInit,
+  options?: CustomFetcherOptions,
 ): Promise<T> => {
+  const { responseType = 'json', ...requestOptions } = options ?? {};
   const requestUrl = resolveUrl(url);
-  const signal = createSignal(options?.signal);
+  const signal = createSignal(requestOptions.signal);
   let response: Response;
-  let text: string;
+  let body: string | Blob;
 
   try {
     response = await fetch(requestUrl, {
-      ...withDefaultCache(options),
+      ...withDefaultCache(requestOptions),
       signal,
     });
-    text = await response.text();
+    body =
+      response.ok && responseType === 'blob'
+        ? await response.blob()
+        : await response.text();
   } catch (error) {
     if (options?.signal?.aborted) throw error;
     throw new NetworkError({ cause: error });
   }
 
-  if (!response.ok) throw toFailure(response.status, text);
-  if (!text) return undefined as T;
+  if (typeof body !== 'string') return body as T;
+  if (!response.ok) throw toFailure(response.status, body);
+  if (!body) return undefined as T;
 
-  return JSON.parse(text) as T;
+  return JSON.parse(body) as T;
 };
 
 export { isServer, sendRequest };

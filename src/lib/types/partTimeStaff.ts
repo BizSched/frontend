@@ -1,7 +1,7 @@
 interface PartTimeStaffListItem {
   id: number;
   name: string;
-  phone: string;
+  phone?: string | null;
   createdAt: string;
 }
 
@@ -13,11 +13,19 @@ interface PartTimeStaffAttachment {
 }
 
 interface PartTimeStaffDetailItem extends PartTimeStaffListItem {
-  birthDate: string;
-  gender: 'male' | 'female';
-  hourlyWage: number;
+  birthDate?: string | null;
+  gender?: 'male' | 'female' | null;
+  hourlyWage?: number | null;
   attachments: PartTimeStaffAttachment[];
-  memo: string;
+  memo?: string | null;
+}
+
+interface PartTimeStaffListResponse {
+  page: number;
+  size: number;
+  items: PartTimeStaffListItem[];
+  totalCount: number;
+  totalPage: number;
 }
 
 interface PartTimeStaffShift {
@@ -54,7 +62,7 @@ type PartTimeStaffFormAttachment =
 interface PartTimeStaffFormValues {
   name: string;
   birthDate: string;
-  gender: PartTimeStaffDetailItem['gender'] | '';
+  gender: NonNullable<PartTimeStaffDetailItem['gender']> | '';
   phone: string;
   hourlyWage: string;
   attachments: PartTimeStaffFormAttachment[];
@@ -64,7 +72,7 @@ interface PartTimeStaffFormValues {
 interface PartTimeStaffFormPayload {
   name: string;
   birthDate: string | null;
-  gender: PartTimeStaffDetailItem['gender'] | null;
+  gender: NonNullable<PartTimeStaffDetailItem['gender']> | null;
   phone: string;
   hourlyWage: number | null;
   memo: string;
@@ -104,6 +112,7 @@ export type {
   PartTimeStaffInputDeleteDirection,
   PartTimeStaffMemoLength,
   PartTimeStaffListItem,
+  PartTimeStaffListResponse,
   PartTimeStaffShift,
   PartTimeStaffShiftStatus,
 };

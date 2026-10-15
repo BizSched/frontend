@@ -115,6 +115,23 @@ describe('customFetcher', () => {
   });
 
   describe('성공 응답', () => {
+    it('Blob 응답은 MIME 타입과 바이너리 바이트를 유지하고 응답 옵션을 HTTP 요청에 넣지 않는다', async () => {
+      const bytes = new Uint8Array([0, 255, 128, 37, 80, 68, 70]);
+      const fetchMock = mockFetch(
+        new Response(bytes, {
+          headers: { 'Content-Type': 'application/pdf' },
+        }),
+      );
+
+      const blob = await customFetcher<Blob>('/api/staff/42/attachments/3', {
+        responseType: 'blob',
+      });
+
+      expect(blob.type).toBe('application/pdf');
+      expect(new Uint8Array(await blob.arrayBuffer())).toEqual(bytes);
+      expect(fetchMock.mock.calls[0][1]).not.toHaveProperty('responseType');
+    });
+
     it('JSON body를 그대로 반환한다', async () => {
       mockFetch(jsonResponse({ user: { id: 1 } }, 200));
 
@@ -389,6 +406,51 @@ describe('customFetcher 브라우저 401 refresh', () => {
       'POST /api/auth/refresh',
       'GET /api/staff',
     ]);
+  });
+
+  it('첨부파일의 TOKEN_EXPIRED도 refresh 후 Blob으로 다시 받는다', async () => {
+    const fetchMock = mockRoutes({
+      'GET /api/staff/42/attachments/3': [
+        () => errorResponse('TOKEN_EXPIRED'),
+        () =>
+          new Response('%PDF-1.7', {
+            headers: { 'Content-Type': 'application/pdf' },
+          }),
+      ],
+      'POST /api/auth/refresh': [emptyResponse],
+    });
+
+    const blob = await fetcher<Blob>('/api/staff/42/attachments/3', {
+      responseType: 'blob',
+    });
+    expect(blob.type).toBe('application/pdf');
+    expect(await blob.text()).toBe('%PDF-1.7');
+    expect(calledKeys(fetchMock)).toEqual([
+      'GET /api/staff/42/attachments/3',
+      'POST /api/auth/refresh',
+      'GET /api/staff/42/attachments/3',
+    ]);
+  });
+
+  it('첨부파일 재요청도 401이면 세션을 정리하고 로그인으로 이동한다', async () => {
+    const fetchMock = mockRoutes({
+      'GET /api/staff/42/attachments/3': [
+        () => errorResponse('TOKEN_EXPIRED'),
+        () => errorResponse('TOKEN_EXPIRED'),
+      ],
+      'POST /api/auth/refresh': [emptyResponse],
+      'DELETE /api/auth/session': [emptyResponse],
+    });
+    await expect(
+      fetcher('/api/staff/42/attachments/3', { responseType: 'blob' }),
+    ).rejects.toMatchObject({ status: 401 });
+    expect(calledKeys(fetchMock)).toEqual([
+      'GET /api/staff/42/attachments/3',
+      'POST /api/auth/refresh',
+      'GET /api/staff/42/attachments/3',
+      'DELETE /api/auth/session',
+    ]);
+    expect(assign).toHaveBeenCalledWith('/login');
   });
 
   it('refresh가 실패해도 다른 탭이 먼저 refresh했을 수 있으므로 원래 요청을 1회 재시도한다', async () => {

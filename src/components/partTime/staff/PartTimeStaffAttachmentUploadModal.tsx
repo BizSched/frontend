@@ -7,12 +7,12 @@ import { Button } from '@components/_common/Button/Button';
 import { Modal } from '@components/_common/Modal/Modal';
 
 import { cn } from '@lib/utilities/cn';
-import { getPartTimeStaffAttachmentType } from '@lib/utilities/partTime/partTimeStaffForm';
+import { getPartTimeStaffAttachmentType } from '@lib/utilities/partTime/partTimeStaffAttachment';
 
 import IcDelete from '@assets/icons/ic_delete.svg';
 import IcUpload from '@assets/icons/ic_upload.svg';
 
-const ATTACHMENT_ACCEPT = 'application/pdf,image/*';
+const ATTACHMENT_ACCEPT = 'application/pdf,image/jpeg,image/png';
 
 const FILE_FIELD_CLASS_NAME =
   'flex w-full items-center gap-2 rounded-[16px] border border-dashed border-[#cccccc] bg-[#fafafa] p-4 text-base leading-6 tracking-[-0.02em] max-tablet:rounded-[12px] max-tablet:p-3 max-tablet:text-sm max-tablet:leading-5 max-tablet:tracking-[-0.03em]';

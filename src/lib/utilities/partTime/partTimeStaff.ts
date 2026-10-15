@@ -16,7 +16,7 @@ const timeFormatter = new Intl.DateTimeFormat('en-GB', {
 });
 
 const PART_TIME_STAFF_GENDER_LABELS: Record<
-  PartTimeStaffDetailItem['gender'],
+  NonNullable<PartTimeStaffDetailItem['gender']>,
   string
 > = {
   male: '남성',
@@ -68,14 +68,17 @@ const getPartTimeStaffShiftStatus = (
 const formatPartTimeStaffCreatedAt = (createdAt: string) =>
   createdAt.slice(0, 10).replaceAll('-', '. ');
 
-const formatPartTimeStaffBirthDate = (birthDate: string) =>
-  birthDate.slice(0, 10).replaceAll('-', '.');
+const formatPartTimeStaffBirthDate = (birthDate?: string | null) =>
+  birthDate ? birthDate.slice(0, 10).replaceAll('-', '.') : '-';
 
-const formatPartTimeStaffGender = (gender: PartTimeStaffDetailItem['gender']) =>
-  PART_TIME_STAFF_GENDER_LABELS[gender];
+const formatPartTimeStaffGender = (
+  gender: PartTimeStaffDetailItem['gender'],
+) => (gender ? PART_TIME_STAFF_GENDER_LABELS[gender] : '-');
 
-const formatPartTimeStaffHourlyWage = (hourlyWage: number) =>
-  `${hourlyWage.toLocaleString('ko-KR')}원`;
+const formatPartTimeStaffHourlyWage = (hourlyWage?: number | null) =>
+  hourlyWage === null || hourlyWage === undefined
+    ? '-'
+    : `${hourlyWage.toLocaleString('ko-KR')}원`;
 
 const formatPartTimeStaffShiftTime = ({
   startTime,

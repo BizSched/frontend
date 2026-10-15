@@ -3,6 +3,7 @@ import { isMatching, P } from 'ts-pattern';
 import { ApiError, isUnauthorizedError } from '@lib/api/apiError';
 import { endSession, refreshSession } from '@lib/api/authSession';
 import { isServer, sendRequest } from '@lib/api/sendRequest';
+import type { CustomFetcherOptions } from '@lib/types/customFetcher';
 
 const NO_REFRESH_PATHS = new Set([
   '/api/auth/login',
@@ -17,7 +18,10 @@ const isTokenExpired = isMatching(
 const shouldRefresh = (url: string, error: unknown) =>
   !isServer() && !NO_REFRESH_PATHS.has(url) && isTokenExpired(error);
 
-const retryAfterRefresh = async <T>(url: string, options?: RequestInit) => {
+const retryAfterRefresh = async <T>(
+  url: string,
+  options?: CustomFetcherOptions,
+) => {
   await refreshSession();
 
   try {
@@ -30,7 +34,7 @@ const retryAfterRefresh = async <T>(url: string, options?: RequestInit) => {
 
 const customFetcher = async <T>(
   url: string,
-  options?: RequestInit,
+  options?: CustomFetcherOptions,
 ): Promise<T> => {
   try {
     return await sendRequest<T>(url, options);
