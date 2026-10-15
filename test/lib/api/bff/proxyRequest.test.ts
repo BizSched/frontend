@@ -168,6 +168,7 @@ describe('proxyRequest', () => {
       'content-length': '4',
       'content-type': 'application/octet-stream',
       'content-disposition': 'attachment; filename="test.bin"',
+      'x-content-type-options': 'nosniff',
       etag: 'abc',
     });
     await response.body!.cancel();
@@ -190,6 +191,110 @@ describe('proxyRequest', () => {
       expect(response.headers.has('content-encoding')).toBe(false);
       expect(response.headers.has('content-length')).toBe(false);
       await expect(response.text()).resolves.toBe('decoded');
+    },
+  );
+
+  it.each([
+    'application/pdf',
+    'image/jpeg',
+    'image/png',
+    'Application/PDF; charset=binary',
+  ])(
+    '허용 MIME %s는 파일명을 유지하고 inline과 nosniff로 전달한다',
+    async (contentType) => {
+      const filename =
+        '; filename="contract.pdf"; filename*=UTF-8\'\'%EA%B3%84%EC%95%BD%EC%84%9C.pdf';
+      fetchMock.mockResolvedValue(
+        new Response('%PDF-1.7', {
+          headers: {
+            'Content-Type': contentType,
+            'Content-Disposition': `attachment${filename}`,
+          },
+        }),
+      );
+      const response = await proxyRequest(createRequest(), [
+        'staff',
+        '42',
+        'attachments',
+        '3',
+      ]);
+      expect(response.headers.get('content-disposition')).toBe(
+        `inline${filename}`,
+      );
+      expect(response.headers.get('content-type')).toBe(contentType);
+      expect(response.headers.get('x-content-type-options')).toBe('nosniff');
+      await expect(response.text()).resolves.toBe('%PDF-1.7');
+    },
+  );
+
+  it.each([
+    'text/html',
+    'image/svg+xml',
+    'application/xhtml+xml',
+    'application/octet-stream',
+    '',
+  ])(
+    '위험하거나 알 수 없는 MIME %s는 inline 대신 attachment로 강제한다',
+    async (contentType) => {
+      fetchMock.mockResolvedValue(
+        new Response('<script>alert(1)</script>', {
+          headers: {
+            'Content-Type': contentType,
+            'Content-Disposition': 'inline; filename="unsafe.svg"',
+          },
+        }),
+      );
+      const response = await proxyRequest(createRequest(), [
+        'staff',
+        '42',
+        'attachments',
+        '3',
+      ]);
+      expect(response.headers.get('content-disposition')).toBe(
+        'attachment; filename="unsafe.svg"',
+      );
+      expect(response.headers.get('x-content-type-options')).toBe('nosniff');
+    },
+  );
+
+  it('disposition이 없는 HTML 응답에도 다운로드 헤더를 붙인다', async () => {
+    fetchMock.mockResolvedValue(
+      new Response('<script>alert(1)</script>', {
+        headers: { 'Content-Type': 'text/html' },
+      }),
+    );
+    const response = await proxyRequest(createRequest(), [
+      'staff',
+      '42',
+      'attachments',
+      '3',
+    ]);
+    expect(response.headers.get('content-disposition')).toBe('attachment');
+    expect(response.headers.get('x-content-type-options')).toBe('nosniff');
+  });
+
+  it.each([
+    { method: 'GET', status: 404, path: ['staff', '42', 'attachments', '3'] },
+    { method: 'POST', status: 200, path: ['staff', '42', 'attachments', '3'] },
+    { method: 'GET', status: 200, path: ['tasks', '42', 'attachments', '3'] },
+    {
+      method: 'GET',
+      status: 200,
+      path: ['staff', '42', 'attachments', '3', 'extra'],
+    },
+  ])(
+    '파일 조회 외 응답의 disposition을 유지한다: %j',
+    async ({ method, status, path }) => {
+      fetchMock.mockResolvedValue(
+        new Response('file', {
+          status,
+          headers: { 'Content-Disposition': 'attachment; filename="test.pdf"' },
+        }),
+      );
+      const response = await proxyRequest(createRequest(method), path);
+      expect(response.headers.get('content-disposition')).toBe(
+        'attachment; filename="test.pdf"',
+      );
     },
   );
 

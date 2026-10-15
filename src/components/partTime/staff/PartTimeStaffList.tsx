@@ -2,23 +2,25 @@
 
 import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
+import { match, P } from 'ts-pattern';
 
 import { openConfirmModal } from '@components/_common/Modal/openConfirmModal';
 import { Pagination } from '@components/_common/Pagination/Pagination';
 import { PartTimeStaffCard } from '@components/partTime/staff/PartTimeStaffCard';
 import { PartTimeStaffDetailPanel } from '@components/partTime/staff/PartTimeStaffDetailPanel';
-import {
-  PART_TIME_STAFF_LIST_MOCKS,
-  getPartTimeStaffDetailMock,
-  getPartTimeStaffWeeklyShiftMocks,
-} from '@components/partTime/staff/partTimeStaffMock';
+import { getPartTimeStaffWeeklyShiftMocks } from '@components/partTime/staff/partTimeStaffWeeklyShiftMock';
 
+import { STAFF_LIST_PAGE_SIZE } from '@hooks/api/staff/staffQueryOptions';
+import { useStaffDetail } from '@hooks/api/staff/useStaffDetail';
+import { useStaffList } from '@hooks/api/staff/useStaffList';
 import { usePageSearchParam } from '@hooks/pagination/usePageSearchParam';
+
+import { ApiError } from '@lib/api/apiError';
+import { formatCommonError } from '@lib/api/formatCommonError';
 
 import IcEmpty from '@assets/icons/ic_empty.svg';
 
-const PAGE_SIZE = 10;
 const PAGE_PARAM = 'page';
 const STAFF_ID_PARAM = 'staffId';
 
@@ -39,29 +41,29 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
   const { currentPage, setCurrentPage } = usePageSearchParam(PAGE_PARAM);
   const hasPushedDetailRef = useRef(false);
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(PART_TIME_STAFF_LIST_MOCKS.length / PAGE_SIZE),
-  );
+  const listQuery = useStaffList({
+    page: currentPage,
+    size: STAFF_LIST_PAGE_SIZE,
+  });
+  const totalPages = Math.max(1, listQuery.data?.totalPage ?? currentPage);
   const page = Math.min(currentPage, totalPages);
-  const staffs = PART_TIME_STAFF_LIST_MOCKS.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE,
-  );
+  const correctedListQuery = useStaffList({ page, size: STAFF_LIST_PAGE_SIZE });
+  const activeListQuery = page === currentPage ? listQuery : correctedListQuery;
+  const staffs = activeListQuery.data?.items ?? [];
 
   const staffIdParam = searchParams.get(STAFF_ID_PARAM);
-  const staff =
-    staffIdParam === null
-      ? undefined
-      : getPartTimeStaffDetailMock(Number(staffIdParam));
-  const isStaffNotFound = staffIdParam !== null && !staff;
-  const isPageOver = currentPage > totalPages;
-
-  const [displayedStaff, setDisplayedStaff] = useState(staff);
-
-  if (staff && staff.id !== displayedStaff?.id) {
-    setDisplayedStaff(staff);
-  }
+  const staffId =
+    staffIdParam && /^\d+$/.test(staffIdParam) ? Number(staffIdParam) : 0;
+  const hasValidStaffId = Number.isSafeInteger(staffId) && staffId > 0;
+  const detailQuery = useStaffDetail(staffId);
+  const isStaffNotFound =
+    staffIdParam !== null &&
+    (!hasValidStaffId ||
+      match(detailQuery.error)
+        .with(P.instanceOf(ApiError), ({ status }) => status === 404)
+        .otherwise(() => false));
+  const isPageOver = Boolean(listQuery.data) && currentPage > totalPages;
+  const listStaff = staffs.find(({ id }) => id === staffId);
 
   useEffect(() => {
     if (!isStaffNotFound && !isPageOver) {
@@ -126,26 +128,39 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
     });
   };
 
-  if (staffs.length === 0) {
-    return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-4.5 py-10 max-tablet:gap-2.5">
-        <Image
-          src={IcEmpty}
-          alt=""
-          width={130}
-          height={140}
-          unoptimized
-          className="max-tablet:h-21.25 max-tablet:w-19.75"
-        />
-        <p className="text-base leading-6 font-medium tracking-[-0.03em] text-[#737373] max-tablet:text-sm max-tablet:leading-5">
-          등록된 아르바이트생이 없어요.
-        </p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col gap-5 max-mobile:gap-4">
+  const listContent = activeListQuery.isError ? (
+    <div role="alert" className="py-10 text-center text-sm text-slate-500">
+      <p>{formatCommonError(activeListQuery.error)}</p>
+      <button
+        type="button"
+        onClick={() => {
+          void activeListQuery.refetch();
+        }}
+        className="mt-2 cursor-pointer underline"
+      >
+        다시 시도
+      </button>
+    </div>
+  ) : !activeListQuery.data ? (
+    <p role="status" className="py-10 text-center text-sm text-slate-500">
+      아르바이트생 목록을 불러오는 중입니다.
+    </p>
+  ) : staffs.length === 0 ? (
+    <div className="flex flex-1 flex-col items-center justify-center gap-4.5 py-10 max-tablet:gap-2.5">
+      <Image
+        src={IcEmpty}
+        alt=""
+        width={130}
+        height={140}
+        unoptimized
+        className="max-tablet:h-21.25 max-tablet:w-19.75"
+      />
+      <p className="text-base leading-6 font-medium tracking-[-0.03em] text-[#737373] max-tablet:text-sm max-tablet:leading-5">
+        등록된 아르바이트생이 없어요.
+      </p>
+    </div>
+  ) : (
+    <>
       <ul className="grid grid-cols-2 gap-x-6 gap-y-5 max-laptop:grid-cols-1 max-laptop:gap-y-4">
         {staffs.map((listStaff) => (
           <li key={listStaff.id} className="min-w-0">
@@ -164,14 +179,24 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
         onPageChange={setCurrentPage}
         label="아르바이트생 목록 페이지"
       />
+    </>
+  );
+
+  return (
+    <div className="flex flex-1 flex-col gap-5 max-mobile:gap-4">
+      {listContent}
       <PartTimeStaffDetailPanel
-        open={Boolean(staff)}
+        open={staffIdParam !== null && !isStaffNotFound}
         onOpenChange={handleDetailOpenChange}
-        staff={displayedStaff}
+        staff={detailQuery.data}
+        listStaff={listStaff}
+        isLoading={hasValidStaffId && !detailQuery.data && !detailQuery.isError}
+        error={detailQuery.error}
+        onRetry={() => {
+          void detailQuery.refetch();
+        }}
         weeklyShifts={
-          displayedStaff
-            ? getPartTimeStaffWeeklyShiftMocks(displayedStaff.id, now)
-            : []
+          hasValidStaffId ? getPartTimeStaffWeeklyShiftMocks(staffId, now) : []
         }
         now={now}
       />

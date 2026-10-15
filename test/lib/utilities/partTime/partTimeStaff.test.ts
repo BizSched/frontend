@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 
 import type { PartTimeStaffShift } from '@lib/types/partTimeStaff';
 import {
+  formatPartTimeStaffBirthDate,
+  formatPartTimeStaffGender,
+  formatPartTimeStaffHourlyWage,
   formatPartTimeStaffNow,
   formatPartTimeStaffWeekTitle,
   getPartTimeStaffShiftStatus,
@@ -17,6 +20,17 @@ const createShift = (
   endTime: '22:00',
   isCheckedIn: false,
   ...shift,
+});
+
+describe('아르바이트생 선택 필드 표시', () => {
+  it.each([null, undefined])('빈 값 %s는 -로 표시한다', (value) => {
+    expect(formatPartTimeStaffBirthDate(value)).toBe('-');
+    expect(formatPartTimeStaffGender(value)).toBe('-');
+    expect(formatPartTimeStaffHourlyWage(value)).toBe('-');
+  });
+  it('0원 시급은 빈 값으로 처리하지 않는다', () => {
+    expect(formatPartTimeStaffHourlyWage(0)).toBe('0원');
+  });
 });
 
 describe('getPartTimeStaffShiftStatus', () => {

@@ -3,6 +3,7 @@ import 'server-only';
 import { NetworkError } from '@lib/api/apiError';
 import { createPathNotAllowedResponse } from '@lib/api/bff/bffErrorResponse';
 import { getAuthHeaders } from '@lib/api/getAuthHeaders';
+import { getPartTimeStaffAttachmentType } from '@lib/utilities/partTime/partTimeStaffAttachment';
 
 const UPSTREAM_TIMEOUT_MS = 10_000;
 const REQUEST_HEADER_NAMES = ['content-type', 'accept', 'accept-language'];
@@ -96,10 +97,31 @@ const proxyRequest = async (request: Request, path: string[]) => {
     clearTimeout(timeout);
   }
 
+  const responseHeaders = createResponseHeaders(upstream);
+  if (
+    request.method === 'GET' &&
+    upstream.ok &&
+    /^staff\/\d+\/attachments\/\d+$/.test(path.join('/'))
+  ) {
+    const disposition = responseHeaders.get('content-disposition') ?? '';
+    const parameterIndex = disposition.indexOf(';');
+    const parameters =
+      parameterIndex < 0 ? '' : disposition.slice(parameterIndex);
+    const isPreviewable =
+      getPartTimeStaffAttachmentType(
+        responseHeaders.get('content-type') ?? '',
+      ) !== undefined;
+    responseHeaders.set(
+      'content-disposition',
+      `${isPreviewable ? 'inline' : 'attachment'}${parameters}`,
+    );
+    responseHeaders.set('x-content-type-options', 'nosniff');
+  }
+
   return new Response(upstream.body, {
     status: upstream.status,
     statusText: upstream.statusText,
-    headers: createResponseHeaders(upstream),
+    headers: responseHeaders,
   });
 };
 

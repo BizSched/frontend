@@ -1,31 +1,61 @@
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import type { Metadata } from 'next';
-import { connection } from 'next/server';
 import { Suspense } from 'react';
 
 import { PartTimeStaffActionButtons } from '@components/partTime/staff/PartTimeStaffActionButtons';
 import { PartTimeStaffHeader } from '@components/partTime/staff/PartTimeStaffHeader';
 import { PartTimeStaffList } from '@components/partTime/staff/PartTimeStaffList';
 
+import {
+  STAFF_LIST_PAGE_SIZE,
+  staffListQueryOptions,
+} from '@hooks/api/staff/staffQueryOptions';
+
+import { getServerQueryClient } from '@providers/query/getServerQueryClient';
+
+import { getAuthHeaders } from '@lib/api/getAuthHeaders';
 import { formatPartTimeStaffNow } from '@lib/utilities/partTime/partTimeStaff';
 
 export const metadata: Metadata = {
   title: '아르바이트생 관리',
 };
 
-export default async function PartTimeStaffPage() {
-  await connection();
-
+export default async function PartTimeStaffPage({
+  searchParams,
+}: PageProps<'/partTime/staff'>) {
+  const params = await searchParams;
+  const pageNumber = Number(params.page);
+  const page =
+    Number.isSafeInteger(pageNumber) && pageNumber >= 1 ? pageNumber : 1;
+  const queryClient = getServerQueryClient();
+  const options = { headers: await getAuthHeaders() };
+  const queryOptions = staffListQueryOptions(
+    { page, size: STAFF_LIST_PAGE_SIZE },
+    options,
+  );
+  await queryClient.prefetchQuery(queryOptions);
+  const list = queryClient.getQueryData(queryOptions.queryKey);
+  if (list && page > Math.max(1, list.totalPage)) {
+    await queryClient.prefetchQuery(
+      staffListQueryOptions(
+        { page: Math.max(1, list.totalPage), size: STAFF_LIST_PAGE_SIZE },
+        options,
+      ),
+    );
+  }
   const now = formatPartTimeStaffNow(new Date());
 
   return (
-    <main className="flex flex-1 flex-col bg-[#f2f2f2] px-6 pt-25 pb-13 max-desktop:pt-12 max-tablet:pb-6 max-mobile:px-3 max-mobile:pt-6 max-mobile:pb-22">
-      <div className="mx-auto flex w-full max-w-330 flex-1 flex-col gap-7">
-        <PartTimeStaffHeader />
-        <Suspense>
-          <PartTimeStaffList now={now} />
-        </Suspense>
-      </div>
-      <PartTimeStaffActionButtons />
-    </main>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <main className="flex flex-1 flex-col bg-[#f2f2f2] px-6 pt-25 pb-13 max-desktop:pt-12 max-tablet:pb-6 max-mobile:px-3 max-mobile:pt-6 max-mobile:pb-22">
+        <div className="mx-auto flex w-full max-w-330 flex-1 flex-col gap-7">
+          <PartTimeStaffHeader />
+          <Suspense>
+            <PartTimeStaffList now={now} />
+          </Suspense>
+        </div>
+        <PartTimeStaffActionButtons />
+      </main>
+    </HydrationBoundary>
   );
 }

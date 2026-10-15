@@ -1,6 +1,5 @@
 import type {
   PartTimeStaffAttachment,
-  PartTimeStaffAttachmentType,
   PartTimeStaffDetailItem,
   PartTimeStaffFormAttachment,
   PartTimeStaffFormattedInput,
@@ -11,6 +10,7 @@ import type {
   PartTimeStaffFormValues,
   PartTimeStaffMemoLength,
 } from '@lib/types/partTimeStaff';
+import { getPartTimeStaffAttachmentType } from '@lib/utilities/partTime/partTimeStaffAttachment';
 
 const PART_TIME_STAFF_NAME_MAX_LENGTH = 30;
 
@@ -180,20 +180,6 @@ const formatPartTimeStaffHourlyWageInput = (value: string) =>
     .replace(/^0+(?=\d)/, '')
     .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 
-const getPartTimeStaffAttachmentType = (
-  mimeType: string,
-): PartTimeStaffAttachmentType | undefined => {
-  if (mimeType === 'application/pdf') {
-    return 'pdf';
-  }
-
-  if (mimeType.startsWith('image/')) {
-    return 'image';
-  }
-
-  return undefined;
-};
-
 const toPartTimeStaffFormSavedAttachment = (
   attachment: PartTimeStaffAttachment,
 ): PartTimeStaffFormSavedAttachment => ({
@@ -233,12 +219,17 @@ const toPartTimeStaffFormValues = (
 
   return {
     name: staff.name,
-    birthDate: formatPartTimeStaffBirthDateInput(staff.birthDate.slice(0, 10)),
-    gender: staff.gender,
-    phone: formatPartTimeStaffPhoneInput(staff.phone),
-    hourlyWage: formatPartTimeStaffHourlyWageInput(String(staff.hourlyWage)),
+    birthDate: formatPartTimeStaffBirthDateInput(
+      staff.birthDate?.slice(0, 10) ?? '',
+    ),
+    gender: staff.gender ?? '',
+    phone: formatPartTimeStaffPhoneInput(staff.phone ?? ''),
+    hourlyWage:
+      staff.hourlyWage === null || staff.hourlyWage === undefined
+        ? ''
+        : formatPartTimeStaffHourlyWageInput(String(staff.hourlyWage)),
     attachments: staff.attachments.map(toPartTimeStaffFormSavedAttachment),
-    memo: staff.memo,
+    memo: staff.memo ?? '',
   };
 };
 
@@ -285,7 +276,6 @@ export {
   formatPartTimeStaffBirthDateInput,
   formatPartTimeStaffHourlyWageInput,
   formatPartTimeStaffPhoneInput,
-  getPartTimeStaffAttachmentType,
   isPartTimeStaffBirthDateValid,
   isPartTimeStaffFormChanged,
   isPartTimeStaffNameValid,

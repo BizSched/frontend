@@ -1,8 +1,16 @@
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { match, P } from 'ts-pattern';
 
-import { PartTimeStaffForm } from '@components/partTime/staff/PartTimeStaffForm';
-import { getPartTimeStaffDetailMock } from '@components/partTime/staff/partTimeStaffMock';
+import { PartTimeStaffEditForm } from '@components/partTime/staff/PartTimeStaffEditForm';
+
+import { staffDetailQueryOptions } from '@hooks/api/staff/staffQueryOptions';
+
+import { getServerQueryClient } from '@providers/query/getServerQueryClient';
+
+import { ApiError } from '@lib/api/apiError';
+import { getAuthHeaders } from '@lib/api/getAuthHeaders';
 
 export const metadata: Metadata = {
   title: '아르바이트생 정보 수정하기',
@@ -14,17 +22,31 @@ export default async function PartTimeStaffEditPage({
   params,
 }: PageProps<'/partTime/staff/[id]/edit'>) {
   const { id } = await params;
-  const staff = STAFF_ID_PATTERN.test(id)
-    ? getPartTimeStaffDetailMock(Number(id))
-    : undefined;
-
-  if (!staff) {
+  const staffId = Number(id);
+  if (
+    !STAFF_ID_PATTERN.test(id) ||
+    !Number.isSafeInteger(staffId) ||
+    staffId <= 0
+  ) {
     notFound();
+  }
+  const queryClient = getServerQueryClient();
+  try {
+    await queryClient.fetchQuery(
+      staffDetailQueryOptions(staffId, { headers: await getAuthHeaders() }),
+    );
+  } catch (error) {
+    const isNotFound = match(error)
+      .with(P.instanceOf(ApiError), ({ status }) => status === 404)
+      .otherwise(() => false);
+    if (isNotFound) notFound();
   }
 
   return (
-    <main className="flex flex-1 bg-[#f2f2f2]">
-      <PartTimeStaffForm staff={staff} />
-    </main>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <main className="flex flex-1 bg-[#f2f2f2]">
+        <PartTimeStaffEditForm staffId={staffId} />
+      </main>
+    </HydrationBoundary>
   );
 }

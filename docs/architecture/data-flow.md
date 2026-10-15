@@ -65,6 +65,8 @@ baseURL은 환경변수로 관리한다. client/server 네이밍 규칙은 [env.
 
 Fetcher는 `customFetcher` 하나로 둔다. orval 생성 함수와 직접 작성한 API 함수가 모두 이 함수를 거친다.
 
+- 응답은 기본적으로 JSON이다. 첨부파일처럼 바이너리를 받는 호출은 `CustomFetcherOptions.responseType: 'blob'`을 넘긴다. 성공한 응답만 Blob으로 읽고, 실패 응답은 기존 JSON 에러 변환·401 refresh·재시도 규칙을 그대로 적용한다. `responseType`은 HTTP 요청 옵션에서 제거한다.
+
 - 예외: 브라우저 세션 처리(`authSession`)의 refresh·세션 정리 요청은 `sendRequest`를 직접 쓴다. 이 요청들은 refresh 대상이 아니고, `customFetcher`가 `authSession`을 쓰므로 거치면 순환 의존이 생긴다.
 
 | 실행 환경                                  | 요청 대상                      | 인증 헤더                              | 401 `TOKEN_EXPIRED`   |

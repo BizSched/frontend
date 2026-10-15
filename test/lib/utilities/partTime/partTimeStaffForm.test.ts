@@ -14,7 +14,6 @@ import {
   formatPartTimeStaffBirthDateInput,
   formatPartTimeStaffHourlyWageInput,
   formatPartTimeStaffPhoneInput,
-  getPartTimeStaffAttachmentType,
   isPartTimeStaffBirthDateValid,
   isPartTimeStaffFormChanged,
   isPartTimeStaffNameValid,
@@ -30,7 +29,7 @@ const CONTRACT_ATTACHMENT: PartTimeStaffAttachment = {
   id: 1,
   name: '근로계약서.pdf',
   type: 'pdf',
-  url: '/mocks/partTimeStaff/contract.pdf',
+  url: '/api/staff/1/attachments/1',
 };
 
 const SAVED_CONTRACT_ATTACHMENT: PartTimeStaffFormSavedAttachment = {
@@ -38,19 +37,6 @@ const SAVED_CONTRACT_ATTACHMENT: PartTimeStaffFormSavedAttachment = {
   kind: 'saved',
   key: 'saved-1',
 };
-
-describe('getPartTimeStaffAttachmentType', () => {
-  it('PDF와 이미지 MIME을 뷰어 형식으로 바꾼다', () => {
-    expect(getPartTimeStaffAttachmentType('application/pdf')).toBe('pdf');
-    expect(getPartTimeStaffAttachmentType('image/png')).toBe('image');
-    expect(getPartTimeStaffAttachmentType('image/jpeg')).toBe('image');
-  });
-
-  it('그 외 형식은 받지 않는다', () => {
-    expect(getPartTimeStaffAttachmentType('text/plain')).toBeUndefined();
-    expect(getPartTimeStaffAttachmentType('')).toBeUndefined();
-  });
-});
 
 describe('createPartTimeStaffFormNewAttachment', () => {
   it('고른 파일을 새 첨부파일 폼 값으로 만든다', () => {

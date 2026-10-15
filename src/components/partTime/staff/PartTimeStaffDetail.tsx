@@ -10,6 +10,7 @@ import { PartTimeStaffWeeklySchedule } from '@components/partTime/staff/PartTime
 import type {
   PartTimeStaffAttachment,
   PartTimeStaffDetailItem,
+  PartTimeStaffListItem,
   PartTimeStaffShift,
 } from '@lib/types/partTimeStaff';
 import {
@@ -19,7 +20,10 @@ import {
 } from '@lib/utilities/partTime/partTimeStaff';
 
 interface PartTimeStaffDetailProps {
-  staff: PartTimeStaffDetailItem;
+  staff: PartTimeStaffListItem;
+  detail?: PartTimeStaffDetailItem;
+  isLoading?: boolean;
+  isError?: boolean;
   weeklyShifts: PartTimeStaffShift[];
   now: string;
   titleId?: string;
@@ -29,14 +33,30 @@ interface PartTimeStaffDetailProps {
 
 function PartTimeStaffDetail({
   staff,
+  detail,
+  isLoading,
+  isError,
   weeklyShifts,
   now,
   titleId,
   closeAction,
   onAttachmentOpen,
 }: PartTimeStaffDetailProps) {
-  const { name, phone, birthDate, gender, hourlyWage, attachments, memo } =
-    staff;
+  const { name, phone } = staff;
+  const {
+    birthDate,
+    gender,
+    hourlyWage,
+    attachments = [],
+    memo,
+  } = detail ?? {};
+  const pendingValue = isError ? (
+    '조회 실패'
+  ) : isLoading ? (
+    <span aria-hidden className="inline-block h-4 w-20 rounded bg-slate-100" />
+  ) : (
+    '조회 전'
+  );
 
   return (
     <PartTimeStaffProfileLayout
@@ -61,14 +81,16 @@ function PartTimeStaffDetail({
       fields={
         <>
           <PartTimeStaffFieldRow label="생년월일">
-            {formatPartTimeStaffBirthDate(birthDate)}
+            {detail ? formatPartTimeStaffBirthDate(birthDate) : pendingValue}
           </PartTimeStaffFieldRow>
           <PartTimeStaffFieldRow label="성별">
-            {formatPartTimeStaffGender(gender)}
+            {detail ? formatPartTimeStaffGender(gender) : pendingValue}
           </PartTimeStaffFieldRow>
-          <PartTimeStaffFieldRow label="번호">{phone}</PartTimeStaffFieldRow>
+          <PartTimeStaffFieldRow label="번호">
+            {phone || '-'}
+          </PartTimeStaffFieldRow>
           <PartTimeStaffFieldRow label="시급">
-            {formatPartTimeStaffHourlyWage(hourlyWage)}
+            {detail ? formatPartTimeStaffHourlyWage(hourlyWage) : pendingValue}
           </PartTimeStaffFieldRow>
         </>
       }

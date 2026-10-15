@@ -2,6 +2,9 @@ import { cva } from 'class-variance-authority';
 import Image from 'next/image';
 import { useId } from 'react';
 
+import { useStaffAttachmentPreview } from '@hooks/api/staff/useStaffAttachmentPreview';
+
+import { formatCommonError } from '@lib/api/formatCommonError';
 import type { PartTimeStaffAttachmentPreview } from '@lib/types/partTimeStaff';
 
 import IcChevronLeftDark from '@assets/icons/ic_chevron-left-dark.svg';
@@ -43,6 +46,7 @@ function PartTimeStaffAttachmentViewer({
 }: PartTimeStaffAttachmentViewerProps) {
   const contentId = useId();
   const { name, type, url } = attachment;
+  const { previewUrl, error, refetch } = useStaffAttachmentPreview(url);
 
   return (
     <section
@@ -76,15 +80,32 @@ function PartTimeStaffAttachmentViewer({
         className="flex size-full flex-col p-10 max-laptop:h-[417px] max-tablet:h-57.5 max-tablet:p-4"
       >
         <div className="flex min-h-0 flex-1 items-center justify-center">
-          {type === 'pdf' ? (
+          {error ? (
+            <div role="alert" className="text-center text-sm text-slate-500">
+              <p>{formatCommonError(error)}</p>
+              <button
+                type="button"
+                onClick={() => {
+                  void refetch();
+                }}
+                className="mt-2 cursor-pointer underline"
+              >
+                다시 시도
+              </button>
+            </div>
+          ) : !previewUrl ? (
+            <p role="status" className="text-sm text-slate-500">
+              첨부파일을 불러오는 중입니다.
+            </p>
+          ) : type === 'pdf' ? (
             <iframe
-              src={url}
+              src={previewUrl}
               title={name}
               className="size-full border border-[#ccc] bg-white"
             />
           ) : (
             <Image
-              src={url}
+              src={previewUrl}
               alt={name}
               width={0}
               height={0}

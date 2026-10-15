@@ -68,6 +68,7 @@ const formatStaffError = (error: unknown) =>
 - **두 기준이 충돌하면 중요도가 우선이다.** 서브 위젯은 status와 관계없이 인라인으로 처리한다. 위젯 하나 때문에 화면 전체를 가리지 않기 위해서다.
 - **치명적 네트워크 단절**은 retry 후에도 실패한 `NetworkError`(timeout 포함)를 말한다. 오프라인일 때는 TanStack Query 기본 동작(`networkMode: 'online'`)에 따라 쿼리가 일시정지되며 에러로 처리되지 않는다.
 - **mutation은 `throwOnError`를 쓰지 않는다.** `onError`에서 폼 인라인 메시지 또는 토스트로 처리한다.
+- 아르바이트생 수정 폼은 데이터가 있는 상태의 재조회 실패를 인라인으로 처리한다. 폼을 경계 화면으로 바꾸면 미저장 입력이 사라지므로, 초기 조회에만 기존 경계 기준을 적용한다 ([staff.md](../feature/partTime/staff.md)의 "API 연동 계획").
 
 ### 구현 방식
 
@@ -118,6 +119,7 @@ const formatStaffError = (error: unknown) =>
 
 - `error.tsx`는 **공통 메시지 + "다시 시도"** 만 보여준다. Server Component에서 난 에러는 production에서 message가 지워지고 `digest`만 전달되어 `ApiError` 정보를 쓸 수 없기 때문이다.
 - "다시 시도"는 `useQueryErrorResetBoundary()`의 `reset()`을 먼저 호출한 뒤 `error.tsx`의 `reset()`을 호출한다. `error.tsx`의 `reset()`만으로는 실패한 쿼리의 에러 상태가 남아 같은 에러가 바로 다시 던져진다.
+- `(main)/error.tsx`에 공통 본문 경계를 구현했다(2026-10-15). 사이드바는 유지하고, 오류의 내부 message·digest 대신 기존 `COMMON_ERROR_MESSAGE`와 재시도 버튼을 표시한다.
 - segment `not-found.tsx`는 에러 객체가 필요 없으므로 맥락형 문구(예: "알바생을 찾을 수 없습니다")를 그대로 쓴다.
 
 ## 서버 prefetch 실패
