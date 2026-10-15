@@ -3,6 +3,7 @@ import { ZodError } from 'zod';
 
 import { ApiError } from '@lib/api/apiError';
 import {
+  getAllStaffs,
   getStaffAttachment,
   getStaffDetail,
   getStaffList,
@@ -155,5 +156,43 @@ describe('staff API', () => {
     );
     vi.mocked(findById1).mockRejectedValue(error);
     await expect(getStaffDetail(42)).rejects.toBe(error);
+  });
+});
+
+describe('getAllStaffs', () => {
+  const createPage = (page: number, totalPage: number, ids: number[]) => ({
+    page,
+    size: 100,
+    totalCount: ids.length,
+    totalPage,
+    items: ids.map((id) => ({ ...STAFF, id, name: `알바${id}` })),
+  });
+
+  it('100명 단위로 totalPage까지 이어 받아 옵션 타입으로 바꾼다', async () => {
+    vi.mocked(findAll1).mockImplementation(async (params) =>
+      params?.page === 1 ? createPage(1, 2, [1, 2]) : createPage(2, 2, [3]),
+    );
+
+    await expect(getAllStaffs('EMPLOYED')).resolves.toEqual([
+      { id: 1, name: '알바1', isDeleted: false },
+      { id: 2, name: '알바2', isDeleted: false },
+      { id: 3, name: '알바3', isDeleted: false },
+    ]);
+    expect(findAll1).toHaveBeenCalledWith(
+      { employmentStatus: 'EMPLOYED', page: 2, size: 100 },
+      undefined,
+    );
+  });
+
+  it('재직 상태를 주지 않으면 전체를 받는다', async () => {
+    vi.mocked(findAll1).mockResolvedValue(createPage(1, 1, [1]));
+
+    await getAllStaffs();
+
+    expect(findAll1).toHaveBeenCalledTimes(1);
+    expect(findAll1).toHaveBeenCalledWith(
+      { employmentStatus: undefined, page: 1, size: 100 },
+      undefined,
+    );
   });
 });

@@ -3,6 +3,7 @@ import Image from 'next/image';
 
 import { CalendarEventChip } from '@components/_common/Calendar/CalendarEventChip';
 
+import { formatCommonError } from '@lib/api/formatCommonError';
 import type {
   PartTimeStaffShift,
   PartTimeStaffShiftStatus,
@@ -55,81 +56,109 @@ const getWeeklyShiftDotStatus = (statuses: PartTimeStaffShiftStatus[]) => {
 interface PartTimeStaffWeeklyScheduleProps {
   now: string;
   shifts: PartTimeStaffShift[];
+  isLoading?: boolean;
+  error?: unknown;
+  onRetry?: () => void;
 }
 
 function PartTimeStaffWeeklySchedule({
   now,
   shifts,
+  isLoading,
+  error,
+  onRetry,
 }: PartTimeStaffWeeklyScheduleProps) {
   const today = now.slice(0, 10);
   const weekDates = getPartTimeStaffWeekDates(today);
 
   return (
-    <section className="flex flex-col gap-2.5">
+    <section aria-busy={isLoading} className="flex flex-col gap-2.5">
       <h3 className="text-lg leading-7 font-semibold text-slate-900">
         {formatPartTimeStaffWeekTitle(today)}
       </h3>
-      <ol className="grid grid-cols-7 gap-2 max-tablet:gap-0">
-        {weekDates.map((date) => {
-          const dayShifts = shifts
-            .filter((shift) => shift.date === date)
-            .map((shift) => ({
-              shift,
-              status: getPartTimeStaffShiftStatus(shift, now),
-            }));
+      {error ? (
+        <div
+          role="alert"
+          className="flex items-center justify-center gap-2 py-2 text-xs text-slate-500"
+        >
+          <p className="min-w-0 truncate">{formatCommonError(error)}</p>
+          <button
+            type="button"
+            onClick={onRetry}
+            className="shrink-0 cursor-pointer underline"
+          >
+            다시 시도
+          </button>
+        </div>
+      ) : (
+        <ol className="grid grid-cols-7 gap-2 max-tablet:gap-0">
+          {weekDates.map((date) => {
+            const dayShifts = shifts
+              .filter((shift) => shift.date === date)
+              .map((shift) => ({
+                shift,
+                status: getPartTimeStaffShiftStatus(shift, now),
+              }));
 
-          return (
-            <li
-              key={date}
-              className="flex min-w-0 flex-col gap-0.5 max-tablet:flex-row max-tablet:justify-center max-tablet:gap-0.75"
-            >
-              <time
-                dateTime={date}
-                className="text-xs leading-4 font-semibold text-slate-600 tabular-nums max-tablet:w-3.5 max-tablet:text-center"
+            return (
+              <li
+                key={date}
+                className="flex min-w-0 flex-col gap-0.5 max-tablet:flex-row max-tablet:justify-center max-tablet:gap-0.75"
               >
-                {Number(date.slice(8))}
-              </time>
-              <span
-                aria-hidden="true"
-                className={weeklyShiftDotVariants({
-                  status: getWeeklyShiftDotStatus(
-                    dayShifts.map(({ status }) => status),
-                  ),
-                })}
-              />
-              {dayShifts.length > 0 && (
-                <ul className="flex flex-col gap-1 max-tablet:sr-only">
-                  {dayShifts.map(({ shift, status }) => (
-                    <li key={shift.id}>
-                      <CalendarEventChip
-                        label={formatPartTimeStaffShiftTime(shift)}
-                        tone={status === 'completed' ? 'muted' : 'accent'}
-                        leadingSlot={
-                          <>
-                            {status === 'completed' && (
-                              <Image
-                                src={IcCheckbox}
-                                alt="완료"
-                                width={16}
-                                height={16}
-                                unoptimized
-                              />
-                            )}
-                            {status === 'missed' && (
-                              <span className="sr-only">미출근</span>
-                            )}
-                          </>
-                        }
-                        className={weeklyShiftChipVariants({ status })}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </li>
-          );
-        })}
-      </ol>
+                <time
+                  dateTime={date}
+                  className="text-xs leading-4 font-semibold text-slate-600 tabular-nums max-tablet:w-3.5 max-tablet:text-center"
+                >
+                  {Number(date.slice(8))}
+                </time>
+                <span
+                  aria-hidden="true"
+                  className={weeklyShiftDotVariants({
+                    status: getWeeklyShiftDotStatus(
+                      dayShifts.map(({ status }) => status),
+                    ),
+                  })}
+                />
+                {isLoading && (
+                  <span
+                    aria-hidden
+                    className="h-6 rounded bg-slate-100 max-tablet:hidden"
+                  />
+                )}
+                {dayShifts.length > 0 && (
+                  <ul className="flex flex-col gap-1 max-tablet:sr-only">
+                    {dayShifts.map(({ shift, status }) => (
+                      <li key={shift.id}>
+                        <CalendarEventChip
+                          label={formatPartTimeStaffShiftTime(shift)}
+                          tone={status === 'completed' ? 'muted' : 'accent'}
+                          leadingSlot={
+                            <>
+                              {status === 'completed' && (
+                                <Image
+                                  src={IcCheckbox}
+                                  alt="완료"
+                                  width={16}
+                                  height={16}
+                                  unoptimized
+                                />
+                              )}
+                              {status === 'missed' && (
+                                <span className="sr-only">미출근</span>
+                              )}
+                            </>
+                          }
+                          className={weeklyShiftChipVariants({ status })}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      )}
     </section>
   );
 }

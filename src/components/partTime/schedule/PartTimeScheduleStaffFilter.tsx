@@ -8,17 +8,22 @@ import IcChevronDown from '@assets/icons/ic_chevron-down.svg';
 import ImgGoal from '@assets/icons/img_goal.svg';
 
 const ALL_STAFF_LABEL = '아르바이트생 전체 스케쥴';
+const STAFF_LOAD_ERROR_LABEL = '목록을 불러오지 못했어요 · 다시 시도';
 
 interface PartTimeScheduleStaffFilterProps {
   staffs: PartTimeStaff[];
   selectedStaffId: number | null;
   onStaffChange: (staffId: number | null) => void;
+  isError?: boolean;
+  onRetry?: () => void;
 }
 
 function PartTimeScheduleStaffFilter({
   staffs,
   selectedStaffId,
   onStaffChange,
+  isError,
+  onRetry,
 }: PartTimeScheduleStaffFilterProps) {
   const selectedStaff = staffs.find((staff) => staff.id === selectedStaffId);
 
@@ -33,6 +38,7 @@ function PartTimeScheduleStaffFilter({
       isSelected: staff.id === selectedStaffId,
       onSelect: () => onStaffChange(staff.id),
     })),
+    ...(isError ? [{ label: STAFF_LOAD_ERROR_LABEL, onSelect: onRetry }] : []),
   ];
 
   return (
@@ -68,3 +74,4 @@ function PartTimeScheduleStaffFilter({
 }
 
 export { PartTimeScheduleStaffFilter };
+export type { PartTimeScheduleStaffFilterProps };

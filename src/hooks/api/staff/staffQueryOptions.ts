@@ -1,11 +1,15 @@
 import { queryOptions } from '@tanstack/react-query';
 
 import {
+  getAllStaffs,
   getStaffAttachment,
   getStaffDetail,
   getStaffList,
 } from '@lib/api/entities/staff/api';
-import type { FindAll1Params } from '@lib/api/generated/bizSchedAPI.schemas';
+import type {
+  FindAll1EmploymentStatus,
+  FindAll1Params,
+} from '@lib/api/generated/bizSchedAPI.schemas';
 import { retryApiQuery, throwCoreQueryError } from '@lib/api/queryErrorPolicy';
 
 const STAFF_LIST_PAGE_SIZE = 10;
@@ -14,6 +18,8 @@ const staffKeys = {
   all: ['staff'] as const,
   lists: () => [...staffKeys.all, 'list'] as const,
   list: (params?: FindAll1Params) => [...staffKeys.lists(), params] as const,
+  options: (employmentStatus?: FindAll1EmploymentStatus) =>
+    [...staffKeys.lists(), 'all', employmentStatus ?? null] as const,
   details: () => [...staffKeys.all, 'detail'] as const,
   detail: (staffId: number) => [...staffKeys.details(), staffId] as const,
   attachments: () => [...staffKeys.all, 'attachment'] as const,
@@ -30,6 +36,19 @@ const staffListQueryOptions = (
     staleTime: 60_000,
     retry: retryApiQuery,
     throwOnError: throwCoreQueryError,
+  });
+
+const staffOptionsQueryOptions = (
+  employmentStatus?: FindAll1EmploymentStatus,
+  options?: RequestInit,
+) =>
+  queryOptions({
+    queryKey: staffKeys.options(employmentStatus),
+    queryFn: ({ signal }) =>
+      getAllStaffs(employmentStatus, { ...options, signal }),
+    staleTime: 60_000,
+    retry: retryApiQuery,
+    throwOnError: false,
   });
 
 const staffDetailQueryOptions = (staffId: number, options?: RequestInit) =>
@@ -63,6 +82,7 @@ export {
   STAFF_LIST_PAGE_SIZE,
   staffKeys,
   staffListQueryOptions,
+  staffOptionsQueryOptions,
   staffDetailQueryOptions,
   staffEditQueryOptions,
   staffAttachmentQueryOptions,

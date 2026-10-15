@@ -15,6 +15,7 @@ import { PartTimeStaffList } from '@components/partTime/staff/PartTimeStaffList'
 import { staffKeys } from '@hooks/api/staff/staffQueryOptions';
 
 import { ApiError } from '@lib/api/apiError';
+import { getScheduleList } from '@lib/api/entities/schedule/api';
 import { getStaffDetail, getStaffList } from '@lib/api/entities/staff/api';
 import type {
   PartTimeStaffDetailItem,
@@ -34,6 +35,9 @@ vi.mock('next/navigation', () => ({
 vi.mock('@lib/api/entities/staff/api', () => ({
   getStaffList: vi.fn(),
   getStaffDetail: vi.fn(),
+}));
+vi.mock('@lib/api/entities/schedule/api', () => ({
+  getScheduleList: vi.fn(async () => []),
 }));
 vi.mock('@assets/icons/ic_empty.svg', () => ({ default: '/empty.svg' }));
 vi.mock('@components/partTime/staff/PartTimeStaffCard', () => ({
@@ -134,6 +138,10 @@ describe('PartTimeStaffList API 연동', () => {
     });
     await waitFor(() =>
       expect(screen.getByRole('dialog').textContent).toContain('상세 이름'),
+    );
+    expect(getScheduleList).toHaveBeenCalledWith(
+      { from: '2026-10-12', to: '2026-10-18', staffId: 42 },
+      expect.anything(),
     );
   });
 

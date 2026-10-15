@@ -4,14 +4,10 @@ import { LinkIcon, PencilIcon } from 'lucide-react';
 
 import { ActionButton } from '@components/_common/ActionButton/ActionButton';
 import { openPartTimeScheduleFormModal } from '@components/partTime/schedule/modal/openPartTimeScheduleFormModal';
-import { ACTIVE_PART_TIME_STAFFS } from '@components/partTime/schedule/partTimeScheduleMock';
 
 function PartTimeScheduleActionButtons() {
   const handleScheduleAdd = () => {
-    void openPartTimeScheduleFormModal({
-      mode: 'create',
-      staffs: ACTIVE_PART_TIME_STAFFS,
-    });
+    void openPartTimeScheduleFormModal({ mode: 'create' });
   };
 
   return (
