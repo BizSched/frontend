@@ -116,12 +116,12 @@ describe('SalesChartCard', () => {
       'aria-pressed',
       'true',
     );
-    expect(screen.getByRole('button', { name: '주간' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: '월간' })).toHaveAttribute(
       'aria-pressed',
       'true',
     );
     fireEvent.click(screen.getByRole('button', { name: '주' }));
-    expect(screen.getByRole('button', { name: '일간' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: '주간' })).toHaveAttribute(
       'aria-pressed',
       'true',
     );
@@ -129,7 +129,7 @@ describe('SalesChartCard', () => {
       screen.getByRole('figure', { name: /일별 매출/ }),
     ).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '연' }));
-    expect(screen.getByRole('button', { name: '월간' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: '연간' })).toHaveAttribute(
       'aria-pressed',
       'true',
     );

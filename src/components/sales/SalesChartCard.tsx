@@ -21,9 +21,9 @@ interface SalesChartCardProps {
 }
 
 const CHART_TABS = [
-  { unit: 'WEEK', desktop: '주', mobile: '일간' },
-  { unit: 'MONTH', desktop: '월', mobile: '주간' },
-  { unit: 'YEAR', desktop: '연', mobile: '월간' },
+  { unit: 'WEEK', desktop: '주', mobile: '주간' },
+  { unit: 'MONTH', desktop: '월', mobile: '월간' },
+  { unit: 'YEAR', desktop: '연', mobile: '연간' },
 ] as const;
 
 function SalesChartCard({ month, date }: SalesChartCardProps) {
