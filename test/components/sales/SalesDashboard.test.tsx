@@ -162,6 +162,63 @@ describe('SalesChartCard', () => {
       screen.getByRole('figure', { name: /주차별 매출/ }),
     ).toBeInTheDocument();
   });
+
+  it('다른 월을 고르면 그 달의 주별 차트로 전환한다', async () => {
+    const queryClient = createQueryClient();
+    const date = '2026-10-15';
+    const chart: SalesChart = {
+      unit: 'MONTH',
+      categories: [{ categoryId: 1, name: '음료', color: '#F26B1D' }],
+      rows: [{ label: '9월 1주', totalAmount: 1000, '1': 1000 }],
+    };
+    queryClient.setQueryData(salesKeys.chart({ unit: 'MONTH', date }), chart);
+    queryClient.setQueryData(salesKeys.chart({ unit: 'WEEK', date }), {
+      ...chart,
+      unit: 'WEEK',
+    });
+    queryClient.setQueryData(
+      salesKeys.chart({ unit: 'MONTH', date: '2026-09-01' }),
+      chart,
+    );
+
+    renderWith(queryClient, <SalesChartCard month={MONTH} date={date} />);
+    fireEvent.click(screen.getByRole('button', { name: '주' }));
+    fireEvent.click(screen.getByRole('button', { name: /월 선택:\s*10월/ }));
+    fireEvent.click(await screen.findByRole('menuitem', { name: '9월' }));
+
+    expect(
+      screen.getByRole('button', { name: /월 선택:\s*9월/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '월' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    expect(
+      screen.getByRole('figure', { name: '9월 주차별 매출' }),
+    ).toBeInTheDocument();
+  });
+
+  it('다른 월을 불러오는 동안 이전 월 차트를 새 월로 표시하지 않는다', async () => {
+    const queryClient = createQueryClient();
+    const date = '2026-10-15';
+    const chart: SalesChart = {
+      unit: 'MONTH',
+      categories: [{ categoryId: 1, name: '음료', color: '#F26B1D' }],
+      rows: [{ label: '10월 2주', totalAmount: 1000, '1': 1000 }],
+    };
+    queryClient.setQueryData(salesKeys.chart({ unit: 'MONTH', date }), chart);
+    queryClient.setQueryDefaults(
+      salesKeys.chart({ unit: 'MONTH', date: '2026-09-01' }),
+      { queryFn: () => new Promise(() => {}) },
+    );
+
+    renderWith(queryClient, <SalesChartCard month={MONTH} date={date} />);
+    fireEvent.click(screen.getByRole('button', { name: /월 선택:\s*10월/ }));
+    fireEvent.click(await screen.findByRole('menuitem', { name: '9월' }));
+
+    expect(screen.getByText('불러오는 중')).toBeInTheDocument();
+    expect(screen.queryByRole('figure')).toBeNull();
+  });
 });
 
 describe('SalesSummaryCards', () => {

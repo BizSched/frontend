@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useState } from 'react';
 
 import { Card } from '@components/_common/Card/Card';
+import { MonthSelectDropdown } from '@components/_common/MonthSelectDropdown/MonthSelectDropdown';
 
 import { useSalesChart } from '@hooks/api/sales/useSalesChart';
 
@@ -26,10 +27,18 @@ const CHART_TABS = [
 ] as const;
 
 function SalesChartCard({ month, date }: SalesChartCardProps) {
+  const [selectedMonth, setSelectedMonth] = useState(month);
   const [unit, setUnit] =
     useState<(typeof CHART_TABS)[number]['unit']>('MONTH');
-  const { data, error } = useSalesChart({ unit, date });
-  const monthLabel = `${Number(month.slice(5))}월`;
+  const chartDate = selectedMonth === month ? date : `${selectedMonth}-01`;
+  const { data, error } = useSalesChart({ unit, date: chartDate });
+  const monthLabel = `${Number(selectedMonth.slice(5))}월`;
+  const handleMonthChange = (nextMonth: number) => {
+    const next = `${month.slice(0, 4)}-${String(nextMonth).padStart(2, '0')}`;
+    if (next === selectedMonth) return;
+    setSelectedMonth(next);
+    setUnit('MONTH');
+  };
 
   return (
     <Card
@@ -42,9 +51,12 @@ function SalesChartCard({ month, date }: SalesChartCardProps) {
           <Card.Title className="text-2xl font-semibold text-slate-950 max-tablet:text-lg">
             매출 차트
           </Card.Title>
-          <span className="rounded-full border border-slate-100 px-3 py-1 text-sm font-semibold text-slate-800 max-tablet:text-xs">
-            {monthLabel} <span aria-hidden="true">⌄</span>
-          </span>
+          <MonthSelectDropdown
+            value={Number(selectedMonth.slice(5))}
+            onChange={handleMonthChange}
+            size="small"
+            className="border-slate-100 px-3 py-1 text-sm font-semibold text-slate-800 max-tablet:text-xs"
+          />
         </div>
         <div className="flex items-center rounded-lg bg-slate-50 p-[3px] text-xs font-medium max-tablet:hidden">
           {CHART_TABS.map((tab) => (
