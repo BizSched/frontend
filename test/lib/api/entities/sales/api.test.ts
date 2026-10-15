@@ -4,8 +4,11 @@ import { ZodError } from 'zod';
 import {
   createSale,
   deleteSale,
+  getSalesChart,
   getSalesList,
   getSalesMonthTotal,
+  getSalesRatio,
+  getSalesSummary,
   updateSale,
 } from '@lib/api/entities/sales/api';
 import {
@@ -14,7 +17,11 @@ import {
   findAll3,
   update,
 } from '@lib/api/generated/sales/sales';
-import { findSummary } from '@lib/api/generated/sales-analytics/sales-analytics';
+import {
+  findChart,
+  findRatio,
+  findSummary,
+} from '@lib/api/generated/sales-analytics/sales-analytics';
 
 vi.mock('@lib/api/generated/sales/sales', () => ({
   create3: vi.fn(),
@@ -23,6 +30,8 @@ vi.mock('@lib/api/generated/sales/sales', () => ({
   update: vi.fn(),
 }));
 vi.mock('@lib/api/generated/sales-analytics/sales-analytics', () => ({
+  findChart: vi.fn(),
+  findRatio: vi.fn(),
   findSummary: vi.fn(),
 }));
 
@@ -88,6 +97,103 @@ describe('getSalesMonthTotal', () => {
 
     await expect(getSalesMonthTotal(params, options)).resolves.toBe(1200);
     expect(findSummary).toHaveBeenCalledWith(params, options);
+  });
+});
+
+const CHART = {
+  unit: 'MONTH' as const,
+  startDate: '2026-10-01',
+  endDate: '2026-10-31',
+  categories: [{ categoryId: 3, name: '음료', color: '#F26B1D' }],
+  items: [
+    {
+      label: '1주',
+      startDate: '2026-10-01',
+      endDate: '2026-10-07',
+      sales: [{ categoryId: 3, amount: 1200 }],
+      totalAmount: 1200,
+    },
+  ],
+};
+const RATIO = {
+  month: '2026-10',
+  totalAmount: 1200,
+  items: [
+    {
+      categoryId: 3,
+      name: '음료',
+      color: '#F26B1D',
+      amount: 1200,
+      percent: 100,
+    },
+  ],
+};
+
+describe('getSalesSummary', () => {
+  it('요약 DTO를 DAO로 변환하고 조회 인자를 전달한다', async () => {
+    const params = { month: '2026-10' };
+    const options = { cache: 'no-store' as const };
+    vi.mocked(findSummary).mockResolvedValue(SUMMARY);
+
+    await expect(getSalesSummary(params, options)).resolves.toMatchObject({
+      totalAmount: 1200,
+      previousMonth: { changeRate: 20 },
+    });
+    expect(findSummary).toHaveBeenCalledWith(params, options);
+  });
+
+  it('응답 DTO가 잘못되면 ZodError를 던진다', async () => {
+    vi.mocked(findSummary).mockResolvedValue({
+      ...SUMMARY,
+      totalAmount: '1200',
+    } as never);
+
+    await expect(getSalesSummary()).rejects.toBeInstanceOf(ZodError);
+  });
+});
+
+describe('getSalesChart', () => {
+  it('차트 DTO를 DAO로 변환하고 필수 조회 인자를 전달한다', async () => {
+    const params = { unit: 'MONTH' as const, date: '2026-10-13' };
+    const options = { cache: 'no-store' as const };
+    vi.mocked(findChart).mockResolvedValue(CHART);
+
+    await expect(getSalesChart(params, options)).resolves.toMatchObject({
+      unit: 'MONTH',
+      rows: [{ label: '1주', totalAmount: 1200, '3': 1200 }],
+    });
+    expect(findChart).toHaveBeenCalledWith(params, options);
+  });
+
+  it('응답 DTO가 잘못되면 ZodError를 던진다', async () => {
+    vi.mocked(findChart).mockResolvedValue({
+      ...CHART,
+      unit: 'DAY',
+    } as never);
+
+    await expect(getSalesChart({ unit: 'MONTH' })).rejects.toBeInstanceOf(
+      ZodError,
+    );
+  });
+});
+
+describe('getSalesRatio', () => {
+  it('비중 DTO를 DAO로 변환하고 조회 인자를 전달한다', async () => {
+    const params = { month: '2026-10' };
+    const options = { cache: 'no-store' as const };
+    vi.mocked(findRatio).mockResolvedValue(RATIO);
+
+    await expect(getSalesRatio(params, options)).resolves.toEqual(RATIO);
+    expect(findRatio).toHaveBeenCalledWith(params, options);
+  });
+
+  it('응답 DTO가 잘못되면 ZodError를 던진다', async () => {
+    vi.mocked(findRatio).mockResolvedValue({
+      ...RATIO,
+      items: [{ ...RATIO.items[0], percent: '100' }],
+    } as never);
+
+    await expect(getSalesRatio()).rejects.toBeInstanceOf(ZodError);
   });
 });
 

@@ -1,5 +1,7 @@
 import type {
   FindAll3Params,
+  FindChartParams,
+  FindRatioParams,
   FindSummaryParams,
   SaleCreateRequest,
   SaleUpdateRequest,
@@ -11,10 +13,17 @@ import {
   update,
   _delete,
 } from '@lib/api/generated/sales/sales';
-import { findSummary } from '@lib/api/generated/sales-analytics/sales-analytics';
+import {
+  findChart,
+  findRatio,
+  findSummary,
+} from '@lib/api/generated/sales-analytics/sales-analytics';
 
 import { toSale, saleResponseSchema } from './toSale';
+import { toSalesChart, salesChartResponseSchema } from './toSalesChart';
 import { toSalesList, salesListResponseSchema } from './toSalesList';
+import { toSalesRatio, salesRatioResponseSchema } from './toSalesRatio';
+import { toSalesSummary } from './toSalesSummary';
 
 export const getSalesList = async (
   params?: FindAll3Params,
@@ -32,6 +41,33 @@ export const getSalesMonthTotal = async (
   const response = await findSummary(params, options);
   const dto = salesSummaryResponseSchema.parse(response);
   return dto.totalAmount;
+};
+
+export const getSalesSummary = async (
+  params?: FindSummaryParams,
+  options?: RequestInit,
+) => {
+  const response = await findSummary(params, options);
+  const dto = salesSummaryResponseSchema.parse(response);
+  return toSalesSummary(dto);
+};
+
+export const getSalesChart = async (
+  params: FindChartParams,
+  options?: RequestInit,
+) => {
+  const response = await findChart(params, options);
+  const dto = salesChartResponseSchema.parse(response);
+  return toSalesChart(dto);
+};
+
+export const getSalesRatio = async (
+  params?: FindRatioParams,
+  options?: RequestInit,
+) => {
+  const response = await findRatio(params, options);
+  const dto = salesRatioResponseSchema.parse(response);
+  return toSalesRatio(dto);
 };
 
 export const createSale = async (body: SaleCreateRequest) => {
