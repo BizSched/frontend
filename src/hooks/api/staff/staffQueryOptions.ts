@@ -1,25 +1,14 @@
 import { queryOptions } from '@tanstack/react-query';
-import { match, P } from 'ts-pattern';
 
-import { ApiError } from '@lib/api/apiError';
 import {
   getStaffAttachment,
   getStaffDetail,
   getStaffList,
 } from '@lib/api/entities/staff/api';
 import type { FindAll1Params } from '@lib/api/generated/bizSchedAPI.schemas';
+import { retryApiQuery, throwCoreQueryError } from '@lib/api/queryErrorPolicy';
 
 const STAFF_LIST_PAGE_SIZE = 10;
-
-const retryStaffQuery = (failureCount: number, error: unknown) =>
-  match(error)
-    .with(P.instanceOf(ApiError), () => false)
-    .otherwise(() => failureCount < 3);
-
-const throwStaffQueryError = (error: unknown) =>
-  match(error)
-    .with(P.instanceOf(ApiError), ({ status }) => status === 403)
-    .otherwise(() => true);
 
 const staffKeys = {
   all: ['staff'] as const,
@@ -39,8 +28,8 @@ const staffListQueryOptions = (
     queryKey: staffKeys.list(params),
     queryFn: ({ signal }) => getStaffList(params, { ...options, signal }),
     staleTime: 60_000,
-    retry: retryStaffQuery,
-    throwOnError: throwStaffQueryError,
+    retry: retryApiQuery,
+    throwOnError: throwCoreQueryError,
   });
 
 const staffDetailQueryOptions = (staffId: number, options?: RequestInit) =>
@@ -48,15 +37,15 @@ const staffDetailQueryOptions = (staffId: number, options?: RequestInit) =>
     queryKey: staffKeys.detail(staffId),
     queryFn: ({ signal }) => getStaffDetail(staffId, { ...options, signal }),
     staleTime: 60_000,
-    retry: retryStaffQuery,
-    throwOnError: throwStaffQueryError,
+    retry: retryApiQuery,
+    throwOnError: throwCoreQueryError,
   });
 
 const staffEditQueryOptions = (staffId: number) =>
   queryOptions({
     ...staffDetailQueryOptions(staffId),
     throwOnError: (error, query) =>
-      query.state.data === undefined && throwStaffQueryError(error),
+      query.state.data === undefined && throwCoreQueryError(error),
   });
 
 const staffAttachmentQueryOptions = (url: string) =>
@@ -65,7 +54,7 @@ const staffAttachmentQueryOptions = (url: string) =>
     queryFn: ({ signal }) => getStaffAttachment(url, { signal }),
     staleTime: Infinity,
     gcTime: 0,
-    retry: retryStaffQuery,
+    retry: retryApiQuery,
     throwOnError: false,
     refetchOnWindowFocus: false,
   });
