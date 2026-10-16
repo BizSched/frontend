@@ -71,3 +71,4 @@
 | [chart/README.md](./chart/README.md)                                 | Chart — 누적 막대·도넛 compound, `config` 색 주입, 빈 상태·로딩 스켈레톤 슬롯             | 구현 완료               |
 | [calendar/README.md](./calendar/README.md)                           | Calendar — 단일 날짜 선택, 월 이동, 일정 칩·모바일 점, Dropdown 조합                      | 구현 완료               |
 | [ActionButton/README.md](./ActionButton/README.md)                   | ActionButton — Base UI Menu 기반 speed dial, `actions` 배열 prop, lucide 아이콘           | 구현 완료 · 테스트 예정 |
+| [badge/README.md](./badge/README.md)                                 | Badge — 표시용 pill 라벨, `color` variant(gray/green/yellow/red/purple)                   | 구현 완료 · 테스트 예정 |
