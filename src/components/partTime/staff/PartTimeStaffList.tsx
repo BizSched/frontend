@@ -8,9 +8,10 @@ import { match, P } from 'ts-pattern';
 import { openConfirmModal } from '@components/_common/Modal/openConfirmModal';
 import { Pagination } from '@components/_common/Pagination/Pagination';
 import { PartTimeStaffCard } from '@components/partTime/staff/PartTimeStaffCard';
-import { PartTimeStaffDetailPanel } from '@components/partTime/staff/PartTimeStaffDetailPanel';
+import { PartTimeStaffDetailOverlay } from '@components/partTime/staff/PartTimeStaffDetailOverlay';
 
 import { STAFF_LIST_PAGE_SIZE } from '@hooks/api/staff/staffQueryOptions';
+import { useChangeStaffEmploymentStatus } from '@hooks/api/staff/useChangeStaffEmploymentStatus';
 import { useDeleteStaff } from '@hooks/api/staff/useDeleteStaff';
 import { useStaffDetail } from '@hooks/api/staff/useStaffDetail';
 import { useStaffList } from '@hooks/api/staff/useStaffList';
@@ -19,13 +20,24 @@ import { usePageSearchParam } from '@hooks/pagination/usePageSearchParam';
 
 import { ApiError } from '@lib/api/apiError';
 import { formatCommonError } from '@lib/api/formatCommonError';
-import type { PartTimeStaffShift } from '@lib/types/partTimeStaff';
+import type {
+  PartTimeStaffEmploymentStatus,
+  PartTimeStaffShift,
+} from '@lib/types/partTimeStaff';
 
 import IcEmpty from '@assets/icons/ic_empty.svg';
 
 const PAGE_PARAM = 'page';
 const STAFF_ID_PARAM = 'staffId';
 const NO_WEEKLY_SHIFTS: PartTimeStaffShift[] = [];
+
+const isStaffNotFoundError = (error: unknown) =>
+  match(error)
+    .with(
+      P.instanceOf(ApiError),
+      ({ errorCode }) => errorCode === 'STAFF_NOT_FOUND',
+    )
+    .otherwise(() => false);
 
 const createUrl = (pathname: string, searchParams: URLSearchParams) => {
   const query = searchParams.toString();
@@ -47,12 +59,11 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const deleteMutation = useDeleteStaff();
   const isDeletePending = isDeleteConfirmOpen || deleteMutation.isPending;
-  const isDeleteStaffNotFound = match(deleteMutation.error)
-    .with(
-      P.instanceOf(ApiError),
-      ({ errorCode }) => errorCode === 'STAFF_NOT_FOUND',
-    )
-    .otherwise(() => false);
+  const isDeleteStaffNotFound = isStaffNotFoundError(deleteMutation.error);
+  const isStatusChangeLockedRef = useRef(false);
+  const [isStatusConfirmOpen, setIsStatusConfirmOpen] = useState(false);
+  const statusMutation = useChangeStaffEmploymentStatus();
+  const isStatusStaffNotFound = isStaffNotFoundError(statusMutation.error);
 
   const listQuery = useStaffList({
     page: currentPage,
@@ -75,6 +86,8 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
     (!hasValidStaffId ||
       (deleteMutation.isSuccess && deleteMutation.data === staffId) ||
       (isDeleteStaffNotFound && deleteMutation.variables === staffId) ||
+      (isStatusStaffNotFound &&
+        statusMutation.variables?.staffId === staffId) ||
       match(detailQuery.error)
         .with(P.instanceOf(ApiError), ({ status }) => status === 404)
         .otherwise(() => false));
@@ -112,6 +125,7 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
     const nextSearchParams = new URLSearchParams(searchParams.toString());
 
     nextSearchParams.set(STAFF_ID_PARAM, String(staffId));
+    if (!isStatusChangeLockedRef.current) statusMutation.reset();
     hasPushedDetailRef.current = true;
     window.history.pushState(null, '', createUrl(pathname, nextSearchParams));
   };
@@ -157,6 +171,36 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
     } finally {
       setIsDeleteConfirmOpen(false);
       isDeletePendingRef.current = false;
+    }
+  };
+
+  const handleEmploymentStatusChange = async (
+    staffId: number,
+    employmentStatus: PartTimeStaffEmploymentStatus,
+  ) => {
+    if (isStatusChangeLockedRef.current) return;
+    isStatusChangeLockedRef.current = true;
+    statusMutation.reset();
+
+    try {
+      if (employmentStatus !== 'employed') {
+        setIsStatusConfirmOpen(true);
+        const isConfirmed = await openConfirmModal({
+          title: '재직 상태를 바꾸시겠어요?',
+          description:
+            '아직 오지 않은 근무 스케쥴이 삭제돼요. 다시 재직으로 바꿔도 복구되지 않아요.',
+          confirmText: '변경',
+        });
+        setIsStatusConfirmOpen(false);
+        if (!isConfirmed) return;
+      }
+
+      await statusMutation.mutateAsync({ staffId, employmentStatus });
+    } catch {
+      // NOTE: 재직 상태 변경 오류는 상세 헤더 아래에 인라인으로 표시한다
+    } finally {
+      setIsStatusConfirmOpen(false);
+      isStatusChangeLockedRef.current = false;
     }
   };
 
@@ -241,6 +285,11 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
           )}
         </div>
       )}
+      {isStatusStaffNotFound && (
+        <p role="alert" className="text-sm text-warning-500">
+          {formatCommonError(statusMutation.error)}
+        </p>
+      )}
       {deleteMutation.isPending && (
         <p role="status" className="text-sm text-slate-500">
           아르바이트생을 삭제하는 중입니다.
@@ -254,7 +303,7 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
           </p>
         )}
       {listContent}
-      <PartTimeStaffDetailPanel
+      <PartTimeStaffDetailOverlay
         open={staffIdParam !== null && !isStaffNotFound}
         onOpenChange={handleDetailOpenChange}
         staff={detailQuery.data}
@@ -275,6 +324,22 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
           void weeklyShiftsQuery.refetch();
         }}
         now={now}
+        onEmploymentStatusChange={(staffId, employmentStatus) => {
+          void handleEmploymentStatusChange(staffId, employmentStatus);
+        }}
+        isEmploymentStatusLocked={
+          isStatusConfirmOpen || statusMutation.isPending
+        }
+        isEmploymentStatusPending={
+          statusMutation.isPending &&
+          statusMutation.variables.staffId === staffId
+        }
+        employmentStatusError={
+          statusMutation.variables?.staffId === staffId &&
+          !isStatusStaffNotFound
+            ? statusMutation.error
+            : undefined
+        }
       />
     </div>
   );

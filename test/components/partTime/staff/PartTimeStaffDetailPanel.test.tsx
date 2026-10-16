@@ -4,6 +4,7 @@ import {
   fireEvent,
   render,
   screen,
+  within,
 } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -47,6 +48,7 @@ const STAFF: PartTimeStaffDetailItem = {
   name: '김알바',
   phone: '010-1234-5678',
   createdAt: '2026-10-15T09:00:00+09:00',
+  employmentStatus: 'employed',
   birthDate: null,
   gender: null,
   hourlyWage: null,
@@ -145,5 +147,69 @@ describe('PartTimeStaffDetailPanel', () => {
     rerender(<PartTimeStaffDetailPanel {...BASE} open staff={STAFF} />);
     expect(screen.getAllByText('-')).toHaveLength(3);
     expect(screen.queryByText('조회 실패')).toBeNull();
+  });
+
+  it('이름 옆 드롭다운에서 다른 재직 상태를 고를 때만 변경을 요청한다', async () => {
+    const onEmploymentStatusChange = vi.fn();
+    render(
+      <PartTimeStaffDetailPanel
+        {...BASE}
+        open
+        staff={STAFF}
+        onEmploymentStatusChange={onEmploymentStatusChange}
+      />,
+    );
+    const group = screen.getByRole('group', { name: '재직 상태' });
+    const trigger = within(group).getByRole('button');
+    expect(trigger.textContent).toContain('재직');
+
+    fireEvent.click(trigger);
+    fireEvent.click(await screen.findByRole('menuitem', { name: '재직' }));
+    expect(onEmploymentStatusChange).not.toHaveBeenCalled();
+
+    fireEvent.click(trigger);
+    fireEvent.click(await screen.findByRole('menuitem', { name: '휴직' }));
+    expect(onEmploymentStatusChange).toHaveBeenCalledWith(42, 'onLeave');
+  });
+
+  it('잠긴 동안 드롭다운을 막고 진행·실패를 헤더 아래에 표시한다', () => {
+    const { rerender } = render(
+      <PartTimeStaffDetailPanel
+        {...BASE}
+        open
+        staff={STAFF}
+        onEmploymentStatusChange={vi.fn()}
+        isEmploymentStatusLocked
+        isEmploymentStatusPending
+      />,
+    );
+    const group = screen.getByRole('group', { name: '재직 상태' });
+    expect(within(group).getByRole('button').hasAttribute('disabled')).toBe(
+      true,
+    );
+    expect(screen.getByRole('status').textContent).toBe(
+      '재직 상태를 바꾸는 중입니다.',
+    );
+
+    rerender(
+      <PartTimeStaffDetailPanel
+        {...BASE}
+        open
+        staff={STAFF}
+        onEmploymentStatusChange={vi.fn()}
+        employmentStatusError={
+          new ApiError('INVALID_REQUEST', 400, '바꿀 수 없어요.')
+        }
+      />,
+    );
+    expect(screen.getByRole('alert').textContent).toBe('바꿀 수 없어요.');
+    expect(within(group).getByRole('button').hasAttribute('disabled')).toBe(
+      false,
+    );
+  });
+
+  it('변경 핸들러가 없으면 재직 상태 드롭다운을 그리지 않는다', () => {
+    render(<PartTimeStaffDetailPanel {...BASE} open staff={STAFF} />);
+    expect(screen.queryByRole('group', { name: '재직 상태' })).toBeNull();
   });
 });

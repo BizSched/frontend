@@ -31,6 +31,8 @@ interface PartTimeStaffDetailProps {
   now: string;
   titleId?: string;
   closeAction?: ReactNode;
+  statusAction?: ReactNode;
+  headerNotice?: ReactNode;
   onAttachmentOpen?: (attachment: PartTimeStaffAttachment) => void;
 }
 
@@ -46,6 +48,8 @@ function PartTimeStaffDetail({
   now,
   titleId,
   closeAction,
+  statusAction,
+  headerNotice,
   onAttachmentOpen,
 }: PartTimeStaffDetailProps) {
   const { name, phone } = staff;
@@ -67,21 +71,25 @@ function PartTimeStaffDetail({
   return (
     <PartTimeStaffProfileLayout
       title={
-        <div className="flex items-center gap-3 max-tablet:flex-col-reverse max-tablet:items-stretch max-tablet:gap-0">
-          <div className="flex min-w-0 flex-1 items-center gap-3 max-tablet:gap-2">
-            <PartTimeStaffNoteIcon />
-            <h2
-              id={titleId}
-              className="min-w-0 flex-1 text-2xl leading-8 font-semibold tracking-[-0.03em] wrap-break-word text-slate-800 max-tablet:text-lg max-tablet:leading-7"
-            >
-              {name}
-            </h2>
-          </div>
-          {closeAction && (
-            <div className="flex shrink-0 max-tablet:self-end">
-              {closeAction}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-3 max-tablet:flex-col-reverse max-tablet:items-stretch max-tablet:gap-0">
+            <div className="flex min-w-0 flex-1 items-center gap-3 max-tablet:gap-2">
+              <PartTimeStaffNoteIcon />
+              <h2
+                id={titleId}
+                className="min-w-0 text-2xl leading-8 font-semibold tracking-[-0.03em] wrap-break-word text-slate-800 max-tablet:text-lg max-tablet:leading-7"
+              >
+                {name}
+              </h2>
+              {statusAction && <div className="shrink-0">{statusAction}</div>}
             </div>
-          )}
+            {closeAction && (
+              <div className="flex shrink-0 max-tablet:self-end">
+                {closeAction}
+              </div>
+            )}
+          </div>
+          {headerNotice}
         </div>
       }
       fields={

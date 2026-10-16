@@ -38,6 +38,7 @@ const STAFF: PartTimeStaffDetailItem = {
   name: '김알바',
   phone: '010-1234-5678',
   createdAt: '2026-10-16',
+  employmentStatus: 'employed',
   memo: '원본',
   attachments: [],
 };
