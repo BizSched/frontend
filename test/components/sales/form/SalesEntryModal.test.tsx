@@ -112,7 +112,20 @@ describe('sales entry modal', () => {
     );
   });
 
-  it('미래 날짜는 오류로 표시된다.', async () => {
+  it('금액 입력에서 숫자가 아닌 문자는 지운다.', () => {
+    mockMatchMedia();
+    renderSalesEntryModal();
+    fireEvent.input(screen.getByLabelText('상품 판매'), {
+      target: { value: 'a1,0-0.0원' },
+    });
+
+    expect(screen.getByLabelText('상품 판매')).toHaveValue('1000');
+    expect(
+      within(screen.getByRole('dialog')).getByRole('status'),
+    ).toHaveTextContent('1,000 원');
+  });
+
+  it('미래 날짜를 고르면 저장 전에 오류로 표시된다.', async () => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date('2026-10-13T18:00:00Z'));
     mockMatchMedia();
@@ -128,7 +141,6 @@ describe('sales entry modal', () => {
     );
     fireEvent.click(screen.getByRole('button', { name: tomorrowLabel }));
     fireEvent.click(screen.getByRole('button', { name: '확인' }));
-    fireEvent.click(screen.getByRole('button', { name: '저장' }));
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       '미래 날짜는 선택할 수 없습니다.',

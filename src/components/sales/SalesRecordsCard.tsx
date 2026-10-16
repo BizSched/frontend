@@ -66,7 +66,6 @@ function SalesRecordsCard() {
                   </Table.Head>
                 ))}
                 <Table.Head className="text-xs text-slate-400">합계</Table.Head>
-                <Table.Head className="text-xs text-slate-400" />
               </Table.Row>
             </Table.Header>
             <Table.Body>
@@ -96,9 +95,6 @@ function SalesRecordsCard() {
                     <Table.Cell className="text-right text-sm font-semibold text-slate-950">
                       ₩{formatAmount(sale.totalAmount)}
                     </Table.Cell>
-                    <Table.Cell className="text-right text-xs text-slate-400">
-                      수정
-                    </Table.Cell>
                   </Table.Row>
                 );
               })}
@@ -123,10 +119,7 @@ function SalesRecordsCard() {
                   {label} <small className="text-slate-300">{weekday}</small>
                 </span>
                 <span className="font-semibold text-slate-950">
-                  ₩{formatAmount(sale.totalAmount)}{' '}
-                  <small className="ml-1 font-normal text-slate-400">
-                    수정
-                  </small>
+                  ₩{formatAmount(sale.totalAmount)}
                 </span>
               </div>
             );

@@ -52,6 +52,7 @@ function SalesEntryModal({
     handleSubmit,
     formState: { errors },
   } = useForm<SalesEntryFormValues>({
+    mode: 'onChange',
     defaultValues: {
       date: new Date(),
       amounts: categories.map(() => ({ value: '' })),
@@ -168,10 +169,14 @@ function SalesEntryModal({
                           );
                         },
                       })}
+                      onInput={(event) => {
+                        event.currentTarget.value =
+                          event.currentTarget.value.replace(/\D/g, '');
+                      }}
                       id={`sales-entry-amount-${index}`}
                       aria-invalid={Boolean(errors.amounts?.[index]?.value)}
                       size="small"
-                      inputMode="decimal"
+                      inputMode="numeric"
                       placeholder="0"
                       rightSlot={
                         <span className="text-sm text-slate-300">원</span>
