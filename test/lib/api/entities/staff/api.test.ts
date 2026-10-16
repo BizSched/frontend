@@ -3,18 +3,21 @@ import { ZodError } from 'zod';
 
 import { ApiError } from '@lib/api/apiError';
 import {
+  deleteStaff,
   getAllStaffs,
   getStaffAttachment,
   getStaffDetail,
   getStaffList,
 } from '@lib/api/entities/staff/api';
 import {
+  delete2,
   downloadAttachment,
   findAll1,
   findById1,
 } from '@lib/api/generated/staff/staff';
 
 vi.mock('@lib/api/generated/staff/staff', () => ({
+  delete2: vi.fn(),
   findAll1: vi.fn(),
   findById1: vi.fn(),
   downloadAttachment: vi.fn(),
@@ -40,6 +43,22 @@ const DETAIL = {
 beforeEach(() => vi.resetAllMocks());
 
 describe('staff API', () => {
+  it('삭제 응답을 검증하고 삭제된 ID를 반환한다', async () => {
+    vi.mocked(delete2).mockResolvedValue({ id: 42 });
+
+    await expect(deleteStaff(42)).resolves.toBe(42);
+    expect(delete2).toHaveBeenCalledWith(42);
+  });
+
+  it('잘못된 삭제 응답을 거부하고 삭제 실패를 그대로 전달한다', async () => {
+    vi.mocked(delete2).mockResolvedValue({ id: '42' } as never);
+    await expect(deleteStaff(42)).rejects.toBeInstanceOf(ZodError);
+
+    const error = new ApiError('STAFF_NOT_FOUND', 404);
+    vi.mocked(delete2).mockRejectedValue(error);
+    await expect(deleteStaff(42)).rejects.toBe(error);
+  });
+
   it.each(['text/html', 'image/svg+xml', 'application/xhtml+xml', ''])(
     '다운로드 경로가 PDF여도 실제 Blob MIME %s는 미리보기로 반환하지 않는다',
     async (type) => {

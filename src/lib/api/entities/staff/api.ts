@@ -3,11 +3,13 @@ import type {
   FindAll1Params,
 } from '@lib/api/generated/bizSchedAPI.schemas';
 import {
+  delete2,
   downloadAttachment,
   findAll1,
   findById1,
 } from '@lib/api/generated/staff/staff';
 import {
+  Delete2Response,
   FindAll1Response,
   FindById1Response,
 } from '@lib/api/generated/staff/staff.zod';
@@ -44,6 +46,9 @@ const getStaffDetail = async (staffId: number, options?: RequestInit) =>
     FindById1Response.parse(await findById1(staffId, options)),
   );
 
+const deleteStaff = async (staffId: number) =>
+  Delete2Response.parse(await delete2(staffId)).id;
+
 const getStaffAttachment = async (url: string, options?: RequestInit) => {
   const path = /^\/api\/staff\/(\d+)\/attachments\/(\d+)$/.exec(url);
   if (!path) throw new Error('Invalid staff attachment URL');
@@ -57,4 +62,10 @@ const getStaffAttachment = async (url: string, options?: RequestInit) => {
   return blob;
 };
 
-export { getAllStaffs, getStaffList, getStaffDetail, getStaffAttachment };
+export {
+  deleteStaff,
+  getAllStaffs,
+  getStaffList,
+  getStaffDetail,
+  getStaffAttachment,
+};
