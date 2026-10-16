@@ -42,6 +42,19 @@ afterEach(() => {
 });
 
 describe('useScheduleList', () => {
+  it('비활성 조회는 요청하지 않고 활성화한 시점에 조회한다', async () => {
+    vi.mocked(getScheduleList).mockResolvedValue([createSchedule(1)]);
+    const { result, rerender } = renderHook(
+      ({ isEnabled }) =>
+        useScheduleList({ from: '2026-09-28', to: '2026-11-01' }, isEnabled),
+      { initialProps: { isEnabled: false }, wrapper: createWrapper() },
+    );
+    expect(getScheduleList).not.toHaveBeenCalled();
+    rerender({ isEnabled: true });
+    await waitFor(() => expect(result.current.data).toHaveLength(1));
+    expect(getScheduleList).toHaveBeenCalledTimes(1);
+  });
+
   it('삭제한 아르바이트생의 스케쥴을 캘린더에서 뺀다', async () => {
     vi.mocked(getScheduleList).mockResolvedValue([
       createSchedule(1),

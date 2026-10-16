@@ -1,6 +1,23 @@
-import type { FindAll2Params } from '@lib/api/generated/bizSchedAPI.schemas';
-import { findAll2 } from '@lib/api/generated/schedule/schedule';
-import { FindAll2Response } from '@lib/api/generated/schedule/schedule.zod';
+import type {
+  AttendanceUpdateRequest,
+  FindAll2Params,
+  ScheduleCreateRequest,
+  ScheduleUpdateRequest,
+} from '@lib/api/generated/bizSchedAPI.schemas';
+import {
+  changeAttendance,
+  create2,
+  delete3,
+  findAll2,
+  update2,
+} from '@lib/api/generated/schedule/schedule';
+import {
+  ChangeAttendanceResponse,
+  Create2Response,
+  Delete3Response,
+  FindAll2Response,
+  Update2Response,
+} from '@lib/api/generated/schedule/schedule.zod';
 
 import { toPartTimeSchedule } from './toPartTimeSchedule';
 
@@ -25,5 +42,35 @@ const getScheduleList = async (
   return [first, ...rest].flatMap(({ items }) => items.map(toPartTimeSchedule));
 };
 
-export { getScheduleList };
+const createSchedule = async (body: ScheduleCreateRequest) =>
+  toPartTimeSchedule(Create2Response.parse(await create2(body)));
+
+const updateSchedule = async (
+  scheduleId: number,
+  body: ScheduleUpdateRequest,
+) => toPartTimeSchedule(Update2Response.parse(await update2(scheduleId, body)));
+
+const deleteSchedule = async (scheduleId: number) =>
+  Delete3Response.parse(await delete3(scheduleId)).id;
+
+const changeScheduleAttendance = async (
+  scheduleId: number,
+  body: AttendanceUpdateRequest,
+) => {
+  const response = ChangeAttendanceResponse.parse(
+    await changeAttendance(scheduleId, body),
+  );
+  return {
+    id: response.scheduleId,
+    isCheckedIn: response.attendanceStatus === 'ATTENDED',
+  };
+};
+
+export {
+  changeScheduleAttendance,
+  createSchedule,
+  deleteSchedule,
+  getScheduleList,
+  updateSchedule,
+};
 export type { ScheduleListParams };

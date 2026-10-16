@@ -1,11 +1,27 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
 
-import { getScheduleList } from '@lib/api/entities/schedule/api';
-import { findAll2 } from '@lib/api/generated/schedule/schedule';
+import {
+  changeScheduleAttendance,
+  createSchedule,
+  deleteSchedule,
+  getScheduleList,
+  updateSchedule,
+} from '@lib/api/entities/schedule/api';
+import {
+  changeAttendance,
+  create2,
+  delete3,
+  findAll2,
+  update2,
+} from '@lib/api/generated/schedule/schedule';
 
 vi.mock('@lib/api/generated/schedule/schedule', () => ({
   findAll2: vi.fn(),
+  create2: vi.fn(),
+  update2: vi.fn(),
+  delete3: vi.fn(),
+  changeAttendance: vi.fn(),
 }));
 
 const createItem = (id: number, memo: string | null = null) => ({
@@ -31,6 +47,87 @@ const createPage = (page: number, totalPage: number, ids: number[]) => ({
 beforeEach(() => vi.resetAllMocks());
 
 describe('schedule API', () => {
+  it('등록 요청을 보내고 응답을 FE 타입으로 변환한다', async () => {
+    const body = {
+      staffId: 7,
+      workDate: '2026-10-14',
+      startTime: '09:00',
+      endTime: '13:00',
+      memo: '',
+    };
+    vi.mocked(create2).mockResolvedValue(createItem(10));
+
+    await expect(createSchedule(body)).resolves.toMatchObject({
+      id: 10,
+      date: body.workDate,
+      memo: '',
+    });
+    expect(create2).toHaveBeenCalledWith(body);
+  });
+
+  it('수정 요청은 생략한 필드를 추가하지 않고 빈 메모를 그대로 보낸다', async () => {
+    vi.mocked(update2).mockResolvedValue(createItem(10, ''));
+
+    await expect(updateSchedule(10, { memo: '' })).resolves.toMatchObject({
+      id: 10,
+      memo: '',
+    });
+    expect(update2).toHaveBeenCalledWith(10, { memo: '' });
+  });
+
+  it('삭제 응답의 ID를 검증한다', async () => {
+    vi.mocked(delete3).mockResolvedValue({ id: 10 });
+    await expect(deleteSchedule(10)).resolves.toBe(10);
+    expect(delete3).toHaveBeenCalledWith(10);
+  });
+
+  it.each(['ATTENDED', 'ABSENT'] as const)(
+    '출근 응답 %s를 boolean으로 변환한다',
+    async (status) => {
+      vi.mocked(changeAttendance).mockResolvedValue({
+        scheduleId: 10,
+        attendanceStatus: status,
+      });
+      await expect(changeScheduleAttendance(10, { status })).resolves.toEqual({
+        id: 10,
+        isCheckedIn: status === 'ATTENDED',
+      });
+      expect(changeAttendance).toHaveBeenCalledWith(10, { status });
+    },
+  );
+
+  it('쓰기 응답이 잘못되면 검증에서 막는다', async () => {
+    vi.mocked(create2).mockResolvedValue({
+      ...createItem(10),
+      workDate: '잘못된 날짜',
+    });
+    vi.mocked(update2).mockResolvedValue({
+      ...createItem(10),
+      staff: null,
+    } as never);
+    vi.mocked(delete3).mockResolvedValue({ id: '10' } as never);
+    vi.mocked(changeAttendance).mockResolvedValue({
+      scheduleId: 10,
+      attendanceStatus: 'UNKNOWN',
+    } as never);
+
+    await expect(
+      createSchedule({
+        staffId: 7,
+        workDate: '2026-10-14',
+        startTime: '09:00',
+        endTime: '13:00',
+      }),
+    ).rejects.toBeInstanceOf(ZodError);
+    await expect(updateSchedule(10, { memo: '' })).rejects.toBeInstanceOf(
+      ZodError,
+    );
+    await expect(deleteSchedule(10)).rejects.toBeInstanceOf(ZodError);
+    await expect(
+      changeScheduleAttendance(10, { status: 'ATTENDED' }),
+    ).rejects.toBeInstanceOf(ZodError);
+  });
+
   it('DTO를 FE 타입으로 바꾸고 빈 메모는 빈 문자열로 둔다', async () => {
     vi.mocked(findAll2).mockResolvedValue({
       ...createPage(1, 1, []),

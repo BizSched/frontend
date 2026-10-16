@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 import {
   Calendar,
@@ -13,6 +13,8 @@ import { PartTimeScheduleChip } from '@components/partTime/schedule/PartTimeSche
 import { PartTimeScheduleDaySummary } from '@components/partTime/schedule/PartTimeScheduleDaySummary';
 import { PartTimeScheduleStaffFilter } from '@components/partTime/schedule/PartTimeScheduleStaffFilter';
 
+import { useChangeScheduleAttendance } from '@hooks/api/schedule/useChangeScheduleAttendance';
+import { useDeleteSchedule } from '@hooks/api/schedule/useDeleteSchedule';
 import { useScheduleList } from '@hooks/api/schedule/useScheduleList';
 import { useStaffOptions } from '@hooks/api/staff/useStaffOptions';
 
@@ -25,6 +27,7 @@ import {
 } from '@lib/utilities/partTime/partTimeSchedule';
 
 const MAX_VISIBLE_SCHEDULE_COUNT = 3;
+const EMPTY_SCHEDULES: PartTimeSchedule[] = [];
 
 const createDayContent = (
   schedules: PartTimeSchedule[],
@@ -64,51 +67,130 @@ function PartTimeScheduleCalendar({
   const [selectedDate, setSelectedDate] = useState<string | null>(today);
   const [month, setMonth] = useState(initialMonth);
   const [selectedStaffId, setSelectedStaffId] = useState<number | null>(null);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const isActionPendingRef = useRef(false);
+  const deleteMutation = useDeleteSchedule();
+  const attendanceMutation = useChangeScheduleAttendance();
+  const isSchedulePending =
+    isDeleteConfirmOpen ||
+    deleteMutation.isPending ||
+    attendanceMutation.isPending;
+  const mutationError = deleteMutation.error ?? attendanceMutation.error;
 
   const staffId = selectedStaffId ?? undefined;
   const staffQuery = useStaffOptions();
+  const monthRange = useMemo(() => getPartTimeScheduleRange(month), [month]);
+  const hasSeparateSelectedRange =
+    selectedDate !== null &&
+    (selectedDate < monthRange.from || selectedDate > monthRange.to);
+  const selectedMonth = selectedDate?.slice(0, 7) ?? month;
+  const selectedRange = useMemo(
+    () =>
+      hasSeparateSelectedRange
+        ? getPartTimeScheduleRange(selectedMonth)
+        : monthRange,
+    [hasSeparateSelectedRange, selectedMonth, monthRange],
+  );
   const monthQuery = useScheduleList({
-    ...getPartTimeScheduleRange(month),
+    ...monthRange,
     staffId,
   });
-  const selectedMonthQuery = useScheduleList({
-    ...getPartTimeScheduleRange(selectedDate?.slice(0, 7) ?? month),
-    staffId,
-  });
-  const monthSchedules = monthQuery.data ?? [];
-  const selectedMonthSchedules = selectedMonthQuery.data ?? [];
-  const failedQueries = [monthQuery, selectedMonthQuery].filter(
-    ({ isError }) => isError,
+  const selectedMonthQuery = useScheduleList(
+    { ...selectedRange, staffId },
+    hasSeparateSelectedRange,
   );
+  const monthSchedules = monthQuery.data ?? EMPTY_SCHEDULES;
+  const selectedMonthSchedules = hasSeparateSelectedRange
+    ? (selectedMonthQuery.data ?? EMPTY_SCHEDULES)
+    : EMPTY_SCHEDULES;
+  const activeQueries = hasSeparateSelectedRange
+    ? [monthQuery, selectedMonthQuery]
+    : [monthQuery];
+  const failedQueries = activeQueries.filter(({ isError }) => isError);
 
-  const schedulesByDate = groupPartTimeSchedulesByDate(
-    [...monthSchedules].sort(comparePartTimeScheduleTime),
+  const schedulesByDate = useMemo(
+    () =>
+      groupPartTimeSchedulesByDate(
+        [...monthSchedules].sort(comparePartTimeScheduleTime),
+      ),
+    [monthSchedules],
   );
-  const selectedDateSchedules = selectedMonthSchedules
-    .filter((schedule) => schedule.date === selectedDate)
-    .sort(comparePartTimeScheduleTime);
+  const selectedDateSchedules = useMemo(() => {
+    if (!selectedDate) return EMPTY_SCHEDULES;
+    if (!hasSeparateSelectedRange)
+      return schedulesByDate[selectedDate] ?? EMPTY_SCHEDULES;
+    return selectedMonthSchedules
+      .filter((schedule) => schedule.date === selectedDate)
+      .sort(comparePartTimeScheduleTime);
+  }, [
+    selectedDate,
+    hasSeparateSelectedRange,
+    schedulesByDate,
+    selectedMonthSchedules,
+  ]);
+  const contentByDate = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(schedulesByDate).map(([date, dateSchedules]) => [
+          date,
+          createDayContent(dateSchedules),
+        ]),
+      ),
+    [schedulesByDate],
+  );
 
   const handleScheduleEdit = (schedule: PartTimeSchedule) => {
     void openPartTimeScheduleFormModal({ mode: 'edit', schedule });
   };
 
-  const handleScheduleDelete = () => {
-    void openConfirmModal({
-      title: '스케쥴을 삭제하시겠어요?',
-      description: '삭제된 스케쥴은 복구할 수 없습니다.',
-      confirmText: '삭제',
-    });
+  const handleScheduleDelete = async (schedule: PartTimeSchedule) => {
+    if (isActionPendingRef.current) return;
+    isActionPendingRef.current = true;
+    setIsDeleteConfirmOpen(true);
+    deleteMutation.reset();
+    attendanceMutation.reset();
+    try {
+      const isConfirmed = await openConfirmModal({
+        title: '스케쥴을 삭제하시겠어요?',
+        description: '삭제된 스케쥴은 복구할 수 없습니다.',
+        confirmText: '삭제',
+      });
+      if (isConfirmed) await deleteMutation.mutateAsync(schedule.id);
+    } catch {
+      // NOTE: mutation의 오류 상태를 캘린더 위에 표시한다
+    } finally {
+      setIsDeleteConfirmOpen(false);
+      isActionPendingRef.current = false;
+    }
   };
 
-  const contentByDate = Object.fromEntries(
-    Object.entries(schedulesByDate).map(([date, dateSchedules]) => [
-      date,
-      createDayContent(dateSchedules),
-    ]),
-  );
+  const handleAttendanceChange = async (
+    schedule: PartTimeSchedule,
+    isCheckedIn: boolean,
+  ) => {
+    if (schedule.date > today || isActionPendingRef.current) return;
+    isActionPendingRef.current = true;
+    deleteMutation.reset();
+    attendanceMutation.reset();
+    try {
+      await attendanceMutation.mutateAsync({
+        scheduleId: schedule.id,
+        body: { status: isCheckedIn ? 'ATTENDED' : 'ABSENT' },
+      });
+    } catch {
+      // NOTE: 실패하면 조회 캐시의 기존 출근 상태를 유지한다
+    } finally {
+      isActionPendingRef.current = false;
+    }
+  };
 
   return (
     <>
+      {mutationError && (
+        <p role="alert" className="text-sm text-warning-500 max-mobile:px-4">
+          {formatCommonError(mutationError)}
+        </p>
+      )}
       {failedQueries.length > 0 && (
         <div
           role="alert"
@@ -157,6 +239,8 @@ function PartTimeScheduleCalendar({
             schedules={selectedDateSchedules}
             onScheduleEdit={handleScheduleEdit}
             onScheduleDelete={handleScheduleDelete}
+            onAttendanceChange={handleAttendanceChange}
+            isPending={isSchedulePending}
             className="w-94.5 shrink-0 max-laptop:w-auto"
           />
         )}
