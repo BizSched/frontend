@@ -2,6 +2,8 @@ import { cva } from 'class-variance-authority';
 import Image from 'next/image';
 import { useId } from 'react';
 
+import { buttonVariants } from '@components/_common/Button/Button';
+
 import { useStaffAttachmentPreview } from '@hooks/api/staff/useStaffAttachmentPreview';
 
 import { formatCommonError } from '@lib/api/formatCommonError';
@@ -79,6 +81,21 @@ function PartTimeStaffAttachmentViewer({
         hidden={isCollapsed}
         className="flex size-full flex-col p-10 max-laptop:h-[417px] max-tablet:h-57.5 max-tablet:p-4"
       >
+        <div className="mb-4 flex min-h-11 items-center justify-between gap-3">
+          <p className="min-w-0 truncate text-sm text-slate-600">{name}</p>
+          {previewUrl && !error && (
+            <a
+              href={previewUrl}
+              download={name}
+              className={buttonVariants({
+                hierarchy: 'tertiary',
+                size: 'small',
+              })}
+            >
+              다운로드
+            </a>
+          )}
+        </div>
         <div className="flex min-h-0 flex-1 items-center justify-center">
           {error ? (
             <div role="alert" className="text-center text-sm text-slate-500">
