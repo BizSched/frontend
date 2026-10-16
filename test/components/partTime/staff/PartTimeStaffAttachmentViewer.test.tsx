@@ -40,6 +40,34 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+it('저장된 WebP도 인증 조회 후 Blob URL로 이미지를 미리보기한다', async () => {
+  vi.mocked(URL.createObjectURL).mockReturnValue('blob:authenticated-webp');
+  vi.mocked(getStaffAttachment).mockResolvedValue(
+    new Blob(['webp'], { type: 'image/webp' }),
+  );
+  const client = new QueryClient();
+  clients.push(client);
+  render(
+    <QueryClientProvider client={client}>
+      <PartTimeStaffAttachmentViewer
+        attachment={{
+          name: '사진.webp',
+          type: 'image',
+          url: '/api/staff/42/attachments/7',
+        }}
+        isCollapsed={false}
+        onCollapsedChange={vi.fn()}
+      />
+    </QueryClientProvider>,
+  );
+  const image = await screen.findByRole('img', { name: '사진.webp' });
+  expect(image.getAttribute('src')).toBe('blob:authenticated-webp');
+  expect(getStaffAttachment).toHaveBeenCalledWith(
+    '/api/staff/42/attachments/7',
+    expect.anything(),
+  );
+});
+
 it('저장된 PDF는 요청이 끝난 뒤 Blob URL을 iframe에 전달한다', async () => {
   vi.mocked(getStaffAttachment).mockResolvedValue(
     new Blob(['%PDF'], { type: 'application/pdf' }),

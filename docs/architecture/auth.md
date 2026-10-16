@@ -190,7 +190,7 @@ customFetcher(브라우저) ─▶ BFF ─▶ BE
 - BFF를 거치는 요청 body는 4MB를 넘을 수 없다. Vercel Functions는 4.5MB, Routing Middleware(`proxy.ts`)는 4MB가 한도다.
 - 첨부파일(BE 기준 파일당 10MB)은 업로드 전에 FE에서 크기를 줄여 이 한도 안에서 BFF로 보낸다. 방식은 [아르바이트 도메인 문서 설계 결정](../feature/partTime/README.md#설계-결정)
 - 첨부파일 다운로드는 범용 통과 경로로 처리한다. BE의 `downloadUrl`(`/api/staff/{staffId}/attachments/{attachmentId}`)은 BFF 경로와 같아 쿠키로 인증된다. 미리보기는 생성 다운로드 함수에 `responseType: 'blob'`을 넘겨 `customFetcher`로 받는다. `<img src>`·`iframe src`에 API URL을 직접 넣으면 토큰 만료 시 refresh할 수 없으므로, 성공한 Blob의 임시 URL을 사용하고 파일 교체·닫기 때 해제한다. BFF 응답은 스트리밍이며, `Content-Disposition`은 아래 MIME 기준으로 설정한다(파일명 유지).
-- 성공한 첨부파일 GET의 `inline`은 `application/pdf`·`image/jpeg`·`image/png`만 허용한다. 그 외 형식은 upstream이 `inline`이어도 `attachment`로 강제하며, disposition이 없어도 설정한다. 파일명 파라미터는 유지하고 `X-Content-Type-Options: nosniff`를 함께 전달한다. Blob 미리보기도 실제 다운로드 응답의 MIME을 같은 허용 목록으로 검증한 후에만 임시 URL로 만든다. 상세 DTO와 새 업로드에서도 SVG 등 목록 밖의 MIME은 미리보기 대상으로 받지 않는다.
+- 성공한 첨부파일 GET의 `inline`은 `application/pdf`·`image/jpeg`·`image/png`·`image/webp`만 허용한다(WebP 추가 2026-10-17). 그 외 형식은 upstream이 `inline`이어도 `attachment`로 강제하며, disposition이 없어도 설정한다. 파일명 파라미터는 유지하고 `X-Content-Type-Options: nosniff`를 함께 전달한다. Blob 미리보기도 실제 다운로드 응답의 MIME을 같은 허용 목록으로 검증한 후에만 임시 URL로 만든다. 상세 DTO와 새 업로드에서도 SVG 등 목록 밖의 MIME은 미리보기 대상으로 받지 않는다.
 
 ## 결정 대기 항목
 
