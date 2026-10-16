@@ -31,6 +31,9 @@ interface PartTimeStaffDetailPanelProps {
   error?: unknown;
   onRetry?: () => void;
   weeklyShifts: PartTimeStaffShift[];
+  isWeeklyShiftsLoading?: boolean;
+  weeklyShiftsError?: unknown;
+  onWeeklyShiftsRetry?: () => void;
   now: string;
 }
 
@@ -43,14 +46,35 @@ function PartTimeStaffDetailPanel({
   error,
   onRetry,
   weeklyShifts,
+  isWeeklyShiftsLoading,
+  weeklyShiftsError,
+  onWeeklyShiftsRetry,
   now,
 }: PartTimeStaffDetailPanelProps) {
   const titleId = useId();
   const [preview, setPreview] = useState<PartTimeStaffAttachmentPreview>();
   const [isViewerCollapsed, setIsViewerCollapsed] = useState(false);
   const currentSnapshot = useMemo(
-    () => ({ staff, listStaff, isLoading, error, weeklyShifts, now }),
-    [staff, listStaff, isLoading, error, weeklyShifts, now],
+    () => ({
+      staff,
+      listStaff,
+      isLoading,
+      error,
+      weeklyShifts,
+      isWeeklyShiftsLoading,
+      weeklyShiftsError,
+      now,
+    }),
+    [
+      staff,
+      listStaff,
+      isLoading,
+      error,
+      weeklyShifts,
+      isWeeklyShiftsLoading,
+      weeklyShiftsError,
+      now,
+    ],
   );
   const [lastSnapshot, setLastSnapshot] = useState<typeof currentSnapshot>();
   if (open && lastSnapshot !== currentSnapshot) {
@@ -113,6 +137,9 @@ function PartTimeStaffDetailPanel({
                 isLoading={displayed?.isLoading}
                 isError={Boolean(displayed?.error)}
                 weeklyShifts={displayed?.weeklyShifts ?? []}
+                isWeeklyShiftsLoading={displayed?.isWeeklyShiftsLoading}
+                weeklyShiftsError={displayed?.weeklyShiftsError}
+                onWeeklyShiftsRetry={onWeeklyShiftsRetry}
                 now={displayed?.now ?? now}
                 titleId={titleId}
                 closeAction={closeButton}

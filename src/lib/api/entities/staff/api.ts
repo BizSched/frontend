@@ -1,4 +1,7 @@
-import type { FindAll1Params } from '@lib/api/generated/bizSchedAPI.schemas';
+import type {
+  FindAll1EmploymentStatus,
+  FindAll1Params,
+} from '@lib/api/generated/bizSchedAPI.schemas';
 import {
   downloadAttachment,
   findAll1,
@@ -10,11 +13,31 @@ import {
 } from '@lib/api/generated/staff/staff.zod';
 import { getPartTimeStaffAttachmentType } from '@lib/utilities/partTime/partTimeStaffAttachment';
 
+import { toPartTimeStaff } from './toPartTimeStaff';
 import { toPartTimeStaffDetail } from './toPartTimeStaffDetail';
 import { toPartTimeStaffList } from './toPartTimeStaffList';
 
+const MAX_PAGE_SIZE = 100;
+
 const getStaffList = async (params?: FindAll1Params, options?: RequestInit) =>
   toPartTimeStaffList(FindAll1Response.parse(await findAll1(params, options)));
+
+const getAllStaffs = async (
+  employmentStatus?: FindAll1EmploymentStatus,
+  options?: RequestInit,
+) => {
+  const fetchPage = async (page: number) =>
+    FindAll1Response.parse(
+      await findAll1({ employmentStatus, page, size: MAX_PAGE_SIZE }, options),
+    );
+  const first = await fetchPage(1);
+  const rest = await Promise.all(
+    Array.from({ length: Math.max(0, first.totalPage - 1) }, (_, index) =>
+      fetchPage(index + 2),
+    ),
+  );
+  return [first, ...rest].flatMap(({ items }) => items.map(toPartTimeStaff));
+};
 
 const getStaffDetail = async (staffId: number, options?: RequestInit) =>
   toPartTimeStaffDetail(
@@ -34,4 +57,4 @@ const getStaffAttachment = async (url: string, options?: RequestInit) => {
   return blob;
 };
 
-export { getStaffList, getStaffDetail, getStaffAttachment };
+export { getAllStaffs, getStaffList, getStaffDetail, getStaffAttachment };

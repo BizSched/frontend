@@ -9,20 +9,22 @@ import { openConfirmModal } from '@components/_common/Modal/openConfirmModal';
 import { Pagination } from '@components/_common/Pagination/Pagination';
 import { PartTimeStaffCard } from '@components/partTime/staff/PartTimeStaffCard';
 import { PartTimeStaffDetailPanel } from '@components/partTime/staff/PartTimeStaffDetailPanel';
-import { getPartTimeStaffWeeklyShiftMocks } from '@components/partTime/staff/partTimeStaffWeeklyShiftMock';
 
 import { STAFF_LIST_PAGE_SIZE } from '@hooks/api/staff/staffQueryOptions';
 import { useStaffDetail } from '@hooks/api/staff/useStaffDetail';
 import { useStaffList } from '@hooks/api/staff/useStaffList';
+import { useStaffWeeklyShifts } from '@hooks/api/staff/useStaffWeeklyShifts';
 import { usePageSearchParam } from '@hooks/pagination/usePageSearchParam';
 
 import { ApiError } from '@lib/api/apiError';
 import { formatCommonError } from '@lib/api/formatCommonError';
+import type { PartTimeStaffShift } from '@lib/types/partTimeStaff';
 
 import IcEmpty from '@assets/icons/ic_empty.svg';
 
 const PAGE_PARAM = 'page';
 const STAFF_ID_PARAM = 'staffId';
+const NO_WEEKLY_SHIFTS: PartTimeStaffShift[] = [];
 
 const createUrl = (pathname: string, searchParams: URLSearchParams) => {
   const query = searchParams.toString();
@@ -56,6 +58,7 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
     staffIdParam && /^\d+$/.test(staffIdParam) ? Number(staffIdParam) : 0;
   const hasValidStaffId = Number.isSafeInteger(staffId) && staffId > 0;
   const detailQuery = useStaffDetail(staffId);
+  const weeklyShiftsQuery = useStaffWeeklyShifts(staffId, now);
   const isStaffNotFound =
     staffIdParam !== null &&
     (!hasValidStaffId ||
@@ -195,9 +198,16 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
         onRetry={() => {
           void detailQuery.refetch();
         }}
-        weeklyShifts={
-          hasValidStaffId ? getPartTimeStaffWeeklyShiftMocks(staffId, now) : []
+        weeklyShifts={weeklyShiftsQuery.data ?? NO_WEEKLY_SHIFTS}
+        isWeeklyShiftsLoading={
+          hasValidStaffId &&
+          !weeklyShiftsQuery.data &&
+          !weeklyShiftsQuery.isError
         }
+        weeklyShiftsError={weeklyShiftsQuery.error}
+        onWeeklyShiftsRetry={() => {
+          void weeklyShiftsQuery.refetch();
+        }}
         now={now}
       />
     </div>

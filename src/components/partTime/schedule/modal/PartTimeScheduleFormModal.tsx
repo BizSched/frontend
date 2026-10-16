@@ -21,6 +21,8 @@ import {
 } from '@lib/utilities/calendar/calendarDate';
 import { cn } from '@lib/utilities/cn';
 
+const STAFF_PLACEHOLDER = '아르바이트생을 선택해주세요';
+
 const FORM_MODAL_TEXT = {
   create: { title: '아르바이트생 스케쥴 추가', submit: '생성' },
   edit: { title: '아르바이트생 스케쥴 수정', submit: '수정 완료' },
@@ -72,6 +74,7 @@ interface PartTimeScheduleFormModalProps {
   mode: PartTimeScheduleFormMode;
   schedule?: PartTimeSchedule;
   staffs: PartTimeStaff[];
+  staffPlaceholder?: string;
   stackIndex?: number;
 }
 
@@ -93,6 +96,7 @@ function PartTimeScheduleFormModal({
   mode,
   schedule,
   staffs,
+  staffPlaceholder = STAFF_PLACEHOLDER,
   stackIndex = 0,
 }: PartTimeScheduleFormModalProps) {
   const fieldId = useId();
@@ -174,8 +178,7 @@ function PartTimeScheduleFormModal({
                     value={field.value || undefined}
                     options={staffOptions}
                     onChange={field.onChange}
-                    placeholder="아르바이트생을 선택해주세요"
-                    disabled={mode === 'edit'}
+                    placeholder={staffPlaceholder}
                     className={DROPDOWN_CLASS_NAME}
                     hasDivider={false}
                     contentClassName={DROPDOWN_CONTENT_CLASS_NAME}

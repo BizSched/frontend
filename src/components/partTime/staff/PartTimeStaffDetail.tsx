@@ -25,6 +25,9 @@ interface PartTimeStaffDetailProps {
   isLoading?: boolean;
   isError?: boolean;
   weeklyShifts: PartTimeStaffShift[];
+  isWeeklyShiftsLoading?: boolean;
+  weeklyShiftsError?: unknown;
+  onWeeklyShiftsRetry?: () => void;
   now: string;
   titleId?: string;
   closeAction?: ReactNode;
@@ -37,6 +40,9 @@ function PartTimeStaffDetail({
   isLoading,
   isError,
   weeklyShifts,
+  isWeeklyShiftsLoading,
+  weeklyShiftsError,
+  onWeeklyShiftsRetry,
   now,
   titleId,
   closeAction,
@@ -94,7 +100,15 @@ function PartTimeStaffDetail({
           </PartTimeStaffFieldRow>
         </>
       }
-      extra={<PartTimeStaffWeeklySchedule now={now} shifts={weeklyShifts} />}
+      extra={
+        <PartTimeStaffWeeklySchedule
+          now={now}
+          shifts={weeklyShifts}
+          isLoading={isWeeklyShiftsLoading}
+          error={weeklyShiftsError}
+          onRetry={onWeeklyShiftsRetry}
+        />
+      }
       attachments={
         attachments.length > 0 && (
           <PartTimeStaffAttachmentBox>
