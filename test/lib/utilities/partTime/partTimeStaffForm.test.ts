@@ -86,6 +86,7 @@ describe('메모 제한과 선택값 삭제 보류', () => {
       memo: '메모',
       attachments: [],
       createdAt: '2026-10-16',
+      employmentStatus: 'employed',
     });
     expect(
       hasPartTimeStaffUnsupportedClear({ ...initial, hourlyWage: '' }, initial),
@@ -245,6 +246,7 @@ describe('toPartTimeStaffFormValues', () => {
       name: '정예은',
       phone: '010-3456-7890',
       createdAt: '2026-09-15',
+      employmentStatus: 'employed',
       birthDate: '2001-02-11',
       gender: 'female',
       hourlyWage: 10_320,
