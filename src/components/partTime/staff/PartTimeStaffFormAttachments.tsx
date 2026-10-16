@@ -4,6 +4,7 @@ import { PartTimeStaffAttachmentBox } from '@components/partTime/staff/PartTimeS
 import { PartTimeStaffAttachmentFile } from '@components/partTime/staff/PartTimeStaffAttachmentFile';
 
 import type { PartTimeStaffFormAttachment } from '@lib/types/partTimeStaff';
+import { PART_TIME_STAFF_ATTACHMENT_MAX_COUNT } from '@lib/utilities/partTime/partTimeStaffAttachment';
 
 import IcDelete from '@assets/icons/ic_delete.svg';
 
@@ -12,6 +13,7 @@ const ROW_BUTTON_CLASS_NAME =
 
 interface PartTimeStaffFormAttachmentsProps {
   attachments: PartTimeStaffFormAttachment[];
+  isDisabled?: boolean;
   onUploadClick: () => void;
   onAttachmentOpen: (attachment: PartTimeStaffFormAttachment) => void;
   onAttachmentRemove: (attachment: PartTimeStaffFormAttachment) => void;
@@ -19,6 +21,7 @@ interface PartTimeStaffFormAttachmentsProps {
 
 function PartTimeStaffFormAttachments({
   attachments,
+  isDisabled = false,
   onUploadClick,
   onAttachmentOpen,
   onAttachmentRemove,
@@ -30,6 +33,10 @@ function PartTimeStaffFormAttachments({
           type="button"
           aria-label="첨부파일 업로드"
           aria-haspopup="dialog"
+          disabled={
+            isDisabled ||
+            attachments.length >= PART_TIME_STAFF_ATTACHMENT_MAX_COUNT
+          }
           onClick={onUploadClick}
           className={ROW_BUTTON_CLASS_NAME}
         >
@@ -55,6 +62,7 @@ function PartTimeStaffFormAttachments({
           <button
             type="button"
             aria-label={`${attachment.name} 삭제`}
+            disabled={isDisabled}
             onClick={() => onAttachmentRemove(attachment)}
             className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >

@@ -93,8 +93,7 @@ const applyPartTimeStaffInputFormat = (
   };
 };
 
-const countPartTimeStaffCharacters = (value: string) =>
-  Array.from(value).length;
+const countPartTimeStaffCharacters = (value: string) => value.length;
 
 const countPartTimeStaffMemoLength = (
   memo: string,
@@ -103,8 +102,18 @@ const countPartTimeStaffMemoLength = (
   withoutSpaces: countPartTimeStaffCharacters(memo.replace(/\s/g, '')),
 });
 
+const PART_TIME_STAFF_MEMO_MAX_LENGTH = 500;
+
+const limitPartTimeStaffCharacters = (value: string, maxLength: number) => {
+  const limited = value.slice(0, maxLength);
+  return /[\uD800-\uDBFF]$/.test(limited) ? limited.slice(0, -1) : limited;
+};
+
 const limitPartTimeStaffName = (value: string) =>
-  Array.from(value).slice(0, PART_TIME_STAFF_NAME_MAX_LENGTH).join('');
+  limitPartTimeStaffCharacters(value, PART_TIME_STAFF_NAME_MAX_LENGTH);
+
+const limitPartTimeStaffMemo = (value: string) =>
+  limitPartTimeStaffCharacters(value, PART_TIME_STAFF_MEMO_MAX_LENGTH);
 
 const isPartTimeStaffNameValid = (value: string) => {
   const trimmedLength = countPartTimeStaffCharacters(value.trim());
@@ -249,6 +258,20 @@ const toPartTimeStaffFormPayload = ({
   memo,
 });
 
+const PART_TIME_STAFF_UNSUPPORTED_CLEAR_MESSAGE =
+  '기존 생년월일·성별·시급을 비우는 기능은 준비 중이에요. 기존 값을 유지해주세요.';
+
+const hasPartTimeStaffUnsupportedClear = (
+  values: PartTimeStaffFormValues,
+  previous: PartTimeStaffFormValues,
+) => {
+  const payload = toPartTimeStaffFormPayload(values);
+  const initial = toPartTimeStaffFormPayload(previous);
+  return (['birthDate', 'gender', 'hourlyWage'] as const).some(
+    (key) => payload[key] === null && initial[key] !== null,
+  );
+};
+
 const isPartTimeStaffFormChanged = (
   values: PartTimeStaffFormValues,
   initialValues: PartTimeStaffFormValues,
@@ -268,7 +291,9 @@ const isPartTimeStaffFormChanged = (
 };
 
 export {
+  PART_TIME_STAFF_MEMO_MAX_LENGTH,
   PART_TIME_STAFF_NAME_MAX_LENGTH,
+  PART_TIME_STAFF_UNSUPPORTED_CLEAR_MESSAGE,
   applyPartTimeStaffInputFormat,
   countPartTimeStaffCharacters,
   countPartTimeStaffMemoLength,
@@ -278,9 +303,11 @@ export {
   formatPartTimeStaffPhoneInput,
   isPartTimeStaffBirthDateValid,
   isPartTimeStaffFormChanged,
+  hasPartTimeStaffUnsupportedClear,
   isPartTimeStaffNameValid,
   isPartTimeStaffPhoneValid,
   limitPartTimeStaffName,
+  limitPartTimeStaffMemo,
   toPartTimeStaffFormPayload,
   toPartTimeStaffFormValues,
 };
