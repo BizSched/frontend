@@ -2,15 +2,21 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
 
 import { ApiError } from '@lib/api/apiError';
+import { customFetcher } from '@lib/api/customFetcher';
 import {
+  createStaff,
   deleteStaff,
+  deleteStaffAttachment,
   getAllStaffs,
   getStaffAttachment,
   getStaffDetail,
   getStaffList,
+  updateStaff,
+  uploadStaffAttachment,
 } from '@lib/api/entities/staff/api';
 import {
   delete2,
+  deleteAttachment,
   downloadAttachment,
   findAll1,
   findById1,
@@ -18,10 +24,15 @@ import {
 
 vi.mock('@lib/api/generated/staff/staff', () => ({
   delete2: vi.fn(),
+  deleteAttachment: vi.fn(),
+  getCreateWithFilesUrl: () => '/api/staff',
+  getUpdateWithFilesUrl: (staffId: number) => `/api/staff/${staffId}`,
   findAll1: vi.fn(),
   findById1: vi.fn(),
   downloadAttachment: vi.fn(),
 }));
+
+vi.mock('@lib/api/customFetcher', () => ({ customFetcher: vi.fn() }));
 
 const STAFF = {
   id: 42,
@@ -43,6 +54,121 @@ const DETAIL = {
 beforeEach(() => vi.resetAllMocks());
 
 describe('staff API', () => {
+  it('직원 정보만 JSON으로 등록하고 검증한 FE 상세를 반환한다', async () => {
+    vi.mocked(customFetcher).mockResolvedValue(DETAIL);
+    const body = { name: '김알바', note: '' };
+    await expect(createStaff(body)).resolves.toMatchObject({
+      id: 42,
+      name: '김알바',
+      memo: null,
+    });
+    expect(customFetcher).toHaveBeenCalledWith('/api/staff', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  });
+
+  it('수정 필드와 메모 삭제를 JSON PATCH로 전송한다', async () => {
+    vi.mocked(customFetcher).mockResolvedValue({ ...DETAIL, note: '' });
+    await expect(updateStaff(42, { note: '' })).resolves.toMatchObject({
+      memo: '',
+    });
+    expect(customFetcher).toHaveBeenCalledWith('/api/staff/42', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{"note":""}',
+    });
+  });
+
+  it('파일 하나만 attachments 파트로 보내고 boundary는 브라우저가 지정한다', async () => {
+    vi.mocked(customFetcher).mockResolvedValue(DETAIL);
+    const file = new File(['pdf'], '계약서.pdf', { type: 'application/pdf' });
+    await uploadStaffAttachment(42, file);
+    const [url, options] = vi.mocked(customFetcher).mock.calls[0];
+    expect(url).toBe('/api/staff/42');
+    expect(options?.method).toBe('PATCH');
+    expect(options?.headers).toBeUndefined();
+    const body = options?.body as FormData;
+    expect([...body.keys()]).toEqual(['attachments']);
+    expect(body.get('attachments')).toBe(file);
+  });
+
+  it('쓰기 응답도 검증하며 잘못된 응답과 BE 실패를 전달한다', async () => {
+    vi.mocked(customFetcher).mockResolvedValue({ ...DETAIL, id: '42' });
+    await expect(createStaff({ name: '김알바' })).rejects.toBeInstanceOf(
+      ZodError,
+    );
+    await expect(updateStaff(42, { note: '' })).rejects.toBeInstanceOf(
+      ZodError,
+    );
+    const error = new ApiError(
+      'VALIDATION_ERROR',
+      400,
+      '파일 개수를 확인해주세요.',
+    );
+    vi.mocked(customFetcher).mockRejectedValue(error);
+    await expect(
+      uploadStaffAttachment(
+        42,
+        new File(['pdf'], '파일.pdf', { type: 'application/pdf' }),
+      ),
+    ).rejects.toBe(error);
+  });
+
+  it('첨부파일 삭제의 204 빈 응답을 그대로 처리한다', async () => {
+    vi.mocked(deleteAttachment).mockResolvedValue(undefined);
+    await expect(deleteStaffAttachment(42, 3)).resolves.toBeUndefined();
+    expect(deleteAttachment).toHaveBeenCalledWith(42, 3);
+  });
+
+  it('SVG와 요청 한도를 넘는 파일은 전송하지 않는다', async () => {
+    await expect(
+      uploadStaffAttachment(
+        42,
+        new File(['svg'], '사진.svg', { type: 'image/svg+xml' }),
+      ),
+    ).rejects.toThrow('Unsupported');
+    const large = new File(
+      [new Uint8Array(3.5 * 1024 * 1024 + 1)],
+      '계약서.pdf',
+      { type: 'application/pdf' },
+    );
+    await expect(uploadStaffAttachment(42, large)).rejects.toThrow('3.5MB');
+    expect(customFetcher).not.toHaveBeenCalled();
+  });
+
+  it('WebP 파일을 multipart로 올리고 상세·다운로드에서 이미지로 처리한다', async () => {
+    const file = new File(['webp'], '사진.webp', { type: 'image/webp' });
+    const detail = {
+      ...DETAIL,
+      attachments: [
+        {
+          id: 7,
+          fileName: '사진.webp',
+          contentType: 'image/webp',
+          fileSize: file.size,
+          downloadUrl: '/api/staff/42/attachments/7',
+          createdAt: STAFF.createdAt,
+        },
+      ],
+    };
+    vi.mocked(customFetcher).mockResolvedValue(detail);
+    await expect(uploadStaffAttachment(42, file)).resolves.toMatchObject({
+      attachments: [{ id: 7, name: '사진.webp', type: 'image' }],
+    });
+    const body = vi.mocked(customFetcher).mock.calls[0][1]?.body as FormData;
+    expect(body.get('attachments')).toBe(file);
+    vi.mocked(findById1).mockResolvedValue(detail);
+    await expect(getStaffDetail(42)).resolves.toMatchObject({
+      attachments: [{ id: 7, type: 'image' }],
+    });
+    const blob = new Blob(['webp'], { type: 'image/webp' });
+    vi.mocked(downloadAttachment).mockResolvedValue(blob);
+    await expect(
+      getStaffAttachment('/api/staff/42/attachments/7'),
+    ).resolves.toBe(blob);
+  });
   it('삭제 응답을 검증하고 삭제된 ID를 반환한다', async () => {
     vi.mocked(delete2).mockResolvedValue({ id: 42 });
 
