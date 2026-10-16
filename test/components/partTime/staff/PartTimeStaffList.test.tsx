@@ -9,6 +9,7 @@ import {
 } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { openConfirmModal } from '@components/_common/Modal/openConfirmModal';
 import type { PartTimeStaffDetailPanelProps } from '@components/partTime/staff/PartTimeStaffDetailPanel';
 import { PartTimeStaffList } from '@components/partTime/staff/PartTimeStaffList';
 
@@ -16,7 +17,11 @@ import { staffKeys } from '@hooks/api/staff/staffQueryOptions';
 
 import { ApiError } from '@lib/api/apiError';
 import { getScheduleList } from '@lib/api/entities/schedule/api';
-import { getStaffDetail, getStaffList } from '@lib/api/entities/staff/api';
+import {
+  deleteStaff,
+  getStaffDetail,
+  getStaffList,
+} from '@lib/api/entities/staff/api';
 import type {
   PartTimeStaffDetailItem,
   PartTimeStaffListItem,
@@ -33,8 +38,12 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: navigation.push, back: navigation.back }),
 }));
 vi.mock('@lib/api/entities/staff/api', () => ({
+  deleteStaff: vi.fn(),
   getStaffList: vi.fn(),
   getStaffDetail: vi.fn(),
+}));
+vi.mock('@components/_common/Modal/openConfirmModal', () => ({
+  openConfirmModal: vi.fn(),
 }));
 vi.mock('@lib/api/entities/schedule/api', () => ({
   getScheduleList: vi.fn(async () => []),
@@ -44,10 +53,21 @@ vi.mock('@components/partTime/staff/PartTimeStaffCard', () => ({
   PartTimeStaffCard: ({
     staff,
     onDetailOpen,
+    onDelete,
+    isDeletePending,
   }: {
     staff: PartTimeStaffListItem;
     onDetailOpen: () => void;
-  }) => <button onClick={onDetailOpen}>{staff.name}</button>,
+    onDelete: () => void;
+    isDeletePending: boolean;
+  }) => (
+    <>
+      <button onClick={onDetailOpen}>{staff.name}</button>
+      <button onClick={onDelete} disabled={isDeletePending}>
+        {staff.name} 삭제
+      </button>
+    </>
+  ),
 }));
 vi.mock('@components/partTime/staff/PartTimeStaffDetailPanel', () => ({
   PartTimeStaffDetailPanel: ({
@@ -101,6 +121,11 @@ const renderList = (page = 1, items = [STAFF], totalPage = 1) => {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(getStaffList).mockReset();
+  vi.mocked(getStaffDetail).mockReset();
+  vi.mocked(getScheduleList).mockReset().mockResolvedValue([]);
+  vi.mocked(deleteStaff).mockReset();
+  vi.mocked(openConfirmModal).mockReset();
   navigation.search = '';
   vi.stubGlobal('matchMedia', () => ({
     matches: false,
@@ -119,6 +144,355 @@ afterEach(() => {
 });
 
 describe('PartTimeStaffList API 연동', () => {
+  it('삭제 확인을 취소하면 API와 목록·URL을 유지한다', async () => {
+    vi.mocked(openConfirmModal).mockResolvedValue(false);
+    renderList();
+
+    fireEvent.click(screen.getByRole('button', { name: '김알바 삭제' }));
+
+    await waitFor(() =>
+      expect(
+        screen
+          .getByRole('button', { name: '김알바 삭제' })
+          .hasAttribute('disabled'),
+      ).toBe(false),
+    );
+    expect(openConfirmModal).toHaveBeenCalledTimes(1);
+    expect(openConfirmModal).toHaveBeenCalledWith(
+      expect.objectContaining({
+        description: expect.stringContaining(
+          '아직 오지 않은 근무 스케쥴도 함께 삭제',
+        ),
+      }),
+    );
+    expect(deleteStaff).not.toHaveBeenCalled();
+    expect(getStaffList).not.toHaveBeenCalled();
+    expect(window.history.replaceState).not.toHaveBeenCalled();
+  });
+
+  it('확인 모달과 삭제 요청 중에는 중복 삭제를 막고 성공 후 목록을 갱신한다', async () => {
+    let confirm!: (value: boolean) => void;
+    let resolveDelete!: (id: number) => void;
+    vi.mocked(openConfirmModal).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          confirm = resolve;
+        }),
+    );
+    vi.mocked(deleteStaff).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveDelete = resolve;
+        }),
+    );
+    vi.mocked(getStaffList).mockResolvedValue({
+      page: 1,
+      size: 10,
+      totalCount: 0,
+      totalPage: 0,
+      items: [],
+    });
+    renderList();
+    const button = screen.getByRole('button', { name: '김알바 삭제' });
+
+    act(() => {
+      button.click();
+      button.click();
+    });
+    expect(openConfirmModal).toHaveBeenCalledTimes(1);
+    expect(deleteStaff).not.toHaveBeenCalled();
+    await act(async () => confirm(true));
+    await waitFor(() => expect(deleteStaff).toHaveBeenCalledWith(42));
+    expect(button.hasAttribute('disabled')).toBe(true);
+    expect(screen.getByRole('status').textContent).toContain('삭제하는 중');
+    fireEvent.click(button);
+    expect(deleteStaff).toHaveBeenCalledTimes(1);
+
+    await act(async () => resolveDelete(42));
+    await waitFor(() =>
+      expect(screen.getByText('등록된 아르바이트생이 없어요.')).toBeTruthy(),
+    );
+  });
+
+  it('삭제 실패는 BE 문구를 인라인으로 표시하고 다시 시도할 수 있다', async () => {
+    vi.mocked(openConfirmModal).mockResolvedValue(true);
+    vi.mocked(deleteStaff).mockRejectedValue(
+      new ApiError('STAFF_NOT_FOUND', 404, '아르바이트생을 찾을 수 없어요.'),
+    );
+    renderList();
+
+    fireEvent.click(screen.getByRole('button', { name: '김알바 삭제' }));
+
+    await waitFor(() =>
+      expect(screen.getByRole('alert').textContent).toContain(
+        '아르바이트생을 찾을 수 없어요.',
+      ),
+    );
+    await waitFor(() =>
+      expect(
+        screen
+          .getByRole('button', { name: '김알바 삭제' })
+          .hasAttribute('disabled'),
+      ).toBe(false),
+    );
+    expect(deleteStaff).toHaveBeenCalledTimes(1);
+    expect(getStaffList).not.toHaveBeenCalled();
+    expect(window.history.replaceState).not.toHaveBeenCalled();
+    vi.mocked(openConfirmModal).mockResolvedValue(false);
+    fireEvent.click(screen.getByRole('button', { name: '김알바 삭제' }));
+    await waitFor(() => expect(screen.queryByRole('alert')).toBeNull());
+  });
+
+  it('STAFF_NOT_FOUND 오류에서 목록만 새로고침해 이미 삭제된 카드를 제거한다', async () => {
+    vi.mocked(openConfirmModal).mockResolvedValue(true);
+    vi.mocked(deleteStaff).mockRejectedValue(
+      new ApiError('STAFF_NOT_FOUND', 404, '아르바이트생을 찾을 수 없어요.'),
+    );
+    vi.mocked(getStaffList).mockResolvedValue({
+      page: 1,
+      size: 10,
+      totalCount: 0,
+      totalPage: 0,
+      items: [],
+    });
+    renderList();
+
+    fireEvent.click(screen.getByRole('button', { name: '김알바 삭제' }));
+    const refresh = await screen.findByRole('button', {
+      name: '목록 새로고침',
+    });
+    expect(getStaffList).not.toHaveBeenCalled();
+    fireEvent.click(refresh);
+
+    await waitFor(() =>
+      expect(screen.getByText('등록된 아르바이트생이 없어요.')).toBeTruthy(),
+    );
+    expect(screen.queryByRole('alert')).toBeNull();
+    expect(deleteStaff).toHaveBeenCalledTimes(1);
+    expect(getStaffList).toHaveBeenCalledTimes(1);
+  });
+
+  it('목록 새로고침 실패는 조회 오류와 다시 시도로 복구한다', async () => {
+    let rejectList!: (error: Error) => void;
+    vi.mocked(openConfirmModal).mockResolvedValue(true);
+    vi.mocked(deleteStaff).mockRejectedValue(
+      new ApiError('STAFF_NOT_FOUND', 404, '아르바이트생을 찾을 수 없어요.'),
+    );
+    vi.mocked(getStaffList).mockImplementation(
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectList = reject;
+        }),
+    );
+    renderList();
+    fireEvent.click(screen.getByRole('button', { name: '김알바 삭제' }));
+    const refresh = await screen.findByRole('button', {
+      name: '목록 새로고침',
+    });
+
+    fireEvent.click(refresh);
+    await waitFor(() =>
+      expect(
+        screen.getByText('아르바이트생 목록을 갱신하는 중입니다.'),
+      ).toBeTruthy(),
+    );
+    expect(screen.queryByText('아르바이트생을 찾을 수 없어요.')).toBeNull();
+    await act(async () => rejectList(new ApiError('INVALID_REQUEST', 400)));
+    const retry = await screen.findByRole('button', { name: '다시 시도' });
+    expect(deleteStaff).toHaveBeenCalledTimes(1);
+    vi.mocked(getStaffList).mockResolvedValue({
+      page: 1,
+      size: 10,
+      totalCount: 0,
+      totalPage: 0,
+      items: [],
+    });
+    fireEvent.click(retry);
+    await waitFor(() =>
+      expect(screen.getByText('등록된 아르바이트생이 없어요.')).toBeTruthy(),
+    );
+  });
+
+  it('STAFF_NOT_FOUND인 직원의 상세는 닫고 목록 새로고침을 제공한다', async () => {
+    navigation.search = 'staffId=42&tag=keep';
+    vi.mocked(getStaffDetail).mockResolvedValue(DETAIL);
+    vi.mocked(openConfirmModal).mockResolvedValue(true);
+    vi.mocked(deleteStaff).mockRejectedValue(
+      new ApiError('STAFF_NOT_FOUND', 404, '아르바이트생을 찾을 수 없어요.'),
+    );
+    renderList();
+
+    fireEvent.click(screen.getByRole('button', { name: '김알바 삭제' }));
+
+    await screen.findByRole('button', { name: '목록 새로고침' });
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(window.history.replaceState).toHaveBeenCalledWith(
+      null,
+      '',
+      '/partTime/staff?tag=keep',
+    );
+    expect(navigation.back).not.toHaveBeenCalled();
+  });
+
+  it('목록 재조회가 지연되어도 삭제한 카드와 상세는 먼저 닫고 다른 직원의 삭제는 허용한다', async () => {
+    navigation.search = 'staffId=42&tag=keep';
+    vi.mocked(getStaffDetail).mockResolvedValue(DETAIL);
+    vi.mocked(openConfirmModal).mockResolvedValue(true);
+    vi.mocked(deleteStaff).mockResolvedValue(42);
+    vi.mocked(getStaffList).mockImplementation(() => new Promise(() => {}));
+    renderList(1, [STAFF, { ...STAFF, id: 99, name: '다른 직원' }]);
+
+    fireEvent.click(screen.getByRole('button', { name: '김알바 삭제' }));
+
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: '김알바' })).toBeNull(),
+    );
+    await waitFor(() =>
+      expect(
+        screen
+          .getByRole('button', { name: '다른 직원 삭제' })
+          .hasAttribute('disabled'),
+      ).toBe(false),
+    );
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.queryByText('아르바이트생을 삭제하는 중입니다.')).toBeNull();
+    expect(
+      screen.getByText('아르바이트생 목록을 갱신하는 중입니다.'),
+    ).toBeTruthy();
+    expect(window.history.replaceState).toHaveBeenCalledWith(
+      null,
+      '',
+      '/partTime/staff?tag=keep',
+    );
+
+    vi.mocked(openConfirmModal).mockResolvedValue(false);
+    fireEvent.click(screen.getByRole('button', { name: '다른 직원 삭제' }));
+    await waitFor(() => expect(openConfirmModal).toHaveBeenCalledTimes(2));
+    expect(screen.queryByRole('button', { name: '김알바' })).toBeNull();
+    expect(deleteStaff).toHaveBeenCalledTimes(1);
+  });
+
+  it('마지막 직원 삭제 후 재조회 중에는 빈 목록을 먼저 표시하지 않는다', async () => {
+    vi.mocked(openConfirmModal).mockResolvedValue(true);
+    vi.mocked(deleteStaff).mockResolvedValue(42);
+    vi.mocked(getStaffList).mockImplementation(() => new Promise(() => {}));
+    renderList();
+    fireEvent.click(screen.getByRole('button', { name: '김알바 삭제' }));
+
+    await waitFor(() =>
+      expect(screen.queryByRole('button', { name: '김알바' })).toBeNull(),
+    );
+    await waitFor(() =>
+      expect(
+        screen.queryByText('아르바이트생을 삭제하는 중입니다.'),
+      ).toBeNull(),
+    );
+    expect(
+      screen.getByText('아르바이트생 목록을 갱신하는 중입니다.'),
+    ).toBeTruthy();
+    expect(screen.queryByText('등록된 아르바이트생이 없어요.')).toBeNull();
+  });
+
+  it('삭제한 직원의 상세는 닫고 다른 검색값은 보존한다', async () => {
+    navigation.search = 'staffId=42&tag=keep';
+    vi.mocked(getStaffDetail).mockResolvedValue(DETAIL);
+    vi.mocked(openConfirmModal).mockResolvedValue(true);
+    vi.mocked(deleteStaff).mockResolvedValue(42);
+    vi.mocked(getStaffList).mockResolvedValue({
+      page: 1,
+      size: 10,
+      totalCount: 0,
+      totalPage: 0,
+      items: [],
+    });
+    renderList();
+
+    fireEvent.click(screen.getByRole('button', { name: '김알바 삭제' }));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(window.history.replaceState).toHaveBeenCalledWith(
+      null,
+      '',
+      '/partTime/staff?tag=keep',
+    );
+    expect(navigation.back).not.toHaveBeenCalled();
+  });
+
+  it('서버·네트워크 삭제 실패는 공통 문구로 표시한다', async () => {
+    vi.mocked(openConfirmModal).mockResolvedValue(true);
+    vi.mocked(deleteStaff).mockRejectedValue(new Error('internal details'));
+    renderList();
+
+    fireEvent.click(screen.getByRole('button', { name: '김알바 삭제' }));
+
+    await waitFor(() =>
+      expect(screen.getByRole('alert').textContent).toBe(
+        '일시적인 오류가 발생했어요. 잠시 후 다시 시도해주세요.',
+      ),
+    );
+    expect(screen.getByRole('button', { name: STAFF.name })).toBeTruthy();
+    expect(deleteStaff).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('button', { name: '목록 새로고침' })).toBeNull();
+  });
+
+  it('다른 직원 상세를 보고 있다면 삭제 후에도 유지한다', async () => {
+    navigation.search = 'staffId=99&tag=keep';
+    vi.mocked(getStaffDetail).mockResolvedValue({
+      ...DETAIL,
+      id: 99,
+      name: '다른 직원',
+    });
+    vi.mocked(openConfirmModal).mockResolvedValue(true);
+    vi.mocked(deleteStaff).mockResolvedValue(42);
+    vi.mocked(getStaffList).mockResolvedValue({
+      page: 1,
+      size: 10,
+      totalCount: 0,
+      totalPage: 0,
+      items: [],
+    });
+    renderList();
+
+    fireEvent.click(screen.getByRole('button', { name: '김알바 삭제' }));
+
+    await waitFor(() =>
+      expect(screen.getByText('등록된 아르바이트생이 없어요.')).toBeTruthy(),
+    );
+    expect(screen.getByRole('dialog').textContent).toContain('다른 직원');
+    expect(window.history.replaceState).not.toHaveBeenCalled();
+  });
+
+  it('마지막 페이지의 마지막 직원을 삭제하면 이전 페이지로 보정한다', async () => {
+    navigation.search = 'page=2&tag=keep';
+    vi.mocked(openConfirmModal).mockResolvedValue(true);
+    vi.mocked(deleteStaff).mockResolvedValue(42);
+    vi.mocked(getStaffList).mockImplementation(async (params) => ({
+      page: params?.page ?? 1,
+      size: 10,
+      totalCount: 10,
+      totalPage: 1,
+      items:
+        params?.page === 2
+          ? []
+          : [{ ...STAFF, id: 99, name: '이전 페이지 직원' }],
+    }));
+    renderList(2, [STAFF], 2);
+
+    fireEvent.click(screen.getByRole('button', { name: '김알바 삭제' }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: '이전 페이지 직원' }),
+      ).toBeTruthy(),
+    );
+    expect(window.history.replaceState).toHaveBeenCalledWith(
+      null,
+      '',
+      '/partTime/staff?tag=keep',
+    );
+    expect(screen.queryByText('등록된 아르바이트생이 없어요.')).toBeNull();
+  });
+
   it('hydration 목록을 재요청하지 않고 목록 캐시로 상세를 먼저 그린다', async () => {
     navigation.search = 'staffId=42';
     let resolveDetail!: (staff: PartTimeStaffDetailItem) => void;

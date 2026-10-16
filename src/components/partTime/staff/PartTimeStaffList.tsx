@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { match, P } from 'ts-pattern';
 
 import { openConfirmModal } from '@components/_common/Modal/openConfirmModal';
@@ -11,6 +11,7 @@ import { PartTimeStaffCard } from '@components/partTime/staff/PartTimeStaffCard'
 import { PartTimeStaffDetailPanel } from '@components/partTime/staff/PartTimeStaffDetailPanel';
 
 import { STAFF_LIST_PAGE_SIZE } from '@hooks/api/staff/staffQueryOptions';
+import { useDeleteStaff } from '@hooks/api/staff/useDeleteStaff';
 import { useStaffDetail } from '@hooks/api/staff/useStaffDetail';
 import { useStaffList } from '@hooks/api/staff/useStaffList';
 import { useStaffWeeklyShifts } from '@hooks/api/staff/useStaffWeeklyShifts';
@@ -42,6 +43,16 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
   const searchParams = useSearchParams();
   const { currentPage, setCurrentPage } = usePageSearchParam(PAGE_PARAM);
   const hasPushedDetailRef = useRef(false);
+  const isDeletePendingRef = useRef(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const deleteMutation = useDeleteStaff();
+  const isDeletePending = isDeleteConfirmOpen || deleteMutation.isPending;
+  const isDeleteStaffNotFound = match(deleteMutation.error)
+    .with(
+      P.instanceOf(ApiError),
+      ({ errorCode }) => errorCode === 'STAFF_NOT_FOUND',
+    )
+    .otherwise(() => false);
 
   const listQuery = useStaffList({
     page: currentPage,
@@ -62,6 +73,8 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
   const isStaffNotFound =
     staffIdParam !== null &&
     (!hasValidStaffId ||
+      (deleteMutation.isSuccess && deleteMutation.data === staffId) ||
+      (isDeleteStaffNotFound && deleteMutation.variables === staffId) ||
       match(detailQuery.error)
         .with(P.instanceOf(ApiError), ({ status }) => status === 404)
         .otherwise(() => false));
@@ -76,6 +89,7 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
     const nextSearchParams = new URLSearchParams(searchParams.toString());
 
     if (isStaffNotFound) {
+      hasPushedDetailRef.current = false;
       nextSearchParams.delete(STAFF_ID_PARAM);
     }
 
@@ -123,12 +137,27 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
     );
   };
 
-  const handleDelete = () => {
-    void openConfirmModal({
-      title: '아르바이트생을 삭제하시겠어요?',
-      description: '삭제된 상세 내용은 복구할 수 없습니다.',
-      confirmText: '삭제',
-    });
+  const handleDelete = async (staffId: number) => {
+    if (isDeletePendingRef.current) return;
+    isDeletePendingRef.current = true;
+    setIsDeleteConfirmOpen(true);
+    deleteMutation.reset();
+
+    try {
+      const isConfirmed = await openConfirmModal({
+        title: '아르바이트생을 삭제하시겠어요?',
+        description:
+          '아직 오지 않은 근무 스케쥴도 함께 삭제돼요. 삭제된 상세 내용과 스케쥴은 복구할 수 없습니다.',
+        confirmText: '삭제',
+      });
+
+      if (isConfirmed) await deleteMutation.mutateAsync(staffId);
+    } catch {
+      // NOTE: 삭제 오류는 목록 위에 인라인으로 표시한다
+    } finally {
+      setIsDeleteConfirmOpen(false);
+      isDeletePendingRef.current = false;
+    }
   };
 
   const listContent = activeListQuery.isError ? (
@@ -147,6 +176,10 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
   ) : !activeListQuery.data ? (
     <p role="status" className="py-10 text-center text-sm text-slate-500">
       아르바이트생 목록을 불러오는 중입니다.
+    </p>
+  ) : staffs.length === 0 && activeListQuery.data.totalCount > 0 ? (
+    <p role="status" className="py-10 text-center text-sm text-slate-500">
+      아르바이트생 목록을 갱신하는 중입니다.
     </p>
   ) : staffs.length === 0 ? (
     <div className="flex flex-1 flex-col items-center justify-center gap-4.5 py-10 max-tablet:gap-2.5">
@@ -171,7 +204,10 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
               staff={listStaff}
               onDetailOpen={() => handleDetailOpen(listStaff.id)}
               onEdit={() => router.push(`/partTime/staff/${listStaff.id}/edit`)}
-              onDelete={handleDelete}
+              onDelete={() => {
+                void handleDelete(listStaff.id);
+              }}
+              isDeletePending={isDeletePending}
             />
           </li>
         ))}
@@ -187,6 +223,36 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
 
   return (
     <div className="flex flex-1 flex-col gap-5 max-mobile:gap-4">
+      {deleteMutation.error && (
+        <div role="alert" className="text-sm text-warning-500">
+          <p>{formatCommonError(deleteMutation.error)}</p>
+          {isDeleteStaffNotFound && (
+            <button
+              type="button"
+              disabled={activeListQuery.isFetching}
+              onClick={() => {
+                deleteMutation.reset();
+                void activeListQuery.refetch({ cancelRefetch: false });
+              }}
+              className="mt-2 cursor-pointer underline disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              목록 새로고침
+            </button>
+          )}
+        </div>
+      )}
+      {deleteMutation.isPending && (
+        <p role="status" className="text-sm text-slate-500">
+          아르바이트생을 삭제하는 중입니다.
+        </p>
+      )}
+      {!deleteMutation.isPending &&
+        activeListQuery.isFetching &&
+        staffs.length > 0 && (
+          <p role="status" className="text-sm text-slate-500">
+            아르바이트생 목록을 갱신하는 중입니다.
+          </p>
+        )}
       {listContent}
       <PartTimeStaffDetailPanel
         open={staffIdParam !== null && !isStaffNotFound}
