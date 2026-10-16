@@ -21,7 +21,7 @@ function SalesWeeklyChart({ chart, monthLabel }: SalesWeeklyChartProps) {
     <Chart
       config={config}
       data={chart.rows}
-      aria-label={`${monthLabel} 주차별 매출`}
+      aria-label={`${monthLabel} ${{ WEEK: '일별', MONTH: '주차별', YEAR: '월별' }[chart.unit]} 매출`}
       className="min-h-0 flex-1"
     >
       <Chart.Plot className="min-h-0 flex-1 [&_[data-slot=chart]]:aspect-auto [&_[data-slot=chart]]:h-full">
