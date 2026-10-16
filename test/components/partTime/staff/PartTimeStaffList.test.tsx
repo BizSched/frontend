@@ -18,6 +18,7 @@ import { staffKeys } from '@hooks/api/staff/staffQueryOptions';
 import { ApiError } from '@lib/api/apiError';
 import { getScheduleList } from '@lib/api/entities/schedule/api';
 import {
+  changeStaffEmploymentStatus,
   deleteStaff,
   getStaffDetail,
   getStaffList,
@@ -38,6 +39,7 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: navigation.push, back: navigation.back }),
 }));
 vi.mock('@lib/api/entities/staff/api', () => ({
+  changeStaffEmploymentStatus: vi.fn(),
   deleteStaff: vi.fn(),
   getStaffList: vi.fn(),
   getStaffDetail: vi.fn(),
@@ -69,30 +71,51 @@ vi.mock('@components/partTime/staff/PartTimeStaffCard', () => ({
     </>
   ),
 }));
-vi.mock('@components/partTime/staff/PartTimeStaffDetailPanel', () => ({
-  PartTimeStaffDetailPanel: ({
+vi.mock('@components/partTime/staff/PartTimeStaffDetailOverlay', () => ({
+  PartTimeStaffDetailOverlay: ({
     open,
     staff,
     listStaff,
     isLoading,
     error,
     onOpenChange,
+    onEmploymentStatusChange,
+    isEmploymentStatusLocked,
+    isEmploymentStatusPending,
+    employmentStatusError,
   }: PartTimeStaffDetailPanelProps) =>
     open ? (
       <div role="dialog">
         <span>{staff?.name ?? listStaff?.name ?? '상세'}</span>
         {isLoading && <p>상세 로딩 중</p>}
         {!!error && <p>상세 오류</p>}
+        {(['onLeave', 'employed'] as const).map((employmentStatus) => (
+          <button
+            key={employmentStatus}
+            disabled={isEmploymentStatusLocked}
+            onClick={() =>
+              onEmploymentStatusChange?.(
+                staff?.id ?? listStaff?.id ?? 0,
+                employmentStatus,
+              )
+            }
+          >
+            {employmentStatus}로 변경
+          </button>
+        ))}
+        {isEmploymentStatusPending && <p>재직 상태 변경 중</p>}
+        {!!employmentStatusError && <p>재직 상태 오류</p>}
         <button onClick={() => onOpenChange(false)}>닫기</button>
       </div>
     ) : null,
 }));
 
-const STAFF = {
+const STAFF: PartTimeStaffListItem = {
   id: 42,
   name: '김알바',
   phone: null,
   createdAt: '2026-10-14T09:00:00+09:00',
+  employmentStatus: 'employed',
 };
 const DETAIL: PartTimeStaffDetailItem = {
   ...STAFF,
@@ -125,6 +148,7 @@ beforeEach(() => {
   vi.mocked(getStaffDetail).mockReset();
   vi.mocked(getScheduleList).mockReset().mockResolvedValue([]);
   vi.mocked(deleteStaff).mockReset();
+  vi.mocked(changeStaffEmploymentStatus).mockReset();
   vi.mocked(openConfirmModal).mockReset();
   navigation.search = '';
   vi.stubGlobal('matchMedia', () => ({
@@ -635,5 +659,200 @@ describe('PartTimeStaffList API 연동', () => {
       '/partTime/staff?tag=keep',
     );
     expect(navigation.back).not.toHaveBeenCalled();
+  });
+});
+
+describe('PartTimeStaffList 재직 상태 변경', () => {
+  beforeEach(() => {
+    vi.mocked(getStaffList).mockResolvedValue({
+      page: 1,
+      size: 10,
+      totalCount: 1,
+      totalPage: 1,
+      items: [STAFF],
+    });
+  });
+
+  it('휴직·퇴사로 바꿀 때만 확인하고, 취소하면 요청하지 않는다', async () => {
+    navigation.search = 'staffId=42';
+    vi.mocked(getStaffDetail).mockResolvedValue(DETAIL);
+    vi.mocked(openConfirmModal).mockResolvedValue(false);
+    renderList();
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'onLeave로 변경' }),
+    );
+
+    await waitFor(() =>
+      expect(
+        screen
+          .getByRole('button', { name: 'onLeave로 변경' })
+          .hasAttribute('disabled'),
+      ).toBe(false),
+    );
+    expect(openConfirmModal).toHaveBeenCalledWith({
+      title: '재직 상태를 바꾸시겠어요?',
+      description:
+        '아직 오지 않은 근무 스케쥴이 삭제돼요. 다시 재직으로 바꿔도 복구되지 않아요.',
+      confirmText: '변경',
+    });
+    expect(changeStaffEmploymentStatus).not.toHaveBeenCalled();
+  });
+
+  it('확인 모달과 요청 중에는 중복 변경을 막고 확인하면 요청한다', async () => {
+    navigation.search = 'staffId=42';
+    let confirm!: (value: boolean) => void;
+    let resolveChange!: (value: {
+      id: number;
+      employmentStatus: 'onLeave';
+    }) => void;
+    vi.mocked(getStaffDetail).mockResolvedValue(DETAIL);
+    vi.mocked(openConfirmModal).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          confirm = resolve;
+        }),
+    );
+    vi.mocked(changeStaffEmploymentStatus).mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveChange = resolve;
+        }),
+    );
+    renderList();
+    const button = await screen.findByRole('button', {
+      name: 'onLeave로 변경',
+    });
+
+    act(() => {
+      button.click();
+      button.click();
+    });
+    expect(openConfirmModal).toHaveBeenCalledTimes(1);
+    expect(button.hasAttribute('disabled')).toBe(true);
+    expect(screen.queryByText('재직 상태 변경 중')).toBeNull();
+
+    await act(async () => confirm(true));
+    await waitFor(() =>
+      expect(changeStaffEmploymentStatus).toHaveBeenCalledWith(42, 'onLeave'),
+    );
+    expect(screen.getByText('재직 상태 변경 중')).toBeTruthy();
+    expect(button.hasAttribute('disabled')).toBe(true);
+
+    await act(async () =>
+      resolveChange({ id: 42, employmentStatus: 'onLeave' }),
+    );
+    await waitFor(() => expect(button.hasAttribute('disabled')).toBe(false));
+    expect(changeStaffEmploymentStatus).toHaveBeenCalledTimes(1);
+  });
+
+  it('재직으로 바꿀 때는 확인 없이 요청한다', async () => {
+    navigation.search = 'staffId=42';
+    vi.mocked(getStaffDetail).mockResolvedValue(DETAIL);
+    vi.mocked(changeStaffEmploymentStatus).mockResolvedValue({
+      id: 42,
+      employmentStatus: 'employed',
+    });
+    renderList();
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'employed로 변경' }),
+    );
+
+    await waitFor(() =>
+      expect(changeStaffEmploymentStatus).toHaveBeenCalledWith(42, 'employed'),
+    );
+    expect(openConfirmModal).not.toHaveBeenCalled();
+  });
+
+  it('변경 실패는 상세에 전달하고 다른 직원 상세를 열면 지운다', async () => {
+    navigation.search = 'staffId=42';
+    vi.mocked(getStaffDetail).mockResolvedValue(DETAIL);
+    vi.mocked(changeStaffEmploymentStatus).mockRejectedValue(
+      new ApiError('INVALID_REQUEST', 400, '바꿀 수 없어요.'),
+    );
+    renderList();
+
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'employed로 변경' }),
+    );
+
+    expect(await screen.findByText('재직 상태 오류')).toBeTruthy();
+    expect(screen.queryByRole('alert')).toBeNull();
+    fireEvent.click(screen.getByRole('button', { name: '김알바' }));
+    await waitFor(() =>
+      expect(screen.queryByText('재직 상태 오류')).toBeNull(),
+    );
+  });
+
+  it('STAFF_NOT_FOUND이면 상세 재조회를 기다리지 않고 상세를 닫는다', async () => {
+    navigation.search = 'staffId=42&tag=keep';
+    vi.mocked(getStaffDetail).mockResolvedValueOnce(DETAIL);
+    vi.mocked(getStaffList).mockResolvedValue({
+      page: 1,
+      size: 10,
+      totalCount: 0,
+      totalPage: 0,
+      items: [],
+    });
+    vi.mocked(changeStaffEmploymentStatus).mockRejectedValue(
+      new ApiError('STAFF_NOT_FOUND', 404, '아르바이트생을 찾을 수 없어요.'),
+    );
+    renderList();
+    await screen.findByRole('button', { name: 'employed로 변경' });
+    vi.mocked(getStaffDetail).mockImplementation(() => new Promise(() => {}));
+
+    fireEvent.click(screen.getByRole('button', { name: 'employed로 변경' }));
+
+    await waitFor(() =>
+      expect(screen.getByRole('alert').textContent).toContain(
+        '아르바이트생을 찾을 수 없어요.',
+      ),
+    );
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(screen.queryByText('재직 상태 오류')).toBeNull();
+    await waitFor(() =>
+      expect(screen.getByText('등록된 아르바이트생이 없어요.')).toBeTruthy(),
+    );
+    expect(window.history.replaceState).toHaveBeenCalledWith(
+      null,
+      '',
+      '/partTime/staff?tag=keep',
+    );
+  });
+
+  it('이전 직원의 상태 변경이 404로 실패해도 다른 직원의 상세는 유지한다', async () => {
+    navigation.search = 'staffId=42&tag=keep';
+    let rejectChange!: (error: Error) => void;
+    vi.mocked(getStaffDetail).mockImplementation(async (id) => ({
+      ...DETAIL,
+      id,
+      name: id === 42 ? STAFF.name : '다른 직원',
+    }));
+    vi.mocked(changeStaffEmploymentStatus).mockImplementation(
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectChange = reject;
+        }),
+    );
+    const { rerender, client } = renderList();
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'employed로 변경' }),
+    );
+    await waitFor(() => expect(changeStaffEmploymentStatus).toHaveBeenCalled());
+
+    navigation.search = 'staffId=99&tag=keep';
+    rerender(
+      <QueryClientProvider client={client}>
+        <PartTimeStaffList now={NOW} />
+      </QueryClientProvider>,
+    );
+    await waitFor(() =>
+      expect(screen.getByRole('dialog').textContent).toContain('다른 직원'),
+    );
+    await act(async () => rejectChange(new ApiError('STAFF_NOT_FOUND', 404)));
+
+    expect(screen.getByRole('dialog').textContent).toContain('다른 직원');
+    expect(window.history.replaceState).not.toHaveBeenCalled();
   });
 });

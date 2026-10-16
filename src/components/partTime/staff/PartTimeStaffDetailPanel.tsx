@@ -2,8 +2,9 @@
 
 import { Dialog } from '@base-ui/react/dialog';
 import Image from 'next/image';
-import { useId, useMemo, useState } from 'react';
+import { type CSSProperties, useId, useMemo, useState } from 'react';
 
+import { FormDropdown } from '@components/_common/FormDropdown/FormDropdown';
 import { PartTimeStaffAttachmentViewer } from '@components/partTime/staff/PartTimeStaffAttachmentViewer';
 import { PartTimeStaffDetail } from '@components/partTime/staff/PartTimeStaffDetail';
 
@@ -11,11 +12,24 @@ import { formatCommonError } from '@lib/api/formatCommonError';
 import type {
   PartTimeStaffAttachment,
   PartTimeStaffDetailItem,
+  PartTimeStaffEmploymentStatus,
   PartTimeStaffListItem,
   PartTimeStaffShift,
 } from '@lib/types/partTimeStaff';
+import { cn } from '@lib/utilities/cn';
+import {
+  PART_TIME_STAFF_EMPLOYMENT_STATUS_LABELS,
+  PART_TIME_STAFF_EMPLOYMENT_STATUSES,
+} from '@lib/utilities/partTime/partTimeStaff';
 
 import IcDelete from '@assets/icons/ic_delete.svg';
+
+const EMPLOYMENT_STATUS_OPTIONS = PART_TIME_STAFF_EMPLOYMENT_STATUSES.map(
+  (employmentStatus) => ({
+    value: employmentStatus,
+    label: PART_TIME_STAFF_EMPLOYMENT_STATUS_LABELS[employmentStatus],
+  }),
+);
 
 interface PartTimeStaffAttachmentPreview {
   staffId: number;
@@ -24,6 +38,9 @@ interface PartTimeStaffAttachmentPreview {
 
 interface PartTimeStaffDetailPanelProps {
   open: boolean;
+  stackIndex?: number;
+  isObscured?: boolean;
+  onExitComplete?: () => void;
   onOpenChange: (open: boolean) => void;
   staff?: PartTimeStaffDetailItem;
   listStaff?: PartTimeStaffListItem;
@@ -35,10 +52,20 @@ interface PartTimeStaffDetailPanelProps {
   weeklyShiftsError?: unknown;
   onWeeklyShiftsRetry?: () => void;
   now: string;
+  onEmploymentStatusChange?: (
+    staffId: number,
+    employmentStatus: PartTimeStaffEmploymentStatus,
+  ) => void;
+  isEmploymentStatusLocked?: boolean;
+  isEmploymentStatusPending?: boolean;
+  employmentStatusError?: unknown;
 }
 
 function PartTimeStaffDetailPanel({
   open,
+  stackIndex = 0,
+  isObscured = false,
+  onExitComplete,
   onOpenChange,
   staff,
   listStaff,
@@ -50,6 +77,10 @@ function PartTimeStaffDetailPanel({
   weeklyShiftsError,
   onWeeklyShiftsRetry,
   now,
+  onEmploymentStatusChange,
+  isEmploymentStatusLocked = false,
+  isEmploymentStatusPending = false,
+  employmentStatusError,
 }: PartTimeStaffDetailPanelProps) {
   const titleId = useId();
   const [preview, setPreview] = useState<PartTimeStaffAttachmentPreview>();
@@ -106,7 +137,36 @@ function PartTimeStaffDetailPanel({
     setPreview(undefined);
     setIsViewerCollapsed(false);
     setLastSnapshot(undefined);
+    onExitComplete?.();
   };
+
+  const statusAction = profile && onEmploymentStatusChange && (
+    <div role="group" aria-label="재직 상태">
+      <FormDropdown
+        size="small"
+        value={profile.employmentStatus}
+        options={EMPLOYMENT_STATUS_OPTIONS}
+        disabled={!open || isEmploymentStatusLocked}
+        onChange={(value) => {
+          const employmentStatus = PART_TIME_STAFF_EMPLOYMENT_STATUSES.find(
+            (status) => status === value,
+          );
+          if (employmentStatus && employmentStatus !== profile.employmentStatus)
+            onEmploymentStatusChange(profile.id, employmentStatus);
+        }}
+      />
+    </div>
+  );
+
+  const headerNotice = employmentStatusError ? (
+    <p role="alert" className="text-sm text-warning-500">
+      {formatCommonError(employmentStatusError)}
+    </p>
+  ) : isEmploymentStatusPending ? (
+    <p role="status" className="text-sm text-slate-500">
+      재직 상태를 바꾸는 중입니다.
+    </p>
+  ) : null;
 
   const closeButton = (
     <Dialog.Close
@@ -123,11 +183,18 @@ function PartTimeStaffDetailPanel({
       onOpenChange={onOpenChange}
       onOpenChangeComplete={handleOpenChangeComplete}
     >
-      <Dialog.Portal>
-        <Dialog.Backdrop className="fixed inset-0 z-(--z-modal-base) bg-overlay motion-reduce:animate-none data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0" />
+      <Dialog.Portal
+        style={{ '--modal-stack-index': stackIndex } as CSSProperties}
+      >
+        <Dialog.Backdrop
+          className={cn(
+            'fixed inset-0 z-[calc(var(--z-modal-base)+var(--modal-stack-index)*10)] motion-reduce:animate-none data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0',
+            stackIndex === 0 && 'bg-overlay',
+          )}
+        />
         <Dialog.Popup
           aria-labelledby={titleId}
-          className="fixed inset-y-0 right-0 z-[calc(var(--z-modal-base)+1)] flex max-w-full outline-none motion-reduce:animate-none max-laptop:left-0 max-laptop:flex-col data-open:animate-in data-open:slide-in-from-right max-laptop:data-open:fade-in-0 data-closed:animate-out data-closed:slide-out-to-right max-laptop:data-closed:fade-out-0"
+          className="fixed inset-y-0 right-0 z-[calc(var(--z-modal-base)+var(--modal-stack-index)*10+1)] flex max-w-full outline-none motion-reduce:animate-none max-laptop:left-0 max-laptop:flex-col data-open:animate-in data-open:slide-in-from-right max-laptop:data-open:fade-in-0 data-closed:animate-out data-closed:slide-out-to-right max-laptop:data-closed:fade-out-0"
         >
           <div className="min-w-0 overflow-y-auto overscroll-contain rounded-l-modal bg-white-50 px-10 py-12 max-laptop:min-h-0 max-laptop:flex-1 max-laptop:rounded-none max-laptop:px-6 max-laptop:py-10 max-tablet:py-6 laptop:w-200">
             {profile ? (
@@ -143,6 +210,8 @@ function PartTimeStaffDetailPanel({
                 now={displayed?.now ?? now}
                 titleId={titleId}
                 closeAction={closeButton}
+                statusAction={statusAction}
+                headerNotice={headerNotice}
                 onAttachmentOpen={handleAttachmentOpen}
               />
             ) : (
@@ -181,6 +250,12 @@ function PartTimeStaffDetailPanel({
               attachment={previewAttachment}
               isCollapsed={isViewerCollapsed}
               onCollapsedChange={setIsViewerCollapsed}
+            />
+          )}
+          {isObscured && (
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 z-1 rounded-l-modal bg-overlay max-laptop:rounded-none"
             />
           )}
         </Dialog.Popup>
