@@ -10,9 +10,10 @@ import type { PartTimeSchedule } from '@lib/types/partTimeSchedule';
 const excludeDeletedStaffSchedules = (schedules: PartTimeSchedule[]) =>
   schedules.filter(({ staff }) => !staff.isDeleted);
 
-const useScheduleList = (params: ScheduleListParams) =>
+const useScheduleList = (params: ScheduleListParams, isEnabled = true) =>
   useQuery({
     ...scheduleListQueryOptions(params),
+    enabled: isEnabled,
     placeholderData: keepPreviousData,
     select: excludeDeletedStaffSchedules,
   });

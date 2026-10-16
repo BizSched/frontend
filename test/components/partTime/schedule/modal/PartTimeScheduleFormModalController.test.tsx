@@ -1,15 +1,27 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { PartTimeScheduleFormModalProps } from '@components/partTime/schedule/modal/PartTimeScheduleFormModal';
 import { PartTimeScheduleFormModalController } from '@components/partTime/schedule/modal/PartTimeScheduleFormModalController';
 
 import { ApiError } from '@lib/api/apiError';
+import { createSchedule, updateSchedule } from '@lib/api/entities/schedule/api';
 import { getAllStaffs } from '@lib/api/entities/staff/api';
 import type { PartTimeSchedule } from '@lib/types/partTimeSchedule';
 
 vi.mock('@lib/api/entities/staff/api', () => ({ getAllStaffs: vi.fn() }));
+vi.mock('@lib/api/entities/schedule/api', () => ({
+  getScheduleList: vi.fn(),
+  createSchedule: vi.fn(),
+  updateSchedule: vi.fn(),
+}));
 vi.mock('@hooks/overlay/useOverlayStackIndex', () => ({
   useOverlayStackIndex: () => 0,
 }));
@@ -19,9 +31,27 @@ vi.mock(
     PartTimeScheduleFormModal: ({
       staffs,
       staffPlaceholder,
+      onSubmit,
+      isPending,
+      errorMessage,
     }: PartTimeScheduleFormModalProps) => (
       <div>
         <p data-testid="placeholder">{staffPlaceholder ?? '기본'}</p>
+        {errorMessage && <p role="alert">{errorMessage}</p>}
+        <p data-testid="pending">{String(isPending)}</p>
+        <button
+          onClick={() =>
+            void onSubmit({
+              staffId: 1,
+              date: '2026-10-14',
+              startTime: '09:00',
+              endTime: '13:00',
+              memo: '',
+            })
+          }
+        >
+          제출
+        </button>
         <ul>
           {staffs.map(({ id, name }) => (
             <li key={id}>{name}</li>
@@ -44,6 +74,7 @@ const RESIGNED_SCHEDULE: PartTimeSchedule = {
 
 const clients: QueryClient[] = [];
 const renderController = (schedule?: PartTimeSchedule) => {
+  const close = vi.fn();
   const client = new QueryClient();
   clients.push(client);
   render(
@@ -51,13 +82,14 @@ const renderController = (schedule?: PartTimeSchedule) => {
       <PartTimeScheduleFormModalController
         overlayId="overlay"
         isOpen
-        close={vi.fn()}
+        close={close}
         unmount={vi.fn()}
         mode={schedule ? 'edit' : 'create'}
         schedule={schedule}
       />
     </QueryClientProvider>,
   );
+  return { close };
 };
 
 afterEach(() => {
@@ -68,6 +100,84 @@ afterEach(() => {
 });
 
 describe('PartTimeScheduleFormModalController', () => {
+  it('등록 중에는 닫지 않고 성공 후에만 닫으며 중복 요청을 막는다', async () => {
+    vi.mocked(getAllStaffs).mockResolvedValue([]);
+    let resolve!: (value: PartTimeSchedule) => void;
+    vi.mocked(createSchedule).mockImplementation(
+      () =>
+        new Promise((done) => {
+          resolve = done;
+        }),
+    );
+    const { close } = renderController();
+    fireEvent.click(screen.getByRole('button', { name: '제출' }));
+    fireEvent.click(screen.getByRole('button', { name: '제출' }));
+    await waitFor(() =>
+      expect(screen.getByTestId('pending').textContent).toBe('true'),
+    );
+    expect(close).not.toHaveBeenCalled();
+    expect(createSchedule).toHaveBeenCalledTimes(1);
+    expect(createSchedule).toHaveBeenCalledWith({
+      staffId: 1,
+      workDate: '2026-10-14',
+      startTime: '09:00',
+      endTime: '13:00',
+      memo: '',
+    });
+    resolve(RESIGNED_SCHEDULE);
+    await waitFor(() => expect(close).toHaveBeenCalledTimes(1));
+  });
+
+  it('수정은 변경된 필드와 빈 메모만 전송한다', async () => {
+    vi.mocked(getAllStaffs).mockResolvedValue([]);
+    vi.mocked(updateSchedule).mockResolvedValue(RESIGNED_SCHEDULE);
+    const { close } = renderController({
+      ...RESIGNED_SCHEDULE,
+      staff: { id: 1, name: '김예림', isDeleted: false },
+      startTime: '09:00',
+      endTime: '13:00',
+      memo: '삭제할 메모',
+    });
+    fireEvent.click(screen.getByRole('button', { name: '제출' }));
+    await waitFor(() => expect(close).toHaveBeenCalledTimes(1));
+    expect(updateSchedule).toHaveBeenCalledWith(10, { memo: '' });
+  });
+
+  it('변경된 값이 없으면 수정 요청을 보내지 않는다', async () => {
+    vi.mocked(getAllStaffs).mockResolvedValue([]);
+    const { close } = renderController({
+      ...RESIGNED_SCHEDULE,
+      staff: { id: 1, name: '김예림', isDeleted: false },
+      startTime: '09:00',
+      endTime: '13:00',
+    });
+    fireEvent.click(screen.getByRole('button', { name: '제출' }));
+    expect(updateSchedule).not.toHaveBeenCalled();
+    expect(close).not.toHaveBeenCalled();
+  });
+
+  it('시간 충돌 오류는 모달 안에 표시하고 다시 제출할 수 있다', async () => {
+    vi.mocked(getAllStaffs).mockResolvedValue([]);
+    vi.mocked(createSchedule)
+      .mockRejectedValueOnce(
+        new ApiError(
+          'SCHEDULE_TIME_CONFLICT',
+          409,
+          '해당 시간대에 이미 스케줄이 존재합니다.',
+        ),
+      )
+      .mockResolvedValue(RESIGNED_SCHEDULE);
+    const { close } = renderController();
+    fireEvent.click(screen.getByRole('button', { name: '제출' }));
+    expect((await screen.findByRole('alert')).textContent).toBe(
+      '해당 시간대에 이미 스케줄이 존재합니다.',
+    );
+    expect(close).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: '제출' }));
+    await waitFor(() => expect(close).toHaveBeenCalledTimes(1));
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
   it('재직자만 옵션으로 받는다', async () => {
     vi.mocked(getAllStaffs).mockResolvedValue([
       { id: 1, name: '김예림', isDeleted: false },

@@ -10,15 +10,20 @@ interface PartTimeScheduleQuickTimeSelectProps {
   startTime?: string;
   endTime?: string;
   onSelect: (startTime: string, endTime: string) => void;
+  isDisabled?: boolean;
 }
 
 function PartTimeScheduleQuickTimeSelect({
   startTime,
   endTime,
   onSelect,
+  isDisabled = false,
 }: PartTimeScheduleQuickTimeSelectProps) {
   return (
-    <div className="flex flex-wrap gap-2.5 max-tablet:gap-1">
+    <fieldset
+      disabled={isDisabled}
+      className="flex min-w-0 flex-wrap gap-2.5 disabled:opacity-50 max-tablet:gap-1"
+    >
       {QUICK_TIME_RANGES.map((range) => {
         const isSelected =
           range.startTime === startTime && range.endTime === endTime;
@@ -28,12 +33,14 @@ function PartTimeScheduleQuickTimeSelect({
             key={range.label}
             label={`${range.label} (${range.startTime} ~ ${range.endTime})`}
             tone={isSelected ? 'accent' : 'muted'}
-            onClick={() => onSelect(range.startTime, range.endTime)}
+            onClick={() => {
+              if (!isDisabled) onSelect(range.startTime, range.endTime);
+            }}
             className="font-semibold"
           />
         );
       })}
-    </div>
+    </fieldset>
   );
 }
 

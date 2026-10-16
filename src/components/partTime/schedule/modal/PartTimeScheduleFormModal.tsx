@@ -13,6 +13,7 @@ import { PartTimeScheduleQuickTimeSelect } from '@components/partTime/schedule/m
 
 import type {
   PartTimeSchedule,
+  PartTimeScheduleFormResult,
   PartTimeStaff,
 } from '@lib/types/partTimeSchedule';
 import {
@@ -20,6 +21,7 @@ import {
   parseCalendarDate,
 } from '@lib/utilities/calendar/calendarDate';
 import { cn } from '@lib/utilities/cn';
+import { getPartTimeScheduleChanges } from '@lib/utilities/partTime/partTimeScheduleForm';
 
 const STAFF_PLACEHOLDER = '아르바이트생을 선택해주세요';
 
@@ -58,24 +60,18 @@ interface PartTimeScheduleFormValues {
   memo: string;
 }
 
-interface PartTimeScheduleFormResult {
-  staffId: number;
-  date: string;
-  startTime: string;
-  endTime: string;
-  memo: string;
-}
-
 interface PartTimeScheduleFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (result: PartTimeScheduleFormResult) => void;
+  onSubmit: (result: PartTimeScheduleFormResult) => void | Promise<void>;
   onExitComplete?: () => void;
   mode: PartTimeScheduleFormMode;
   schedule?: PartTimeSchedule;
   staffs: PartTimeStaff[];
   staffPlaceholder?: string;
   stackIndex?: number;
+  isPending?: boolean;
+  errorMessage?: string;
 }
 
 const getDefaultValues = (
@@ -98,6 +94,8 @@ function PartTimeScheduleFormModal({
   staffs,
   staffPlaceholder = STAFF_PLACEHOLDER,
   stackIndex = 0,
+  isPending = false,
+  errorMessage,
 }: PartTimeScheduleFormModalProps) {
   const fieldId = useId();
   const { control, register, setValue, handleSubmit, formState } =
@@ -105,12 +103,34 @@ function PartTimeScheduleFormModal({
       mode: 'onChange',
       defaultValues: getDefaultValues(schedule),
     });
-  const [startTime, endTime] = useWatch({
+  const [staffId, date, startTime, endTime, memo] = useWatch({
     control,
-    name: ['startTime', 'endTime'],
+    name: ['staffId', 'date', 'startTime', 'endTime', 'memo'],
   });
 
+  const { isValid, isSubmitting } = formState;
+  const isLocked = isPending || isSubmitting;
+  const hasChanges =
+    !!schedule &&
+    !!date &&
+    getPartTimeScheduleChanges(
+      {
+        staffId: Number(staffId),
+        date: formatCalendarDate(date),
+        startTime,
+        endTime,
+        memo,
+      },
+      schedule,
+    ) !== null;
   const text = FORM_MODAL_TEXT[mode];
+  const isSubmitDisabled =
+    !isValid ||
+    !startTime ||
+    !endTime ||
+    endTime <= startTime ||
+    (mode === 'edit' && !hasChanges) ||
+    isLocked;
   const staffOptions = staffs.map((staff) => ({
     value: String(staff.id),
     label: staff.name,
@@ -120,16 +140,23 @@ function PartTimeScheduleFormModal({
     nextStartTime: string,
     nextEndTime: string,
   ) => {
-    setValue('startTime', nextStartTime, { shouldValidate: true });
-    setValue('endTime', nextEndTime, { shouldValidate: true });
+    if (isLocked) return;
+    setValue('startTime', nextStartTime, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
+    setValue('endTime', nextEndTime, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
   };
 
-  const handleFormSubmit = (values: PartTimeScheduleFormValues) => {
-    if (!values.date) {
+  const handleFormSubmit = async (values: PartTimeScheduleFormValues) => {
+    if (!values.date || isSubmitDisabled) {
       return;
     }
 
-    onSubmit({
+    await onSubmit({
       staffId: Number(values.staffId),
       date: formatCalendarDate(values.date),
       startTime: values.startTime,
@@ -141,7 +168,13 @@ function PartTimeScheduleFormModal({
   return (
     <Modal
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={(nextOpen, details) => {
+        if (!nextOpen && isLocked) {
+          details.cancel();
+          return;
+        }
+        onOpenChange(nextOpen);
+      }}
       onOpenChangeComplete={(isOpened) => {
         if (!isOpened) {
           onExitComplete?.();
@@ -156,14 +189,20 @@ function PartTimeScheduleFormModal({
       >
         <Modal.Header align="start">
           <Modal.Title className="max-tablet:text-xl">{text.title}</Modal.Title>
-          <Modal.CloseButton />
+          <Modal.CloseButton disabled={isLocked} />
         </Modal.Header>
         <form
           noValidate
+          aria-busy={isLocked}
           onSubmit={handleSubmit(handleFormSubmit)}
           className="flex min-h-0 flex-1 flex-col gap-10 max-tablet:gap-4"
         >
           <Modal.Body className="-m-1 flex flex-col gap-4 p-1 max-tablet:gap-3">
+            {errorMessage && (
+              <p role="alert" className="text-sm text-warning-500">
+                {errorMessage}
+              </p>
+            )}
             <PartTimeScheduleFormField
               label="아르바이트생 이름"
               labelId={`${fieldId}-staff`}
@@ -175,6 +214,7 @@ function PartTimeScheduleFormModal({
                 rules={{ required: true }}
                 render={({ field }) => (
                   <FormDropdown
+                    disabled={isLocked}
                     value={field.value || undefined}
                     options={staffOptions}
                     onChange={field.onChange}
@@ -197,6 +237,7 @@ function PartTimeScheduleFormModal({
                 rules={{ required: true }}
                 render={({ field }) => (
                   <DatePicker
+                    disabled={isLocked}
                     value={field.value}
                     onChange={field.onChange}
                     placeholder="근무 날짜를 선택해주세요"
@@ -216,6 +257,7 @@ function PartTimeScheduleFormModal({
                 rules={{ required: true }}
                 render={({ field }) => (
                   <FormDropdown
+                    disabled={isLocked}
                     value={field.value || undefined}
                     options={TIME_OPTIONS}
                     onChange={field.onChange}
@@ -238,6 +280,7 @@ function PartTimeScheduleFormModal({
                 rules={{ required: true }}
                 render={({ field }) => (
                   <FormDropdown
+                    disabled={isLocked}
                     value={field.value || undefined}
                     options={TIME_OPTIONS}
                     onChange={field.onChange}
@@ -254,6 +297,7 @@ function PartTimeScheduleFormModal({
               labelId={`${fieldId}-quick-time`}
             >
               <PartTimeScheduleQuickTimeSelect
+                isDisabled={isLocked}
                 startTime={startTime}
                 endTime={endTime}
                 onSelect={handleQuickTimeSelect}
@@ -261,18 +305,21 @@ function PartTimeScheduleFormModal({
             </PartTimeScheduleFormField>
             <PartTimeScheduleFormField label="메모" labelId={`${fieldId}-memo`}>
               <Input
+                disabled={isLocked}
                 aria-labelledby={`${fieldId}-memo`}
                 placeholder="간단한 메모를 작성해주세요"
+                maxLength={500}
                 className={cn(
                   FIELD_CLASS_NAME,
                   '[&_input]:placeholder:text-muted-foreground',
                 )}
-                {...register('memo')}
+                {...register('memo', { maxLength: 500 })}
               />
             </PartTimeScheduleFormField>
           </Modal.Body>
           <Modal.Footer layout="split" className="max-tablet:gap-2">
             <Modal.CloseButton
+              disabled={isLocked}
               render={
                 <Button
                   type="button"
@@ -288,7 +335,7 @@ function PartTimeScheduleFormModal({
             </Modal.CloseButton>
             <Button
               type="submit"
-              disabled={!formState.isValid}
+              disabled={isSubmitDisabled}
               focusableWhenDisabled
               className={cn(
                 FOOTER_BUTTON_CLASS_NAME,
@@ -305,8 +352,4 @@ function PartTimeScheduleFormModal({
 }
 
 export { PartTimeScheduleFormModal };
-export type {
-  PartTimeScheduleFormModalProps,
-  PartTimeScheduleFormMode,
-  PartTimeScheduleFormResult,
-};
+export type { PartTimeScheduleFormModalProps, PartTimeScheduleFormMode };

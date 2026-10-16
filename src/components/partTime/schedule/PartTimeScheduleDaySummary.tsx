@@ -11,6 +11,11 @@ interface PartTimeScheduleDaySummaryProps {
   schedules: PartTimeSchedule[];
   onScheduleEdit: (schedule: PartTimeSchedule) => void;
   onScheduleDelete: (schedule: PartTimeSchedule) => void;
+  onAttendanceChange: (
+    schedule: PartTimeSchedule,
+    isCheckedIn: boolean,
+  ) => void;
+  isPending: boolean;
   className?: string;
 }
 
@@ -20,6 +25,8 @@ function PartTimeScheduleDaySummary({
   schedules,
   onScheduleEdit,
   onScheduleDelete,
+  onAttendanceChange,
+  isPending,
   className,
 }: PartTimeScheduleDaySummaryProps) {
   const titleId = `part-time-schedule-summary-${date}`;
@@ -73,7 +80,13 @@ function PartTimeScheduleDaySummary({
               return (
                 <li key={id} className="flex items-center gap-2 px-1 py-1.5">
                   <label className="flex min-w-0 flex-1 items-center gap-1">
-                    <Checkbox checked={isCheckedIn} readOnly />
+                    <Checkbox
+                      checked={isCheckedIn}
+                      disabled={schedule.date > today || isPending}
+                      onCheckedChange={(checked) =>
+                        onAttendanceChange(schedule, checked)
+                      }
+                    />
                     <span className="truncate text-sm font-medium tracking-[-0.03em] text-[#737373]">
                       {startTime} ~ {endTime} {staff.name}
                     </span>
@@ -83,6 +96,7 @@ function PartTimeScheduleDaySummary({
                       size="small"
                       aria-label={`${startTime} ~ ${endTime} ${staff.name} 스케쥴 수정`}
                       className="text-slate-400"
+                      disabled={isPending}
                       onClick={() => onScheduleEdit(schedule)}
                     >
                       수정
@@ -94,6 +108,7 @@ function PartTimeScheduleDaySummary({
                     <TextButton
                       size="small"
                       aria-label={`${startTime} ~ ${endTime} ${staff.name} 스케쥴 삭제`}
+                      disabled={isPending}
                       onClick={() => onScheduleDelete(schedule)}
                     >
                       삭제
@@ -114,3 +129,4 @@ function PartTimeScheduleDaySummary({
 }
 
 export { PartTimeScheduleDaySummary };
+export type { PartTimeScheduleDaySummaryProps };

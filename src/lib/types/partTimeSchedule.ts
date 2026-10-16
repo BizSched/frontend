@@ -14,4 +14,12 @@ interface PartTimeSchedule {
   memo: string;
 }
 
-export type { PartTimeSchedule, PartTimeStaff };
+interface PartTimeScheduleFormResult {
+  staffId: number;
+  date: string;
+  startTime: string;
+  endTime: string;
+  memo: string;
+}
+
+export type { PartTimeSchedule, PartTimeScheduleFormResult, PartTimeStaff };

@@ -2,11 +2,12 @@
 
 import { overlay } from 'overlay-kit';
 
-import type { PartTimeScheduleFormResult } from '@components/partTime/schedule/modal/PartTimeScheduleFormModal';
 import {
   PartTimeScheduleFormModalController,
   type PartTimeScheduleFormModalContent,
 } from '@components/partTime/schedule/modal/PartTimeScheduleFormModalController';
+
+import type { PartTimeScheduleFormResult } from '@lib/types/partTimeSchedule';
 
 let isFormModalOpen = false;
 
