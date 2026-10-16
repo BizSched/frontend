@@ -39,6 +39,12 @@ const request: SaleCreateRequest = {
 };
 const listKey = salesKeys.list({ month: '2026-10' });
 const monthTotalKey = salesKeys.monthTotal({ month: '2026-10' });
+const dashboardKeys = [
+  salesKeys.summary({ month: '2026-10' }),
+  salesKeys.chart({ unit: 'MONTH', date: '2026-10-16' }),
+  salesKeys.ratio({ month: '2026-10' }),
+  salesKeys.list({ page: 1, size: 8 }),
+];
 const categoryKey = ['salesCategory', 'list'] as const;
 
 describe('useCreateSale', () => {
@@ -65,6 +71,25 @@ describe('useCreateSale', () => {
     expect(queryClient.getQueryState(listKey)?.isInvalidated).toBe(true);
     expect(queryClient.getQueryState(monthTotalKey)?.isInvalidated).toBe(true);
     expect(queryClient.getQueryState(categoryKey)?.isInvalidated).toBe(false);
+  });
+
+  it('매출 생성에 성공하면 대시보드의 요약·차트·구성·최근 내역 쿼리를 무효화한다', async () => {
+    vi.mocked(createSale).mockResolvedValue({
+      id: 1,
+      date: request.date,
+      sales: [],
+      totalAmount: 0,
+    });
+    const queryClient = createQueryClient();
+    dashboardKeys.forEach((key) => queryClient.setQueryData(key, {}));
+    const { result } = renderCreateSale(queryClient);
+
+    act(() => result.current.mutate(request));
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    dashboardKeys.forEach((key) =>
+      expect(queryClient.getQueryState(key)?.isInvalidated).toBe(true),
+    );
   });
 
   it('매출 생성에 실패하면 오류를 mutation 상태에 보존한다', async () => {
