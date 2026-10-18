@@ -33,7 +33,7 @@ function SalesChartSection({ date }: SalesChartSectionProps) {
         </Card.Title>
       </Card.Header>
 
-      <Card.Content className="flex min-h-[270px] flex-col max-tablet:min-h-0">
+      <Card.Content className="flex h-[270px] flex-col">
         {!data ? (
           <p className="flex flex-1 items-center justify-center text-sm text-slate-500">
             {error ? formatSalesError(error) : '불러오는 중'}
