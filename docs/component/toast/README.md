@@ -133,12 +133,29 @@ Sonner 내부 동작(큐·스와이프·타이머)은 라이브러리 책임이�
 
 ## 단계별 PR 계획
 
-| 순서 | 내용                                                                               |
-| ---- | ---------------------------------------------------------------------------------- |
-| 1    | **이 설계 문서** + `component/README.md`·`docs/README.md` 인덱스 + modal 문서 정합 |
-| 2    | `sonner` 도입 + `Toaster.tsx` + layout 마운트 + 테스트                             |
-| 3    | 기본 디자인 토큰·반응형 점검 (변경이 있을 때만)                                    |
-| 4    | 이 문서에 실측 결과 반영, 상태를 `구현 완료`로 갱신                                |
+GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-started/about-stacked-prs)로 진행한다. 각 브랜치는 바로 아래 브랜치를 base로 하고, 맨 아래만 `dev`를 향한다. 아래부터 Merge commit으로 병합하면 남은 PR의 base가 자동으로 리타깃된다. 중간 브랜치를 수정하면 `gh stack rebase --upstack`으로 위쪽에 전파한다.
+
+| 순서 | 브랜치                          | base                       | 내용                                                                               |
+| ---- | ------------------------------- | -------------------------- | ---------------------------------------------------------------------------------- |
+| 1/4  | `feat/common-toast`             | `dev`                      | **이 설계 문서** + `component/README.md`·`docs/README.md` 인덱스 + modal 문서 정합 |
+| 2/4  | `feat/common-toast-ui`          | `feat/common-toast`        | `sonner` 도입 + `Toaster.tsx` + layout 마운트 + 테스트                             |
+| 3/4  | `feat/common-toast-design`      | `feat/common-toast-ui`     | 기본 디자인 토큰·반응형 점검 (변경이 있을 때만)                                    |
+| 4/4  | `feat/common-toast-docs-result` | `feat/common-toast-design` | 이 문서에 실측 결과 반영, 상태를 `구현 완료`로 갱신                                |
+
+### PR 제목
+
+[pr-flow.md](../../collaboration/pr-flow.md)의 `[커밋 타입 대문자-#이슈번호] 한글 요약` 형식에 **단계 `[n/4]`** 를 요약 앞에 붙인다. 이슈는 `#226`.
+
+| 순서 | 제목                                                         |
+| ---- | ------------------------------------------------------------ |
+| 1/4  | `[FEAT-#226] [1/4] 공통 컴포넌트 토스트 문서 작성`           |
+| 2/4  | `[FEAT-#226] [2/4] 공통 컴포넌트 토스트 구현`                |
+| 3/4  | `[FEAT-#226] [3/4] 공통 컴포넌트 토스트 디자인 점검`         |
+| 4/4  | `[FEAT-#226] [4/4] 공통 컴포넌트 토스트 구현 결과 문서 반영` |
+
+3/4는 디자인 점검에서 변경이 없으면 PR을 만들지 않는다. 그 경우 4/4를 3/3으로 바꾸고 총 개수 표기를 함께 갱신한다.
+
+> **참고**: stacked pull requests는 GitHub public preview 기능이다.
 
 ## 확인 필요
 
