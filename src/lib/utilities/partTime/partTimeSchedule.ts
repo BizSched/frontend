@@ -39,6 +39,46 @@ const groupPartTimeSchedulesByDate = (schedules: PartTimeSchedule[]) =>
     return groups;
   }, {});
 
+const SHIFT_PERIODS = ['오전', '오후', '저녁', '야간'] as const;
+
+type ShiftPeriod = (typeof SHIFT_PERIODS)[number];
+
+const getShiftPeriod = (startTime: string): ShiftPeriod => {
+  if (startTime < '13:00') return '오전';
+  if (startTime < '18:00') return '오후';
+  if (startTime < '22:00') return '저녁';
+  return '야간';
+};
+
+const groupPartTimeSchedulesByShift = (schedules: PartTimeSchedule[]) => {
+  const groups: Record<ShiftPeriod, PartTimeSchedule[]> = {
+    오전: [],
+    오후: [],
+    저녁: [],
+    야간: [],
+  };
+  [...schedules]
+    .sort(comparePartTimeScheduleTime)
+    .forEach((schedule) =>
+      groups[getShiftPeriod(schedule.startTime)].push(schedule),
+    );
+  return groups;
+};
+
+const toMinutes = (time: string) => {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
+};
+
+const formatPartTimeScheduleDuration = (startTime: string, endTime: string) => {
+  const total = toMinutes(endTime) - toMinutes(startTime);
+  const hours = Math.floor(total / 60);
+  const minutes = total % 60;
+  return [hours && `${hours}시간`, minutes && `${minutes}분`]
+    .filter(Boolean)
+    .join(' ');
+};
+
 const formatPartTimeScheduleSummaryTitle = (date: string, today: string) => {
   if (date === today) {
     return '오늘의 스케쥴';
@@ -51,8 +91,13 @@ const formatPartTimeScheduleSummaryTitle = (date: string, today: string) => {
 
 export {
   comparePartTimeScheduleTime,
+  formatPartTimeScheduleDuration,
   formatPartTimeScheduleSummaryTitle,
   getPartTimeScheduleRange,
   getPartTimeScheduleStaffOptions,
+  getShiftPeriod,
   groupPartTimeSchedulesByDate,
+  groupPartTimeSchedulesByShift,
+  SHIFT_PERIODS,
 };
+export type { ShiftPeriod };

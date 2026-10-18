@@ -1,68 +1,27 @@
+'use client';
+
 import { Card } from '@components/_common/Card/Card';
+
+import { useScheduleList } from '@hooks/api/schedule/useScheduleList';
+
+import { formatCommonError } from '@lib/api/formatCommonError';
+import type { PartTimeSchedule } from '@lib/types/partTimeSchedule';
+import {
+  groupPartTimeSchedulesByShift,
+  SHIFT_PERIODS,
+  type ShiftPeriod,
+} from '@lib/utilities/partTime/partTimeSchedule';
 
 import { WorkerCard } from './WorkerCard';
 
-/** 시간대별 근무 구분 */
-type ShiftPeriod = '오전' | '오후' | '저녁' | '야간';
-
-/** 알바생 더미 데이터 — 추후 API 연동 시 교체 */
-interface WorkerShift {
-  id: string;
-  name: string;
-  startTime: string;
-  endTime: string;
-  duration: string;
+interface TodayWorkerSectionProps {
+  today: string;
 }
 
-const SHIFT_PERIODS: ShiftPeriod[] = ['오전', '오후', '저녁', '야간'];
+function TodayWorkerSection({ today }: TodayWorkerSectionProps) {
+  const { data, error } = useScheduleList({ from: today, to: today });
+  const groups = data && groupPartTimeSchedulesByShift(data);
 
-const MOCK_WORKERS: Record<ShiftPeriod, WorkerShift[]> = {
-  오전: [
-    {
-      id: '1',
-      name: '신짱구',
-      startTime: '12:00',
-      endTime: '18:00',
-      duration: '6시간',
-    },
-  ],
-  오후: [
-    {
-      id: '2',
-      name: '봉미선',
-      startTime: '12:00',
-      endTime: '18:00',
-      duration: '6시간',
-    },
-    {
-      id: '3',
-      name: '신형만',
-      startTime: '13:00',
-      endTime: '16:00',
-      duration: '3시간',
-    },
-  ],
-  저녁: [
-    {
-      id: '4',
-      name: '김철수',
-      startTime: '12:00',
-      endTime: '18:00',
-      duration: '6시간',
-    },
-  ],
-  야간: [
-    {
-      id: '5',
-      name: '나미리',
-      startTime: '12:00',
-      endTime: '18:00',
-      duration: '6시간',
-    },
-  ],
-};
-
-function TodayWorkerSection() {
   return (
     <Card padding="lg" className="gap-6">
       <Card.Header className="justify-center">
@@ -70,41 +29,57 @@ function TodayWorkerSection() {
       </Card.Header>
 
       <Card.Content>
-        <div className="grid grid-cols-4 gap-4 max-tablet:hidden">
-          {SHIFT_PERIODS.map((period) => (
-            <ShiftColumn
-              key={period}
-              period={period}
-              workers={MOCK_WORKERS[period]}
-            />
-          ))}
-        </div>
-
-        <div className="hidden max-tablet:flex max-tablet:flex-col max-tablet:gap-4">
-          {SHIFT_PERIODS.map((period) => (
-            <div key={period} className="flex items-start gap-3">
-              <span className="w-8 shrink-0 pt-2 text-sm font-semibold text-slate-400">
-                {period}
-              </span>
-              <div className="flex flex-1 flex-wrap gap-2">
-                {MOCK_WORKERS[period].map((worker) => (
-                  <WorkerCard key={worker.id} worker={worker} />
-                ))}
-              </div>
+        {groups ? (
+          <>
+            <div className="grid grid-cols-4 gap-4 max-tablet:hidden">
+              {SHIFT_PERIODS.map((period) => (
+                <ShiftColumn
+                  key={period}
+                  period={period}
+                  schedules={groups[period]}
+                />
+              ))}
             </div>
-          ))}
-        </div>
+
+            <div className="hidden max-tablet:flex max-tablet:flex-col max-tablet:gap-4">
+              {SHIFT_PERIODS.map((period) => (
+                <div key={period} className="flex items-start gap-3">
+                  <span className="w-8 shrink-0 pt-2 text-sm font-semibold text-slate-400">
+                    {period}
+                  </span>
+                  <div className="flex flex-1 flex-wrap gap-2">
+                    <WorkerList schedules={groups[period]} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <p className="py-6 text-center text-sm text-slate-500">
+            {error ? formatCommonError(error) : '불러오는 중'}
+          </p>
+        )}
       </Card.Content>
     </Card>
   );
 }
 
+function WorkerList({ schedules }: { schedules: PartTimeSchedule[] }) {
+  if (schedules.length === 0) {
+    return <span className="py-2 text-sm text-slate-300">근무자 없음</span>;
+  }
+
+  return schedules.map((schedule) => (
+    <WorkerCard key={schedule.id} schedule={schedule} />
+  ));
+}
+
 function ShiftColumn({
   period,
-  workers,
+  schedules,
 }: {
   period: ShiftPeriod;
-  workers: WorkerShift[];
+  schedules: PartTimeSchedule[];
 }) {
   return (
     <div className="flex flex-col gap-3">
@@ -117,13 +92,10 @@ function ShiftColumn({
       </div>
 
       <div className="flex flex-col gap-2">
-        {workers.map((worker) => (
-          <WorkerCard key={worker.id} worker={worker} />
-        ))}
+        <WorkerList schedules={schedules} />
       </div>
     </div>
   );
 }
 
 export { TodayWorkerSection };
-export type { WorkerShift, ShiftPeriod };
