@@ -308,7 +308,7 @@ export interface AttachmentResponse {
   fileName: string;
   /** 파일 크기(bytes) */
   fileSize: number;
-  /** MIME 타입 */
+  /** MIME 타입. 업로드 때 보낸 값이 아니라 확장자로 정한다 (`.webp` → `image/webp`) */
   contentType: string;
   /** 다운로드 경로입니다. 액세스 토큰이 필요하므로 `<img src>` 에 바로 넣으면 401 입니다. `fetch` 로 받아 blob URL 로 쓰세요. */
   downloadUrl: string;
@@ -470,8 +470,10 @@ export interface SalesCategoryCreateRequest {
  * 소셜 로그인·간편가입 요청
  */
 export interface OAuthLoginRequest {
-  /** 프론트가 소셜 로그인 화면에서 받아 온 인가 코드 */
+  /** BFF 콜백이 카카오·구글 리다이렉트로 받은 인가 코드(`code` 쿼리 파라미터) */
   authorizationCode: string;
+  /** PKCE `code_verifier`. BFF 가 인가 요청 때 `code_challenge`(S256) 를 만든 원문을 그대로 보낸다 */
+  codeVerifier: string;
 }
 
 /**
@@ -1378,6 +1380,26 @@ export interface CategoryNameConflict {
 }
 
 /**
+ * 기존 계정의 가입 방법
+ */
+export type SocialEmailConflictJoinType = typeof SocialEmailConflictJoinType[keyof typeof SocialEmailConflictJoinType];
+
+
+export const SocialEmailConflictJoinType = {
+  EMAIL: 'EMAIL',
+  KAKAO: 'KAKAO',
+  GOOGLE: 'GOOGLE',
+} as const;
+
+/**
+ * 이메일이 겹친 기존 계정의 가입 방법
+ */
+export interface SocialEmailConflict {
+  /** 기존 계정의 가입 방법 */
+  joinType: SocialEmailConflictJoinType;
+}
+
+/**
  * 공통 에러 응답
  */
 export interface ErrorResponse {
@@ -1387,8 +1409,8 @@ export interface ErrorResponse {
   message: string;
   /** 에러 코드(프론트 분기용) */
   errorCode: string;
-  /** 에러 분기에 필요한 부가 정보. 대부분의 에러에서는 빠진다. `SCHEDULE_TIME_CONFLICT` 면 ScheduleConflict, `CATEGORY_NAME_DUPLICATED` 면 CategoryNameConflict */
-  data?: ScheduleConflict | CategoryNameConflict;
+  /** 에러 분기에 필요한 부가 정보. 대부분의 에러에서는 빠진다. `SCHEDULE_TIME_CONFLICT` 면 ScheduleConflict, `CATEGORY_NAME_DUPLICATED` 면 CategoryNameConflict, `SOCIAL_EMAIL_CONFLICT` 면 SocialEmailConflict */
+  data?: ScheduleConflict | CategoryNameConflict | SocialEmailConflict;
 }
 
 export type FindAll1Params = {

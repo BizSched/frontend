@@ -5,8 +5,11 @@ import type {
   PartTimeStaff,
 } from '@lib/types/partTimeSchedule';
 import {
+  formatPartTimeScheduleDuration,
   getPartTimeScheduleRange,
   getPartTimeScheduleStaffOptions,
+  getShiftPeriod,
+  groupPartTimeSchedulesByShift,
 } from '@lib/utilities/partTime/partTimeSchedule';
 
 describe('getPartTimeScheduleRange', () => {
@@ -66,5 +69,67 @@ describe('getPartTimeScheduleStaffOptions', () => {
     expect(
       getPartTimeScheduleStaffOptions([], createSchedule(resigned)),
     ).toEqual([resigned]);
+  });
+});
+
+describe('getShiftPeriod', () => {
+  it.each([
+    ['06:00', '오전'],
+    ['12:59', '오전'],
+    ['13:00', '오후'],
+    ['17:59', '오후'],
+    ['18:00', '저녁'],
+    ['21:59', '저녁'],
+    ['22:00', '야간'],
+  ])('%s 시작은 %s', (startTime, period) => {
+    expect(getShiftPeriod(startTime)).toBe(period);
+  });
+});
+
+describe('groupPartTimeSchedulesByShift', () => {
+  const createSchedule = (
+    id: number,
+    startTime: string,
+    endTime: string,
+  ): PartTimeSchedule => ({
+    id,
+    staff: { id, name: `알바${id}`, isDeleted: false },
+    date: '2026-10-16',
+    startTime,
+    endTime,
+    isCheckedIn: false,
+    memo: '',
+  });
+
+  it('근무자가 없는 시간대도 빈 배열로 둔다', () => {
+    expect(groupPartTimeSchedulesByShift([])).toEqual({
+      오전: [],
+      오후: [],
+      저녁: [],
+      야간: [],
+    });
+  });
+
+  it('같은 시간대는 시작 시각 순으로 정렬한다', () => {
+    const late = createSchedule(1, '14:00', '18:00');
+    const early = createSchedule(2, '13:00', '18:00');
+    const morning = createSchedule(3, '09:00', '13:00');
+
+    expect(groupPartTimeSchedulesByShift([late, morning, early])).toEqual({
+      오전: [morning],
+      오후: [early, late],
+      저녁: [],
+      야간: [],
+    });
+  });
+});
+
+describe('formatPartTimeScheduleDuration', () => {
+  it.each([
+    ['12:00', '18:00', '6시간'],
+    ['13:00', '16:30', '3시간 30분'],
+    ['09:00', '09:30', '30분'],
+  ])('%s~%s는 %s', (startTime, endTime, text) => {
+    expect(formatPartTimeScheduleDuration(startTime, endTime)).toBe(text);
   });
 });
