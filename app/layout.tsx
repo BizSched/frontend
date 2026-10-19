@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 
 import './globals.css';
+import { Toaster } from '@components/_common/Toast/Toaster';
+
 import { OverlayProvider } from '@providers/overlay/OverlayProvider';
 import { QueryProvider } from '@providers/query/QueryProvider';
 
@@ -33,6 +35,7 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
         <QueryProvider>
           <OverlayProvider>{children}</OverlayProvider>
         </QueryProvider>
+        <Toaster />
       </body>
     </html>
   );

@@ -26,7 +26,7 @@ Figma에는 Toast 디자인이 **연결되어 있지 않다.** 따라서 shadcn/
 | **Sonner**  | 큐·스택 레이아웃·스와이프·a11y 제공, modal과 상태 분리 | 의존성 1개 증가, 스타일을 Sonner 구조에 맞춰야 함                                                      |
 | overlay-kit | 의존성 증가 없음                                       | modal과 오버레이 목록을 공유해 `stackIndex`가 오염됨 → 스코프 분리 선행 필요, 큐·타이머·a11y 직접 구현 |
 
-modal 문서의 "오버레이 스코프 분리"가 설명하는 `stackIndex` 오염은 toast가 overlay-kit 목록에 들어올 때만 생긴다. Sonner는 그 목록을 쓰지 않으므로 이 문제가 발생하지 않는다.
+toast가 overlay-kit 목록에 들어올 때만 모달의 `stackIndex`가 오염된다. Sonner는 그 목록을 쓰지 않으므로 스코프 분리 설계는 폐기했다 ([modal 문서](../modal/README.md)).
 
 ## 레이어 구조
 
@@ -165,13 +165,9 @@ GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-star
 
 모달이 열린 상태에서 `toast.error()`를 호출했을 때 toast가 모달 위에 보이고, 닫기·액션이 눌리는지 확인되지 않았다. 구현 후 실측해 "접근성" 절과 이 항목을 갱신한다.
 
-### 2. modal "오버레이 스코프 분리"를 계속할지
-
-modal 문서의 스코프 분리(미구현)는 toast가 overlay-kit을 쓴다는 전제에서 시작됐다. Sonner 확정으로 그 근거가 사라졌다. 다른 오버레이 대비로 유지할지, 폐기할지는 사용자 결정이 필요하다.
-
 ## 참고
 
 - 공통 UI 배치·`cva`·`cn` 규칙: [convention/ui-component.md](../../convention/ui-component.md)
 - 렌더링 경계 금지 목록: [architecture/rendering.md](../../architecture/rendering.md)
-- Modal 설계(overlay-kit, 스코프 분리): [component/modal/README.md](../modal/README.md)
+- Modal 설계(overlay-kit): [component/modal/README.md](../modal/README.md)
 - 전체 문서 인덱스: [docs/README.md](../../README.md)
