@@ -12,6 +12,7 @@ interface PartTimeStaffCardProps {
   onDetailOpen?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  isDeletePending?: boolean;
 }
 
 function PartTimeStaffCard({
@@ -19,6 +20,7 @@ function PartTimeStaffCard({
   onDetailOpen,
   onEdit,
   onDelete,
+  isDeletePending = false,
 }: PartTimeStaffCardProps) {
   const { name, phone, createdAt } = staff;
 
@@ -55,7 +57,8 @@ function PartTimeStaffCard({
             <button
               type="button"
               aria-label={`${name} 더보기`}
-              className="relative flex cursor-pointer items-center justify-center rounded-lg text-[#a4a4a4] outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              disabled={isDeletePending}
+              className="relative flex cursor-pointer items-center justify-center rounded-lg text-[#a4a4a4] outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             >
               <EllipsisVerticalIcon
                 className="size-6 max-tablet:size-4"
