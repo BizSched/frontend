@@ -20,6 +20,9 @@ API baseURL에 이 규칙을 적용하는 방식은 [data-flow.md](./data-flow.m
 
 ## 키 목록
 
-| 키            | 구분   | 용도                                                                                          |
-| ------------- | ------ | --------------------------------------------------------------------------------------------- |
-| `BE_BASE_URL` | server | BE base URL. 브라우저는 BE를 직접 호출하지 않으므로 서버 전용으로 둔다 ([auth.md](./auth.md)) |
+| 키                      | 구분   | 용도                                                                                                             |
+| ----------------------- | ------ | ---------------------------------------------------------------------------------------------------------------- |
+| `BE_BASE_URL`           | server | BE base URL. 브라우저는 BE를 직접 호출하지 않으므로 서버 전용으로 둔다 ([auth.md](./auth.md))                    |
+| `KAKAO_CLIENT_ID`       | server | 카카오 REST API 키. 소셜 인가 요청의 `client_id` ([auth.md](./auth.md)의 "소셜 로그인")                          |
+| `GOOGLE_CLIENT_ID`      | server | 구글 OAuth 클라이언트 ID. 소셜 인가 요청의 `client_id`                                                           |
+| `OAUTH_REDIRECT_ORIGIN` | server | 소셜 콜백 origin(`http://localhost:3000`, `https://bizsched.vercel.app`). BE의 `redirect_uri` 설정과 같아야 한다 |
