@@ -96,18 +96,31 @@ shadcn 기본 스타일이 참조하는 CSS 변수가 저장소에 있는지 확
 
 ### 신설 / 불일치
 
-없음 (구현 후 실측으로 확인 — 달라지면 이 표를 먼저 고친다).
+없음. 구현에서 네 변수를 그대로 참조하며, `app/globals.css`가 위 값의 정의 파일인 `src/assets/styles/theme.css`를 import한다.
 
 ### 참고 — z-index
 
-저장소에는 `--z-popover: 2000`, modal `--z-modal-base: 1000`이 있다. Sonner는 자체 z-index를 가지므로 모달 위에 보이는지는 구현 후 실측한다 (아래 "확인 필요").
+저장소에는 `--z-popover: 2000`, modal `--z-modal-base: 1000`이 있다. Sonner는 자체 z-index를 사용하며, 모달 위 표시와 조작 가능 여부를 수동 확인했다 (아래 "접근성").
+
+### 반응형 점검 결과
+
+| 항목                    | 결과                                                                    |
+| ----------------------- | ----------------------------------------------------------------------- |
+| 기본 `sm:`·`md:` 클래스 | `Toaster.tsx`에 없음. 저장소의 커스텀 breakpoint와 충돌하지 않음        |
+| 375px 폭·긴 문구        | Storybook에서 긴 문구가 두 줄로 표시되고 좌우가 잘리지 않음 (수동 확인) |
+| 하단 안전 영역          | 실제 모바일 기기에서는 확인하지 못함. 아래 "확인 필요" 참고             |
 
 ## 접근성
 
 - Sonner가 `aria-live` 영역으로 메시지를 읽어준다. 별도 `aria` 속성을 덧붙이지 않는다.
-- 키보드로 toast 영역에 포커스를 옮겨 닫을 수 있어야 한다 (Sonner 내장 동작 — 구현 후 확인).
-- `prefers-reduced-motion`에서 애니메이션이 과하지 않은지 구현 후 확인한다.
-- **모달이 열린 상태**에서 toast가 보이고 닫기·액션이 눌려야 한다. Base UI `Dialog`(modal)는 바깥 요소를 inert 처리할 수 있어 미검증이다 → "확인 필요".
+- 키보드로 toast 영역에 포커스를 옮겨 닫을 수 있어야 한다 (Sonner 내장 동작 — 수동 확인 필요).
+- `prefers-reduced-motion`에서 애니메이션이 과하지 않은지 수동 확인이 필요하다.
+
+| 모달 위 Toast 점검 | Storybook 수동 확인 결과              |
+| ------------------ | ------------------------------------- |
+| 표시               | 열린 모달 위에 Toast가 보임           |
+| 닫기               | Toast의 닫기 버튼을 누를 수 있음      |
+| 액션               | 액션 버튼을 누르면 후속 알림이 표시됨 |
 
 ## 렌더링 경계
 
@@ -133,27 +146,25 @@ Sonner 내부 동작(큐·스와이프·타이머)은 라이브러리 책임이�
 
 ## 단계별 PR 계획
 
-GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-started/about-stacked-prs)로 진행한다. 각 브랜치는 바로 아래 브랜치를 base로 하고, 맨 아래만 `dev`를 향한다. 아래부터 Merge commit으로 병합하면 남은 PR의 base가 자동으로 리타깃된다. 중간 브랜치를 수정하면 `gh stack rebase --upstack`으로 위쪽에 전파한다.
+GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-started/about-stacked-prs)로 시작했다. 1/3 브랜치가 `dev`에 병합된 뒤 2/3 브랜치의 base는 `dev`가 됐다. 3/3 브랜치는 2/3 브랜치를 base로 한다.
 
-| 순서 | 브랜치                          | base                       | 내용                                                                               |
-| ---- | ------------------------------- | -------------------------- | ---------------------------------------------------------------------------------- |
-| 1/4  | `feat/common-toast`             | `dev`                      | **이 설계 문서** + `component/README.md`·`docs/README.md` 인덱스 + modal 문서 정합 |
-| 2/4  | `feat/common-toast-ui`          | `feat/common-toast`        | `sonner` 도입 + `Toaster.tsx` + layout 마운트 + 테스트                             |
-| 3/4  | `feat/common-toast-design`      | `feat/common-toast-ui`     | 기본 디자인 토큰·반응형 점검 (변경이 있을 때만)                                    |
-| 4/4  | `feat/common-toast-docs-result` | `feat/common-toast-design` | 이 문서에 실측 결과 반영, 상태를 `구현 완료`로 갱신                                |
+| 순서 | 브랜치                          | base                   | 내용                                                                               |
+| ---- | ------------------------------- | ---------------------- | ---------------------------------------------------------------------------------- |
+| 1/3  | `feat/common-toast`             | `dev`                  | **이 설계 문서** + `component/README.md`·`docs/README.md` 인덱스 + modal 문서 정합 |
+| 2/3  | `feat/common-toast-ui`          | `dev`                  | `sonner` 도입 + `Toaster.tsx` + layout 마운트 + 테스트                             |
+| 3/3  | `feat/common-toast-docs-result` | `feat/common-toast-ui` | 이 문서에 실측 결과 반영, 상태를 `구현 완료`로 갱신                                |
 
 ### PR 제목
 
-[pr-flow.md](../../collaboration/pr-flow.md)의 `[커밋 타입 대문자-#이슈번호] 한글 요약` 형식에 **단계 `[n/4]`** 를 요약 앞에 붙인다. 이슈는 `#226`.
+[pr-flow.md](../../collaboration/pr-flow.md)의 `[커밋 타입 대문자-#이슈번호] 한글 요약` 형식에 **단계 `[n/3]`** 을 요약 앞에 붙인다. 이슈는 `#226`.
 
 | 순서 | 제목                                                         |
 | ---- | ------------------------------------------------------------ |
-| 1/4  | `[FEAT-#226] [1/4] 공통 컴포넌트 토스트 문서 작성`           |
-| 2/4  | `[FEAT-#226] [2/4] 공통 컴포넌트 토스트 구현`                |
-| 3/4  | `[FEAT-#226] [3/4] 공통 컴포넌트 토스트 디자인 점검`         |
-| 4/4  | `[FEAT-#226] [4/4] 공통 컴포넌트 토스트 구현 결과 문서 반영` |
+| 1/3  | `[FEAT-#226] [1/3] 공통 컴포넌트 토스트 문서 작성`           |
+| 2/3  | `[FEAT-#226] [2/3] 공통 컴포넌트 토스트 구현`                |
+| 3/3  | `[DOCS-#226] [3/3] 공통 컴포넌트 토스트 구현 결과 문서 반영` |
 
-3/4는 디자인 점검에서 변경이 없으면 PR을 만들지 않는다. 그 경우 4/4를 3/3으로 바꾸고 총 개수 표기를 함께 갱신한다.
+기본 디자인 토큰과 반응형 점검에서 코드 변경이 없어 별도 디자인 PR은 만들지 않았다.
 
 > **참고**: stacked pull requests는 GitHub public preview 기능이다.
 
@@ -161,9 +172,8 @@ GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-star
 
 아래 항목은 **임의로 확정하지 않는다.** 확인 후 이 문서에 반영한다.
 
-### 1. 모달 위 toast (미검증)
-
-모달이 열린 상태에서 `toast.error()`를 호출했을 때 toast가 모달 위에 보이고, 닫기·액션이 눌리는지 확인되지 않았다. 구현 후 실측해 "접근성" 절과 이 항목을 갱신한다.
+- 키보드로 toast에 포커스를 옮겨 닫는 동작과 `prefers-reduced-motion` 적용 결과
+- 실제 모바일 기기의 하단 안전 영역에서 toast가 가려지지 않는지
 
 ## 참고
 
