@@ -17,6 +17,7 @@ vi.mock('next/headers', () => ({
       const value = cookieValues.get(name);
       return value === undefined ? undefined : { name, value };
     },
+    has: (name: string) => cookieValues.has(name),
     set: setCookie,
   }),
 }));
@@ -27,6 +28,8 @@ const BASE_OPTIONS = {
   sameSite: 'lax',
   path: '/',
 };
+
+const TEMP_TOKEN_CLEAR_OPTIONS = { ...BASE_OPTIONS, maxAge: 0 };
 
 describe('getAuthCookies', () => {
   beforeEach(() => {
@@ -64,6 +67,7 @@ describe('getAuthCookies', () => {
 
 describe('setAuthCookies', () => {
   beforeEach(() => {
+    cookieValues.clear();
     setCookie.mockClear();
   });
 
@@ -120,10 +124,28 @@ describe('setAuthCookies', () => {
       expect.objectContaining({ secure: true }),
     );
   });
+
+  it('temp_token이 남아 있으면 지운다', async () => {
+    cookieValues.set('temp_token', 'temp');
+
+    await setAuthCookies({
+      accessToken: 'access',
+      refreshToken: 'refresh',
+      autoLogin: false,
+    });
+
+    expect(setCookie).toHaveBeenCalledTimes(4);
+    expect(setCookie).toHaveBeenCalledWith(
+      'temp_token',
+      '',
+      TEMP_TOKEN_CLEAR_OPTIONS,
+    );
+  });
 });
 
 describe('clearAuthCookies', () => {
   beforeEach(() => {
+    cookieValues.clear();
     setCookie.mockClear();
   });
 
@@ -135,5 +157,18 @@ describe('clearAuthCookies', () => {
     expect(setCookie).toHaveBeenCalledWith('access_token', '', options);
     expect(setCookie).toHaveBeenCalledWith('refresh_token', '', options);
     expect(setCookie).toHaveBeenCalledWith('auto_login', '', options);
+  });
+
+  it('temp_token이 남아 있으면 함께 지운다', async () => {
+    cookieValues.set('temp_token', 'temp');
+
+    await clearAuthCookies();
+
+    expect(setCookie).toHaveBeenCalledTimes(4);
+    expect(setCookie).toHaveBeenCalledWith(
+      'temp_token',
+      '',
+      TEMP_TOKEN_CLEAR_OPTIONS,
+    );
   });
 });
