@@ -15,6 +15,7 @@ import { PaginationContent } from '@components/_common/Pagination/PaginationCont
 import { PaginationItem } from '@components/_common/Pagination/PaginationItem';
 import { PaginationRoot } from '@components/_common/Pagination/PaginationRoot';
 import { Table } from '@components/_common/Table/Table';
+import { toast } from '@components/_common/Toast/Toaster';
 
 import { useDeleteSale } from '@hooks/api/sales/useDeleteSale';
 import { useSalesList } from '@hooks/api/sales/useSalesList';
@@ -132,7 +133,10 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
         },
       },
       {
-        onSuccess: () => setEditingDay(null),
+        onSuccess: () => {
+          setEditingDay(null);
+          toast.success('매출 내역을 수정했어요.', { id: 'sales-updated' });
+        },
         onError: setMutationError,
       },
     );
@@ -147,7 +151,11 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
     });
     if (isConfirmed) {
       setMutationError(null);
-      deleteSale.mutate(salesId, { onError: setMutationError });
+      deleteSale.mutate(salesId, {
+        onSuccess: () =>
+          toast.success('매출 내역을 삭제했어요.', { id: 'sales-deleted' }),
+        onError: setMutationError,
+      });
     }
   };
 
