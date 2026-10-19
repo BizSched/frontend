@@ -7,6 +7,8 @@ describe('getPartTimeStaffAttachmentType', () => {
     ['application/pdf', 'pdf'],
     ['image/jpeg', 'image'],
     ['image/png', 'image'],
+    ['image/webp', 'image'],
+    ['Image/WebP; charset=binary', 'image'],
     ['Application/PDF; charset=binary', 'pdf'],
   ])('%s만 미리보기 형식으로 변환한다', (mimeType, expected) => {
     expect(getPartTimeStaffAttachmentType(mimeType)).toBe(expected);

@@ -20,8 +20,10 @@ const STAFF_ID_PATTERN = /^\d+$/;
 
 export default async function PartTimeStaffEditPage({
   params,
+  searchParams,
 }: PageProps<'/partTime/staff/[id]/edit'>) {
   const { id } = await params;
+  const { uploadFailed } = await searchParams;
   const staffId = Number(id);
   if (
     !STAFF_ID_PATTERN.test(id) ||
@@ -45,7 +47,10 @@ export default async function PartTimeStaffEditPage({
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <main className="flex flex-1 bg-[#f2f2f2]">
-        <PartTimeStaffEditForm staffId={staffId} />
+        <PartTimeStaffEditForm
+          staffId={staffId}
+          hasIncompleteUpload={uploadFailed === '1'}
+        />
       </main>
     </HydrationBoundary>
   );

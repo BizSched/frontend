@@ -198,6 +198,8 @@ describe('proxyRequest', () => {
     'application/pdf',
     'image/jpeg',
     'image/png',
+    'image/webp',
+    'Image/WebP; charset=binary',
     'Application/PDF; charset=binary',
   ])(
     '허용 MIME %s는 파일명을 유지하고 inline과 nosniff로 전달한다',
