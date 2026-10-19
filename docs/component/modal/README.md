@@ -46,7 +46,7 @@ Figma 디자인에는 모달 전용 컴포넌트 페이지가 없고 화면별 �
 | 시작점          | 레지스트리는 참조만 하고 직접 작성                  | `shadcn add dialog`를 실행해 대조한 결과 재구성 후 남는 것이 없어 생성물을 두지 않는다. 아래 "`shadcn add dialog` 검증 결과" 참고                                 |
 | 열기/닫기       | `overlay-kit`                                       | `openAsync`로 Confirm 호출부가 한 줄이 된다                                                                                                                       |
 | 중첩 모달       | overlay-kit 경로로 통일 + append index 기반 z-index | 트리 중첩과 혼용하면 같은 동작이 두 방식으로 갈린다. 아래 "중첩 모달" 참고                                                                                        |
-| 오버레이 스코프 | modal·toast를 도메인별 스코프로 분리 (미구현)       | 전역 스코프를 공유하면 toast가 모달 `stackIndex`를 오염시켜 딤이 사라진다. 아래 "오버레이 스코프 분리" 참고                                                       |
+| 오버레이 스코프 | 도메인별 스코프 분리 (미구현 · **확인 필요**)       | toast는 Sonner로 확정되어 overlay-kit 목록에 들어오지 않는다. 분리 근거가 약해져 유지 여부를 확인한다. 아래 "오버레이 스코프 분리" 참고                           |
 | 비동기 Body     | **보류** (`@suspensive/react` 미도입)               | 실사용례가 생기는 시점에 도입. 아래 "비동기 Body 전략" 참고                                                                                                       |
 | 모바일 바텀시트 | Panel의 variant                                     | Figma상 바텀시트는 Form 계열 1개뿐이라 별도 컴포넌트로 분리할 근거가 부족                                                                                         |
 
@@ -497,7 +497,9 @@ if (isConfirmed) {
 
 > **상태**: 설계 확정 · **미구현**. 별도 브랜치에서 진행한다. 아래 "단계별 PR 계획" 참고.
 
-toast도 overlay-kit으로 구현할 예정이므로, modal과 toast가 **같은 오버레이 목록을 공유하지 않도록** 스코프를 나눈다.
+> **확인 필요**: toast는 Sonner로 확정되어([toast/README.md](../toast/README.md)) overlay-kit을 쓰지 않는다. 아래는 toast가 overlay-kit을 쓴다는 전제로 쓴 설계이며, 스코프 분리를 유지할지는 사용자 결정 전이라 삭제하지 않는다.
+
+toast도 overlay-kit으로 구현할 예정이었으므로, modal과 toast가 **같은 오버레이 목록을 공유하지 않도록** 스코프를 나누는 설계였다.
 
 ### 문제 — toast가 모달 `stackIndex`를 오염시킨다
 
@@ -532,7 +534,7 @@ const {
 export { modalOverlay, ModalOverlayProvider, useModalOverlayData };
 ```
 
-`OverlayProvider.tsx`는 스코프별 Provider를 합성하는 자리가 된다. toast 단계에서 `toastOverlay.ts`를 같은 형태로 추가하고 Provider를 한 겹 더 감싼다.
+`OverlayProvider.tsx`는 스코프별 Provider를 합성하는 자리가 된다. 다른 오버레이 도메인이 생기면 같은 형태의 스코프 파일을 추가하고 Provider를 한 겹 더 감싼다. (toast는 Sonner라 해당 없음)
 
 이로써 **overlay-kit을 import하는 파일이 `src/providers/overlay/` 안으로 한정된다.** 모달을 여는 지점도 `providers/overlay/`로 명시된다.
 
@@ -547,7 +549,7 @@ export { modalOverlay, ModalOverlayProvider, useModalOverlayData };
 
 `ConfirmModalController`·`ConfirmModal`·primitive 파일은 **바뀌지 않는다.** 컨트롤러가 훅을 부르고 primitive에 숫자만 내려보내는 방향(위 "중첩 모달")이 그대로 유지된다.
 
-`useOverlayStackIndex`는 modal 스코프 전용이 되므로, 이름과 위치를 `hooks/modal/`로 옮길지는 구현 시점에 판단한다. toast는 자체 레이아웃으로 쌓이므로 stack index가 필요 없을 전망이다.
+`useOverlayStackIndex`는 modal 스코프 전용이 되므로, 이름과 위치를 `hooks/modal/`로 옮길지는 구현 시점에 판단한다. toast는 Sonner의 자체 레이아웃으로 쌓이므로 stack index가 필요 없다.
 
 ### 검증 결과 (vitest 실측)
 
