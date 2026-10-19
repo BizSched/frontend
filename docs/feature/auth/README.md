@@ -98,15 +98,77 @@ BE 명세는 Swagger(`/v3/api-docs`)가 기준이다. 토큰 규칙과 BFF 경�
 
 흐름·쿠키·에러 규칙은 [auth.md](../../architecture/auth.md)의 "소셜 로그인"이 기준이다.
 
-| 단계 | 브랜치                        | 범위                                                                                                                                                                                                  | 분기  | 상태    |
-| ---- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | ------- |
-| 1    | `docs/social-login-design`    | 소셜 로그인 설계(auth.md "소셜 로그인"), 온보딩·로그인 화면 문서, 단계별 PR 계획 (이 섹션)                                                                                                            | `dev` | PR 대기 |
-| 2    | `feat/social-login-bff-utils` | `state`·PKCE(`code_verifier`, S256 `code_challenge`) 생성, 임시 쿠키(`oauth_state`·`oauth_code_verifier`·`temp_token`) 읽기·쓰기·삭제, 단위 테스트                                                    | 1단계 |         |
-| 3    | `feat/social-login-callback`  | 인가 시작 `GET /api/oauth/{provider}/authorize`, 콜백 `app/oauth/[provider]/route.ts`와 결과별 분기, `/oauth/*` 공개 처리, `AuthSocialLogin` 링크 연결, 로그인 화면 `socialError` 문구, 환경 변수 3종 | 2단계 |         |
-| 4    | `feat/social-onboarding-api`  | 2단계 BFF `PATCH /api/users/signup/additional-info`, `useCompleteSocialSignupMutation`, `OnboardingForm` 연결·실패 처리, `temp_token` 없는 `/onboarding` 진입 차단                                    | 3단계 |         |
+| 단계 | 브랜치                        | 범위                                                                                                                                                                                                                   | 분기  | 상태           |
+| ---- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | -------------- |
+| 1    | `docs/social-login-design`    | 소셜 로그인 설계(auth.md "소셜 로그인"), 온보딩·로그인 화면 문서, 단계별 PR 계획 (이 섹션)                                                                                                                             | `dev` | PR 대기        |
+| 2    | `feat/social-login-bff-utils` | `state`·PKCE(`code_verifier`, S256 `code_challenge`) 생성, 임시 쿠키(`oauth_state`·`oauth_code_verifier`·`temp_token`) 읽기·쓰기·삭제, 정식 토큰 쿠키 저장·삭제 시 `temp_token` 삭제, 공통 쿠키 옵션 분리, 단위 테스트 | 1단계 | 로컬 구현 완료 |
+| 3    | `feat/social-login-callback`  | 인가 시작 `GET /api/oauth/{provider}/authorize`, 콜백 `app/oauth/[provider]/route.ts`와 결과별 분기, `/oauth/*` 공개 처리, `AuthSocialLogin` 링크 연결, 로그인 화면 `socialError` 문구, 환경 변수 3종                  | 2단계 |                |
+| 4    | `feat/social-onboarding-api`  | 2단계 BFF `PATCH /api/users/signup/additional-info`, `useCompleteSocialSignupMutation`, `OnboardingForm` 연결·실패 처리, `temp_token` 없는 `/onboarding` 진입 차단                                                     | 3단계 |                |
 
 - 2단계부터는 바로 앞 단계 브랜치에서 분기한 stacked PR이고, 앞 단계가 머지되면 base를 `dev`로 바꾼다.
 - 4단계는 Swagger의 2단계 요청 업종 enum이 수정된 뒤 진행한다([auth.md](../../architecture/auth.md#결정-대기-항목)의 "소셜 가입 업종 값").
+
+### 3단계에서 할 일
+
+**provider**
+
+- 외부에서 받은 `provider`(경로 파라미터)는 `kakao`·`google` 허용 목록으로 검증한 뒤 쓴다. `as OAuthProvider`로 검증을 대신하지 않는다. 쿠키 `Path`에 그대로 들어가고, Next는 `Path`를 인코딩하지 않는다.
+- 검증에 실패하면 인가 시작·콜백 모두 404다.
+- `OAuthProvider` 타입과 런타임 검증을 `lib/api/bff/oauthProvider.ts`로 옮긴다. 허용 목록은 생성 zod `LoginParams.shape.provider`에서 가져와 출처를 하나로 둔다. 쿠키 함수 안의 추가 검증은 선택이다.
+
+**인가 시작**
+
+- `createOAuthState`·`createCodeVerifier`·`createCodeChallenge`로 값을 만들고 `setOAuthRequestCookies(provider, …)`로 저장한 뒤 리다이렉트한다.
+
+**콜백**
+
+- 아래를 모두 통과해야 BE를 부른다. 하나라도 실패하면 BE를 부르지 않고 `/login?socialError=BFF_INVALID_OAUTH_STATE`로 보낸다.
+  - `getOAuthRequestCookies()`가 `null`이 아니다. 빈 값·반쪽 쿠키는 이미 `null`이다.
+  - 쿼리 `state`와 `code`가 비어 있지 않다.
+  - 쿼리 `state`가 저장된 `state`와 같다. 비교 방식(`===` 또는 `timingSafeEqual`)은 이 단계에서 정한다. `timingSafeEqual`은 길이가 다르면 예외를 던지므로 길이를 먼저 비교한다.
+- 쿼리 `error`(동의 취소)는 검증보다 먼저 보고 문구 없이 `/login`으로 보낸다.
+- 성공·실패와 관계없이 `clearOAuthRequestCookies(provider)`를 부른다. 삭제는 저장 때와 같은 `Path`여야 한다.
+- `isNewUser: false`의 `temp_token` 삭제는 `setAuthCookies`가 맡으므로 콜백에서 따로 부르지 않는다. `isNewUser: true`는 `setTempToken`으로 저장한다.
+- 같은 제공자로 동시에 시작하면 마지막 시도의 쿠키만 남아 앞선 시도는 state 불일치로 실패한다. 이 구조를 유지하고, 실패 안내 후 다시 시작하게 한다. auth.md "임시 쿠키"에 명시하고 테스트로 고정한다.
+- BE를 부른 뒤 실패하면(409 `SOCIAL_EMAIL_CONFLICT`, 그 밖의 BE 에러·BFF 실패) `clearTempToken()`을 부른다. 쿼리 `error`·검증 실패에서는 부르지 않는다. 외부에서 만든 링크로 진행 중인 온보딩이 지워지지 않게 하기 위해서다([auth.md](../../architecture/auth.md)의 "콜백").
+- `BFF_INVALID_OAUTH_STATE`는 공통 실패 문구로 보여준다. `socialError` 매핑에 명시적으로 넣는다([login.md](./login.md)의 "소셜 로그인 실패 안내").
+
+**리다이렉트**
+
+- `NextResponse.redirect(url, 303)`으로 한다. `next/navigation`의 `redirect()`는 Route Handler에서 307이다.
+- Next는 Route Handler가 반환한 `Response`에 `cookies()` 변경분을 합친다. 실제 응답에서 아래 "검증"으로 확인한다.
+
+**검증**
+
+- Route Handler 단위 테스트(쿠키 유틸 mock)로 분기를 검증한다. 확인 항목은 다음과 같다.
+  - provider 404
+  - 검증 실패 시 BE 미호출
+  - 모든 결과에서 인가 요청 쿠키 삭제
+  - BE 호출 후 실패에서 `temp_token` 삭제, 쿼리 `error`·검증 실패에서 유지
+  - 결과별 리다이렉트 경로
+- 실제 응답은 `next build && next start` 후 curl(cookie jar)로 확인한다. 확인 항목은 다음과 같다.
+  - 인가 시작의 303·`Location`·`Set-Cookie`가 함께 오는지
+  - 콜백 실패 분기(취소, state 불일치, 쿠키 없음)의 쿠키 삭제
+  - 제공자 간 쿠키 분리
+  - 같은 제공자로 동시에 시작할 때의 결과
+- 성공 분기(`isNewUser` true·false)는 `http://localhost:3000`에서 실제 카카오·구글로 확인한다. 확인 결과는 PR에 적는다.
+
+### 4단계에서 할 일
+
+- 2단계 BFF는 `getTempToken`으로 읽고, `if (!tempToken)`이면 BE를 부르지 않고 401 `INVALID_TEMP_TOKEN`을 돌려준다. `getTempToken`은 빈 값을 `undefined`로 돌려주지만 호출부에서도 검사해 빈 `Bearer` 요청을 막는다.
+- 성공 시 `setAuthCookies`가 `temp_token`을 지우므로 따로 부르지 않는다.
+- 401 `INVALID_TEMP_TOKEN`, 409 `SOCIAL_ACCOUNT_ALREADY_REGISTERED`·`SOCIAL_EMAIL_CONFLICT`는 `clearTempToken`을 부른다. 400(입력 오류)은 유지한다.
+- `proxy.ts`의 `/onboarding` 판단은 `OAUTH_COOKIE_NAMES.tempToken`을 쓴다. 지금 `/onboarding`은 공개 목록에 있어 쿠키 없이도 열린다.
+- 테스트로 아래를 확인한다.
+  - 임시 토큰이 없으면 BE를 부르지 않는다
+  - 성공·지정된 401·409에서 `temp_token`을 지운다
+  - 400에서는 유지한다
+
+### 적용하지 않는 것
+
+- 로그인 시도별 쿠키 이름(`oauth_req_{state}` 등): 여러 탭을 지원하지만 쿠키가 쌓이고 정리가 복잡해진다. 실패해도 다시 시작하면 된다.
+- `__Host-` 접두사: 이번 단계에서는 도입하지 않는다. `vercel.app`의 public suffix 등록은 다른 Vercel 프로젝트가 `Domain=vercel.app`으로 쿠키를 공유하는 것을 막는다. 프로젝트 자체의 하위 도메인이나 커스텀 도메인까지 같은 방식으로 보호하는 것은 아니다.
+- 난수 생성 mock 테스트: 호출 인자만 확인할 뿐 엔트로피를 증명하지 않는다. 길이·문자셋 검사와 RFC 7636 벡터로 검증한다.
 
 ## 확인 필요
 
