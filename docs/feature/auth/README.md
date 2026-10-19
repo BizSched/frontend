@@ -94,6 +94,20 @@ BE 명세는 Swagger(`/v3/api-docs`)가 기준이다. 토큰 규칙과 BFF 경�
 - 업종을 고르지 않으면 업종 필드 아래, 필수 약관에 동의하지 않으면 약관 영역 아래 한 줄로 보여준다.
 - 문구는 [signup.md](./signup.md#입력-검사)의 "입력 검사"를 따른다.
 
+## 소셜 로그인 단계별 PR 계획
+
+흐름·쿠키·에러 규칙은 [auth.md](../../architecture/auth.md)의 "소셜 로그인"이 기준이다.
+
+| 단계 | 브랜치                        | 범위                                                                                                                                                                                                  | 분기  | 상태    |
+| ---- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | ------- |
+| 1    | `docs/social-login-design`    | 소셜 로그인 설계(auth.md "소셜 로그인"), 온보딩·로그인 화면 문서, 단계별 PR 계획 (이 섹션)                                                                                                            | `dev` | PR 대기 |
+| 2    | `feat/social-login-bff-utils` | `state`·PKCE(`code_verifier`, S256 `code_challenge`) 생성, 임시 쿠키(`oauth_state`·`oauth_code_verifier`·`temp_token`) 읽기·쓰기·삭제, 단위 테스트                                                    | 1단계 |         |
+| 3    | `feat/social-login-callback`  | 인가 시작 `GET /api/oauth/{provider}/authorize`, 콜백 `app/oauth/[provider]/route.ts`와 결과별 분기, `/oauth/*` 공개 처리, `AuthSocialLogin` 링크 연결, 로그인 화면 `socialError` 문구, 환경 변수 3종 | 2단계 |         |
+| 4    | `feat/social-onboarding-api`  | 2단계 BFF `PATCH /api/users/signup/additional-info`, `useCompleteSocialSignupMutation`, `OnboardingForm` 연결·실패 처리, `temp_token` 없는 `/onboarding` 진입 차단                                    | 3단계 |         |
+
+- 2단계부터는 바로 앞 단계 브랜치에서 분기한 stacked PR이고, 앞 단계가 머지되면 base를 `dev`로 바꾼다.
+- 4단계는 Swagger의 2단계 요청 업종 enum이 수정된 뒤 진행한다([auth.md](../../architecture/auth.md#결정-대기-항목)의 "소셜 가입 업종 값").
+
 ## 확인 필요
 
 ### 1. 개인정보 수집 항목과 실제 입력 항목 불일치
