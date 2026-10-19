@@ -1,5 +1,6 @@
 import type {
   PartTimeStaffDetailItem,
+  PartTimeStaffEmploymentStatus,
   PartTimeStaffShift,
   PartTimeStaffShiftStatus,
 } from '@lib/types/partTimeStaff';
@@ -22,6 +23,21 @@ const PART_TIME_STAFF_GENDER_LABELS: Record<
   male: '남성',
   female: '여성',
 };
+
+const PART_TIME_STAFF_EMPLOYMENT_STATUS_LABELS: Record<
+  PartTimeStaffEmploymentStatus,
+  string
+> = {
+  employed: '재직',
+  onLeave: '휴직',
+  resigned: '퇴사',
+};
+
+const PART_TIME_STAFF_EMPLOYMENT_STATUSES: PartTimeStaffEmploymentStatus[] = [
+  'employed',
+  'onLeave',
+  'resigned',
+];
 
 const WEEK_OF_MONTH_LABELS = [
   '첫째',
@@ -108,6 +124,8 @@ const formatPartTimeStaffWeekTitle = (today: string) => {
 };
 
 export {
+  PART_TIME_STAFF_EMPLOYMENT_STATUS_LABELS,
+  PART_TIME_STAFF_EMPLOYMENT_STATUSES,
   formatPartTimeStaffBirthDate,
   formatPartTimeStaffCreatedAt,
   formatPartTimeStaffGender,

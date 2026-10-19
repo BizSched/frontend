@@ -1,11 +1,13 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   type ChangeEvent,
   type SyntheticEvent,
   useEffect,
   useId,
+  useRef,
   useState,
 } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
@@ -20,6 +22,9 @@ import { PartTimeStaffFormAttachments } from '@components/partTime/staff/PartTim
 import { PartTimeStaffNoteIcon } from '@components/partTime/staff/PartTimeStaffNoteIcon';
 import { PartTimeStaffProfileLayout } from '@components/partTime/staff/PartTimeStaffProfileLayout';
 
+import { useSaveStaff } from '@hooks/api/staff/useSaveStaff';
+
+import { formatCommonError } from '@lib/api/formatCommonError';
 import type {
   PartTimeStaffDetailItem,
   PartTimeStaffFormAttachment,
@@ -28,8 +33,11 @@ import type {
 } from '@lib/types/partTimeStaff';
 import { formatCalendarDate } from '@lib/utilities/calendar/calendarDate';
 import { cn } from '@lib/utilities/cn';
+import { PART_TIME_STAFF_ATTACHMENT_MAX_COUNT } from '@lib/utilities/partTime/partTimeStaffAttachment';
 import {
   PART_TIME_STAFF_NAME_MAX_LENGTH,
+  PART_TIME_STAFF_MEMO_MAX_LENGTH,
+  PART_TIME_STAFF_UNSUPPORTED_CLEAR_MESSAGE,
   applyPartTimeStaffInputFormat,
   countPartTimeStaffCharacters,
   countPartTimeStaffMemoLength,
@@ -41,7 +49,9 @@ import {
   isPartTimeStaffFormChanged,
   isPartTimeStaffNameValid,
   isPartTimeStaffPhoneValid,
+  hasPartTimeStaffUnsupportedClear,
   limitPartTimeStaffName,
+  limitPartTimeStaffMemo,
   toPartTimeStaffFormValues,
 } from '@lib/utilities/partTime/partTimeStaffForm';
 
@@ -126,6 +136,9 @@ interface PartTimeStaffFormProps {
 function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
   const formId = useId();
   const router = useRouter();
+  const saveMutation = useSaveStaff(staff);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const isMounted = useRef(false);
   const [initialValues] = useState(() => toPartTimeStaffFormValues(staff));
   const { control, register, handleSubmit, formState, getValues, setValue } =
     useForm<PartTimeStaffFormValues>({
@@ -153,16 +166,17 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
     (attachment) => attachment.key === previewKey,
   );
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
       getValues('attachments').forEach((attachment) => {
         if (attachment.kind === 'new') {
           URL.revokeObjectURL(attachment.url);
         }
       });
-    },
-    [getValues],
-  );
+    };
+  }, [getValues]);
 
   const text = FORM_TEXT[staff ? 'edit' : 'create'];
   const nameLength = Math.min(
@@ -170,14 +184,33 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
     PART_TIME_STAFF_NAME_MAX_LENGTH,
   );
   const memoLength = countPartTimeStaffMemoLength(memo);
+  const isSaving =
+    saveMutation.isPending || formState.isSubmitting || isNavigating;
+  const hasUnsupportedClear =
+    staff !== undefined &&
+    hasPartTimeStaffUnsupportedClear(values, toPartTimeStaffFormValues(staff));
   const isSubmitDisabled =
+    isSaving ||
+    saveMutation.requiresReview ||
+    hasUnsupportedClear ||
     !formState.isValid ||
-    (staff !== undefined && !isPartTimeStaffFormChanged(values, initialValues));
+    (staff !== undefined &&
+      !saveMutation.isError &&
+      !isPartTimeStaffFormChanged(values, initialValues));
 
   const handleUploadClick = async () => {
+    if (
+      isSaving ||
+      getValues('attachments').length >= PART_TIME_STAFF_ATTACHMENT_MAX_COUNT
+    )
+      return;
     const file = await openPartTimeStaffAttachmentUploadModal();
 
-    if (!file) {
+    if (
+      !file ||
+      !isMounted.current ||
+      getValues('attachments').length >= PART_TIME_STAFF_ATTACHMENT_MAX_COUNT
+    ) {
       return;
     }
 
@@ -211,10 +244,20 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
     );
   };
 
-  const handleFormSubmit = () => {
-    router.replace(
-      staff ? `${STAFF_LIST_PATH}?staffId=${staff.id}` : STAFF_LIST_PATH,
-    );
+  const handleFormSubmit = async (formValues: PartTimeStaffFormValues) => {
+    if (isSubmitDisabled) return;
+    try {
+      const result = await saveMutation.mutateAsync(formValues);
+      if (!isMounted.current) return;
+      setIsNavigating(true);
+      router.replace(
+        result.isComplete
+          ? `${STAFF_LIST_PATH}?staffId=${result.staff.id}`
+          : `${STAFF_LIST_PATH}/${result.staff.id}/edit?uploadFailed=1`,
+      );
+    } catch {
+      // NOTE: mutation의 오류를 폼에 표시하고 입력을 유지한다.
+    }
   };
 
   return (
@@ -228,7 +271,10 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
         <form
           id={formId}
           noValidate
-          onSubmit={handleSubmit(handleFormSubmit)}
+          aria-busy={isSaving}
+          onSubmit={(event) => {
+            void handleSubmit(handleFormSubmit)(event);
+          }}
           className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 max-tablet:gap-3"
         >
           <div className="flex items-center justify-between gap-2.5 px-2 max-tablet:px-1">
@@ -248,7 +294,41 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
               </span>
             </Button>
           </div>
-          <div className="flex min-h-0 flex-1 flex-col gap-4 rounded-[32px] bg-white px-8.5 py-8 max-laptop:px-7.5 max-tablet:rounded-[24px] max-tablet:p-4">
+          {isSaving && (
+            <p role="status" className="px-2 text-sm text-slate-500">
+              정보와 첨부파일을 저장하고 있어요.
+            </p>
+          )}
+          {saveMutation.isError && (
+            <p role="alert" className="px-2 text-sm text-slate-500">
+              {formatCommonError(saveMutation.error)}
+            </p>
+          )}
+          {saveMutation.requiresReview && (
+            <p role="alert" className="px-2 text-sm text-slate-500">
+              저장 결과를 확인할 수 없어 중복 등록을 막기 위해 재제출을
+              중단했어요.{' '}
+              <Link
+                className="underline"
+                href={
+                  saveMutation.reviewStaffId
+                    ? `${STAFF_LIST_PATH}?staffId=${saveMutation.reviewStaffId}`
+                    : STAFF_LIST_PATH
+                }
+              >
+                저장된 내용 확인하기
+              </Link>
+            </p>
+          )}
+          {hasUnsupportedClear && (
+            <p role="alert" className="px-2 text-sm text-slate-500">
+              {PART_TIME_STAFF_UNSUPPORTED_CLEAR_MESSAGE}
+            </p>
+          )}
+          <fieldset
+            disabled={isSaving}
+            className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 rounded-[32px] bg-white px-8.5 py-8 max-laptop:px-7.5 max-tablet:rounded-[24px] max-tablet:p-4"
+          >
             <PartTimeStaffProfileLayout
               className="flex-1"
               title={
@@ -410,6 +490,7 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
               attachments={
                 <PartTimeStaffFormAttachments
                   attachments={attachments}
+                  isDisabled={isSaving}
                   onUploadClick={handleUploadClick}
                   onAttachmentOpen={handleAttachmentOpen}
                   onAttachmentRemove={handleAttachmentRemove}
@@ -420,7 +501,25 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
                   aria-label="메모"
                   placeholder="이 곳을 통해 메모를 작성해주세요"
                   className="min-h-50 w-full flex-1 resize-none bg-transparent text-sm leading-5 tracking-[-0.03em] text-[#333333] outline-none placeholder:text-base placeholder:leading-6 placeholder:tracking-[-0.02em] placeholder:text-[#a4a4a4] max-tablet:placeholder:text-sm max-tablet:placeholder:leading-5 max-tablet:placeholder:tracking-[-0.03em]"
-                  {...register('memo')}
+                  {...register('memo', {
+                    maxLength: PART_TIME_STAFF_MEMO_MAX_LENGTH,
+                    onChange: (event: ChangeEvent<HTMLTextAreaElement>) => {
+                      if (!isComposingInput(event)) {
+                        setValue(
+                          'memo',
+                          limitPartTimeStaffMemo(event.currentTarget.value),
+                          { shouldValidate: true },
+                        );
+                      }
+                    },
+                  })}
+                  onCompositionEnd={(event) =>
+                    setValue(
+                      'memo',
+                      limitPartTimeStaffMemo(event.currentTarget.value),
+                      { shouldValidate: true, shouldDirty: true },
+                    )
+                  }
                 />
               }
             />
@@ -428,7 +527,7 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
               공백포함 {memoLength.withSpaces}자 | 공백제외{' '}
               {memoLength.withoutSpaces}자
             </p>
-          </div>
+          </fieldset>
         </form>
       </div>
       {previewAttachment && (

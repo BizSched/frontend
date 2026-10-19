@@ -74,6 +74,7 @@ docs/
 | [component/calendar/README.md](./component/calendar/README.md)                           | Calendar — 단일 날짜 선택, 월 이동, 일정 칩·모바일 점, Dropdown 조합                           |
 | [component/ActionButton/README.md](./component/ActionButton/README.md)                   | ActionButton — Base UI Menu 기반 speed dial, `actions` 배열 prop, lucide 아이콘                |
 | [component/toast/README.md](./component/toast/README.md)                                 | Toast — shadcn/Sonner 기반, overlay-kit 미사용, layout 1회 마운트, 호출 규약                   |
+| [component/badge/README.md](./component/badge/README.md)                                 | Badge — 표시용 pill 라벨, `color` variant, 토큰 불일치 HEX 매핑                                |
 
 ## feature/
 
@@ -92,6 +93,7 @@ docs/
 | [feature/auth/signup.md](./feature/auth/signup.md)                 | `/signup` 회원가입 페이지 설계                         |
 | [feature/auth/onboarding.md](./feature/auth/onboarding.md)         | `/onboarding` 소셜 가입 추가 정보 페이지 설계          |
 | [feature/landing/README.md](./feature/landing/README.md)           | `/` 랜딩 페이지 설계                                   |
+| [feature/dashboard/README.md](./feature/dashboard/README.md)       | `/dashboard` 대시보드 페이지 설계                      |
 
 도메인 문서는 `feature/{도메인}/README.md`, 페이지 설계 문서는 `feature/{도메인}/{페이지}.md` 경로로 추가한다.
 

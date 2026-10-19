@@ -1,8 +1,11 @@
+type PartTimeStaffEmploymentStatus = 'employed' | 'onLeave' | 'resigned';
+
 interface PartTimeStaffListItem {
   id: number;
   name: string;
   phone?: string | null;
   createdAt: string;
+  employmentStatus: PartTimeStaffEmploymentStatus;
 }
 
 interface PartTimeStaffAttachment {
@@ -102,6 +105,7 @@ export type {
   PartTimeStaffAttachmentPreview,
   PartTimeStaffAttachmentType,
   PartTimeStaffDetailItem,
+  PartTimeStaffEmploymentStatus,
   PartTimeStaffFormAttachment,
   PartTimeStaffFormattedInput,
   PartTimeStaffFormattedInputChange,
