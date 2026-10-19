@@ -90,3 +90,4 @@
 | [sales/details.md](./sales/details.md)             | `/sales/details` 매출 내역 페이지                      | 검토 대기                   |
 | [partTime/staff-form.md](./partTime/staff-form.md) | 아르바이트생 추가·수정 페이지 설계                     | 목업 UI 완료, API 연동 예정 |
 | [landing/README.md](./landing/README.md)           | `/` 랜딩 페이지 (단일 문서)                            | 정적 UI 별도 PR 예정        |
+| [dashboard/README.md](./dashboard/README.md)       | `/dashboard` 대시보드 페이지 (단일 문서)               | API 연동 중                 |

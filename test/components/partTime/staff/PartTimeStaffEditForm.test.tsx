@@ -42,6 +42,7 @@ const STAFF: PartTimeStaffDetailItem = {
   id: 42,
   name: '김알바',
   createdAt: '2026-10-14T09:00:00+09:00',
+  employmentStatus: 'employed',
   attachments: [],
 };
 const clients: QueryClient[] = [];

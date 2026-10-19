@@ -1,17 +1,34 @@
 import { EllipsisVerticalIcon } from 'lucide-react';
 
+import { Badge, type BadgeProps } from '@components/_common/Badge/Badge';
 import { Card } from '@components/_common/Card/Card';
 import { Dropdown } from '@components/_common/Dropdown/Dropdown';
 import { PartTimeStaffNoteIcon } from '@components/partTime/staff/PartTimeStaffNoteIcon';
 
-import type { PartTimeStaffListItem } from '@lib/types/partTimeStaff';
-import { formatPartTimeStaffCreatedAt } from '@lib/utilities/partTime/partTimeStaff';
+import type {
+  PartTimeStaffEmploymentStatus,
+  PartTimeStaffListItem,
+} from '@lib/types/partTimeStaff';
+import {
+  PART_TIME_STAFF_EMPLOYMENT_STATUS_LABELS,
+  formatPartTimeStaffCreatedAt,
+} from '@lib/utilities/partTime/partTimeStaff';
+
+const EMPLOYMENT_STATUS_BADGE_COLORS: Record<
+  PartTimeStaffEmploymentStatus,
+  BadgeProps['color']
+> = {
+  employed: 'green',
+  onLeave: 'yellow',
+  resigned: 'gray',
+};
 
 interface PartTimeStaffCardProps {
   staff: PartTimeStaffListItem;
   onDetailOpen?: () => void;
   onEdit?: () => void;
   onDelete?: () => void;
+  isDeletePending?: boolean;
 }
 
 function PartTimeStaffCard({
@@ -19,8 +36,9 @@ function PartTimeStaffCard({
   onDetailOpen,
   onEdit,
   onDelete,
+  isDeletePending = false,
 }: PartTimeStaffCardProps) {
-  const { name, phone, createdAt } = staff;
+  const { name, phone, createdAt, employmentStatus } = staff;
 
   return (
     <Card
@@ -39,9 +57,14 @@ function PartTimeStaffCard({
       <Card.Header className="items-center">
         <div className="flex min-w-0 items-center gap-4 max-tablet:gap-2">
           <PartTimeStaffNoteIcon />
-          <Card.Title className="truncate max-tablet:text-sm max-tablet:leading-5">
-            {name}
-          </Card.Title>
+          <div className="flex min-w-0 items-center gap-2">
+            <Card.Title className="truncate max-tablet:text-sm max-tablet:leading-5">
+              {name}
+            </Card.Title>
+            <Badge color={EMPLOYMENT_STATUS_BADGE_COLORS[employmentStatus]}>
+              {PART_TIME_STAFF_EMPLOYMENT_STATUS_LABELS[employmentStatus]}
+            </Badge>
+          </div>
         </div>
 
         <Card.Action>
@@ -55,7 +78,8 @@ function PartTimeStaffCard({
             <button
               type="button"
               aria-label={`${name} 더보기`}
-              className="relative flex cursor-pointer items-center justify-center rounded-lg text-[#a4a4a4] outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              disabled={isDeletePending}
+              className="relative flex cursor-pointer items-center justify-center rounded-lg text-[#a4a4a4] outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             >
               <EllipsisVerticalIcon
                 className="size-6 max-tablet:size-4"

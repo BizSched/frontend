@@ -1,18 +1,18 @@
 'use client';
 
 import Image from 'next/image';
-import { type ChangeEvent, useRef, useState } from 'react';
+import { type ChangeEvent, useEffect, useRef, useState } from 'react';
 
 import { Button } from '@components/_common/Button/Button';
 import { Modal } from '@components/_common/Modal/Modal';
 
 import { cn } from '@lib/utilities/cn';
-import { getPartTimeStaffAttachmentType } from '@lib/utilities/partTime/partTimeStaffAttachment';
+import { preparePartTimeStaffAttachment } from '@lib/utilities/partTime/preparePartTimeStaffAttachment';
 
 import IcDelete from '@assets/icons/ic_delete.svg';
 import IcUpload from '@assets/icons/ic_upload.svg';
 
-const ATTACHMENT_ACCEPT = 'application/pdf,image/jpeg,image/png';
+const ATTACHMENT_ACCEPT = '.jpg,.jpeg,.png,.webp,.pdf';
 
 const FILE_FIELD_CLASS_NAME =
   'flex w-full items-center gap-2 rounded-[16px] border border-dashed border-[#cccccc] bg-[#fafafa] p-4 text-base leading-6 tracking-[-0.02em] max-tablet:rounded-[12px] max-tablet:p-3 max-tablet:text-sm max-tablet:leading-5 max-tablet:tracking-[-0.03em]';
@@ -34,22 +34,50 @@ function PartTimeStaffAttachmentUploadModal({
 }: PartTimeStaffAttachmentUploadModalProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File>();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>();
+  const selectionVersion = useRef(0);
 
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+  useEffect(
+    () => () => {
+      selectionVersion.current += 1;
+    },
+    [open],
+  );
+
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const input = event.currentTarget;
     const selectedFile = input.files?.[0];
 
     input.value = '';
 
-    if (selectedFile && getPartTimeStaffAttachmentType(selectedFile.type)) {
-      setFile(selectedFile);
+    if (!selectedFile) return;
+    const version = ++selectionVersion.current;
+    setIsProcessing(true);
+    setErrorMessage(undefined);
+    try {
+      const prepared = await preparePartTimeStaffAttachment(selectedFile);
+      if (version === selectionVersion.current && prepared) setFile(prepared);
+    } catch (error) {
+      if (version === selectionVersion.current) {
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : '파일을 처리할 수 없어요. 다른 파일을 선택해주세요.',
+        );
+      }
+    } finally {
+      if (version === selectionVersion.current) setIsProcessing(false);
     }
   };
 
   return (
     <Modal
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) selectionVersion.current += 1;
+        onOpenChange(isOpen);
+      }}
       onOpenChangeComplete={(isOpened) => {
         if (!isOpened) {
           onExitComplete?.();
@@ -91,7 +119,12 @@ function PartTimeStaffAttachmentUploadModal({
               <button
                 type="button"
                 aria-label={`${file.name} 선택 취소`}
-                onClick={() => setFile(undefined)}
+                onClick={() => {
+                  selectionVersion.current += 1;
+                  setFile(undefined);
+                  setIsProcessing(false);
+                  setErrorMessage(undefined);
+                }}
                 className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring max-tablet:size-5"
               >
                 <Image src={IcDelete} alt="" width={9} height={9} unoptimized />
@@ -117,13 +150,23 @@ function PartTimeStaffAttachmentUploadModal({
               파일을 선택해주세요
             </button>
           )}
+          {isProcessing && (
+            <p role="status" className="text-sm text-slate-500">
+              이미지를 처리하고 있어요.
+            </p>
+          )}
+          {errorMessage && (
+            <p role="alert" className="text-sm text-slate-500">
+              {errorMessage}
+            </p>
+          )}
         </div>
         <Button
           type="button"
-          disabled={!file}
+          disabled={!file || isProcessing}
           focusableWhenDisabled
           onClick={() => {
-            if (file) {
+            if (file && !isProcessing) {
               onUpload(file);
             }
           }}

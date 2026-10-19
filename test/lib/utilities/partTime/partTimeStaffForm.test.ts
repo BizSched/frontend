@@ -10,6 +10,8 @@ import {
   applyPartTimeStaffInputFormat,
   countPartTimeStaffCharacters,
   countPartTimeStaffMemoLength,
+  hasPartTimeStaffUnsupportedClear,
+  limitPartTimeStaffMemo,
   createPartTimeStaffFormNewAttachment,
   formatPartTimeStaffBirthDateInput,
   formatPartTimeStaffHourlyWageInput,
@@ -64,8 +66,35 @@ describe('createPartTimeStaffFormNewAttachment', () => {
 });
 
 describe('countPartTimeStaffCharacters', () => {
-  it('이모지도 1자로 센다', () => {
-    expect(countPartTimeStaffCharacters('정예은😀')).toBe(4);
+  it('UTF-16 기준으로 이모지를 2자로 센다', () => {
+    expect(countPartTimeStaffCharacters('정예은😀')).toBe(5);
+  });
+});
+
+describe('메모 제한과 선택값 삭제 보류', () => {
+  it('메모를 UTF-16 500자로 제한하고 이모지를 나누지 않는다', () => {
+    expect(limitPartTimeStaffMemo('😀'.repeat(251))).toBe('😀'.repeat(250));
+    expect(limitPartTimeStaffMemo('가'.repeat(499) + '😀')).toBe(
+      '가'.repeat(499),
+    );
+  });
+  it('시급 0도 기존 값으로 취급하고 메모 삭제는 허용한다', () => {
+    const initial = toPartTimeStaffFormValues({
+      id: 42,
+      name: '김알바',
+      hourlyWage: 0,
+      memo: '메모',
+      attachments: [],
+      createdAt: '2026-10-16',
+      employmentStatus: 'employed',
+    });
+    expect(
+      hasPartTimeStaffUnsupportedClear({ ...initial, hourlyWage: '' }, initial),
+    ).toBe(true);
+    expect(
+      hasPartTimeStaffUnsupportedClear({ ...initial, memo: '' }, initial),
+    ).toBe(false);
+    expect(hasPartTimeStaffUnsupportedClear(initial, initial)).toBe(false);
   });
 });
 
@@ -86,9 +115,12 @@ describe('countPartTimeStaffMemoLength', () => {
 });
 
 describe('limitPartTimeStaffName', () => {
-  it('문자 단위로 30자까지만 남긴다', () => {
+  it('UTF-16 30자까지 남기고 서로게이트 쌍을 나누지 않는다', () => {
     expect(limitPartTimeStaffName('가'.repeat(31))).toBe('가'.repeat(30));
-    expect(limitPartTimeStaffName('😀'.repeat(31))).toBe('😀'.repeat(30));
+    expect(limitPartTimeStaffName('😀'.repeat(31))).toBe('😀'.repeat(15));
+    expect(limitPartTimeStaffName('가'.repeat(29) + '😀')).toBe(
+      '가'.repeat(29),
+    );
   });
 });
 
@@ -99,9 +131,9 @@ describe('isPartTimeStaffNameValid', () => {
     expect(isPartTimeStaffNameValid(' 정예은 ')).toBe(true);
   });
 
-  it('문자 단위로 30자를 넘으면 유효하지 않다', () => {
-    expect(isPartTimeStaffNameValid('😀'.repeat(30))).toBe(true);
-    expect(isPartTimeStaffNameValid('😀'.repeat(31))).toBe(false);
+  it('UTF-16 기준으로 30자를 넘으면 유효하지 않다', () => {
+    expect(isPartTimeStaffNameValid('😀'.repeat(15))).toBe(true);
+    expect(isPartTimeStaffNameValid('😀'.repeat(16))).toBe(false);
   });
 });
 
@@ -214,6 +246,7 @@ describe('toPartTimeStaffFormValues', () => {
       name: '정예은',
       phone: '010-3456-7890',
       createdAt: '2026-09-15',
+      employmentStatus: 'employed',
       birthDate: '2001-02-11',
       gender: 'female',
       hourlyWage: 10_320,

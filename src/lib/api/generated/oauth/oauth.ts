@@ -23,18 +23,24 @@ export const getLoginUrl = (provider: 'kakao' | 'google',) => {
 }
 
 /**
- * 프론트가 소셜 SDK 로 받아 온 인가 코드를 보내면, 서버가 카카오·구글에 확인하고
- * 로그인 또는 가입 안내를 돌려줍니다. 토큰 없이 부릅니다.
+ * BFF 콜백이 카카오·구글 리다이렉트로 받은 인가 코드와 PKCE `codeVerifier` 를 보내면,
+ * 서버가 제공자와 토큰을 교환하고 로그인 또는 가입 안내를 돌려줍니다. 토큰 없이 부릅니다.
  *
  * `provider` 는 `kakao` 또는 `google` 입니다.
  *
  * ```json
- * { "authorizationCode": "4/0AeaYSHA..." }
+ * { "authorizationCode": "4/0AeaYSHA...", "codeVerifier": "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk" }
  * ```
  *
- * ## 응답이 두 갈래입니다
+ * - **`state` 검증은 BFF 가 끝낸 뒤** 부르세요. 서버는 `state` 를 받지 않습니다.
+ * - `codeVerifier` 는 **필수**입니다. 인가 요청 때 `code_challenge`(S256) 를 만든 원문입니다.
+ * - 토큰 교환의 `redirect_uri` 는 서버 설정값이고, **BFF 콜백 주소와 같아야** 합니다.
+ *   다르면 제공자가 거부해 `INVALID_AUTHORIZATION_CODE` 가 됩니다.
  *
- * 가입 이력 유무와 상관없이 200 이고, `isNewUser` 로 갈립니다.
+ * ## 계정은 이메일이 아니라 (제공자, 소셜 계정 id) 로 찾습니다
+ *
+ * 가입 이력이 있으면 200 이고, 신규도 200 이며 `isNewUser` 로 갈립니다.
+ * 처음 보는 소셜 계정인데 이메일이 이미 쓰이고 있으면 409 입니다(아래).
  *
  * ```json
  * // 신규 — 업종 입력 화면으로
@@ -54,10 +60,20 @@ export const getLoginUrl = (provider: 'kakao' | 'google',) => {
  * 30분짜리이고 **업종 입력 엔드포인트에서만** 씁니다. 다른 API 의 `Authorization` 헤더에
  * 넣으면 401 입니다. 이 단계에서는 아직 계정이 만들어지지 않습니다.
  *
- * ## 이미 가입된 이메일이면
+ * ## 처음 보는 소셜 계정인데 이미 가입된 이메일이면 — 409
  *
- * 가입 경로가 달라도 그 계정으로 로그인됩니다. 이메일로 가입한 사장님이 카카오 로그인을
- * 눌러도 같은 계정으로 들어가고, 이후 비밀번호 로그인도 계속 쓸 수 있습니다.
+ * **자동으로 연결하지 않습니다.** 토큰도 임시 토큰도 주지 않고 `409 SOCIAL_EMAIL_CONFLICT` 입니다.
+ * `data.joinType` 이 기존 계정의 가입 방법이라, 안내 문구를 고를 수 있습니다.
+ *
+ * | `data.joinType` | 안내 예 |
+ * | --- | --- |
+ * | `EMAIL` | 이메일로 가입된 계정입니다. 이메일 로그인을 이용해주세요 |
+ * | `KAKAO` / `GOOGLE` | 카카오(구글)로 가입된 계정입니다. 카카오(구글) 로그인을 이용해주세요 |
+ *
+ * ## 이메일을 받지 못하면 — 400 OAUTH_EMAIL_REQUIRED
+ *
+ * 카카오에서 이메일 제공에 동의하지 않았거나, 제공자가 인증되지 않은 이메일을 준 경우입니다.
+ * 가입할 수 없습니다. 동의 화면에서 이메일 제공에 동의하도록 안내하세요.
  * @summary 소셜 로그인 · 간편가입 1단계
  */
 export const login = async (provider: 'kakao' | 'google',
@@ -145,6 +161,15 @@ export const getCompleteSignupUrl = () => {
  *
  * 헤더가 없든, 30분이 지났든, 액세스 토큰을 잘못 넣었든 모두 `INVALID_TEMP_TOKEN` 입니다.
  * 어느 경우든 할 일은 같습니다. 소셜 로그인 버튼부터 다시 누르게 안내하세요.
+ *
+ * ## 두 번 제출되면 — 계정은 하나만 생깁니다
+ *
+ * 같은 임시 토큰을 두 번 보내든, 탭 두 개에서 같은 소셜 계정의 임시 토큰 두 개로 동시에
+ * 보내든 **계정은 하나만** 만들어집니다. 먼저 끝난 요청이 200 이고, 나머지는
+ * `409 SOCIAL_ACCOUNT_ALREADY_REGISTERED` 입니다. 이 응답에는 토큰이 없습니다 —
+ * 임시 쿠키를 지우고 소셜 로그인을 다시 시작하면 바로 로그인됩니다.
+ *
+ * 그 사이 같은 이메일로 **다른** 계정이 가입됐으면 1단계와 같은 `409 SOCIAL_EMAIL_CONFLICT` 입니다.
  * @summary 간편가입 2단계 — 업종 입력
  */
 export const completeSignup = async (additionalInfoRequest: AdditionalInfoRequest, options?: Parameters<typeof customFetcher>[1]): Promise<AdditionalInfoResponse> => {

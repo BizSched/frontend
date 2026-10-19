@@ -104,7 +104,7 @@ export const getCreateWithFilesUrl = () => {
  *
  * ## 첨부파일 제한
  *
- * jpg, jpeg, png, pdf, doc, docx 만 받습니다. 파일 하나당 10MB, 아르바이트생 한 명당 10개까지입니다.
+ * jpg, jpeg, png, webp, pdf, doc, docx 만 받습니다. 파일 하나당 10MB, 아르바이트생 한 명당 10개까지입니다.
  * 확장자로 판단하므로 `계약서.pdf.exe` 처럼 뒤에 다른 확장자가 붙으면 거부됩니다.
  *
  * 한 파일이라도 제한에 걸리면 그 요청의 파일이 하나도 저장되지 않습니다. 부분 성공은 없습니다.
@@ -360,7 +360,7 @@ export const getDownloadAttachmentUrl = (staffId: number,
  *
  * ## 응답 헤더
  *
- * `Content-Type` 은 업로드할 때의 타입이고, `Content-Disposition` 에 원본 파일명이 담깁니다.
+ * `Content-Type` 은 **파일 확장자로 정한 타입**이고(`.webp` → `image/webp`), `Content-Disposition` 에 원본 파일명이 담깁니다.
  * 한글 파일명은 RFC 5987 형식(`filename*=UTF-8''...`)으로 함께 실리므로 그대로 쓰면 됩니다.
  *
  * ```

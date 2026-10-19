@@ -86,7 +86,7 @@ export const FindAll1Response = zod.object({
  *
  * ## 첨부파일 제한
  *
- * jpg, jpeg, png, pdf, doc, docx 만 받습니다. 파일 하나당 10MB, 아르바이트생 한 명당 10개까지입니다.
+ * jpg, jpeg, png, webp, pdf, doc, docx 만 받습니다. 파일 하나당 10MB, 아르바이트생 한 명당 10개까지입니다.
  * 확장자로 판단하므로 `계약서.pdf.exe` 처럼 뒤에 다른 확장자가 붙으면 거부됩니다.
  *
  * 한 파일이라도 제한에 걸리면 그 요청의 파일이 하나도 저장되지 않습니다. 부분 성공은 없습니다.
@@ -114,7 +114,7 @@ export const CreateWithFilesResponse = zod.object({
   "id": zod.int().describe('첨부파일 ID'),
   "fileName": zod.string().describe('파일명'),
   "fileSize": zod.int().describe('파일 크기(bytes)'),
-  "contentType": zod.string().describe('MIME 타입'),
+  "contentType": zod.string().describe('MIME 타입. 업로드 때 보낸 값이 아니라 확장자로 정한다 (`.webp` → `image/webp`)'),
   "downloadUrl": zod.string().describe('다운로드 경로입니다. 액세스 토큰이 필요하므로 `<img src>` 에 바로 넣으면 401 입니다. `fetch` 로 받아 blob URL 로 쓰세요.'),
   "createdAt": zod.iso.datetime({"offset":true}).describe('업로드 시각')
 }).describe('첨부파일')).describe('첨부파일. 올린 순서대로'),
@@ -146,7 +146,7 @@ export const FindById1Response = zod.object({
   "id": zod.int().describe('첨부파일 ID'),
   "fileName": zod.string().describe('파일명'),
   "fileSize": zod.int().describe('파일 크기(bytes)'),
-  "contentType": zod.string().describe('MIME 타입'),
+  "contentType": zod.string().describe('MIME 타입. 업로드 때 보낸 값이 아니라 확장자로 정한다 (`.webp` → `image/webp`)'),
   "downloadUrl": zod.string().describe('다운로드 경로입니다. 액세스 토큰이 필요하므로 `<img src>` 에 바로 넣으면 401 입니다. `fetch` 로 받아 blob URL 로 쓰세요.'),
   "createdAt": zod.iso.datetime({"offset":true}).describe('업로드 시각')
 }).describe('첨부파일')).describe('첨부파일. 올린 순서대로'),
@@ -239,7 +239,7 @@ export const UpdateWithFilesResponse = zod.object({
   "id": zod.int().describe('첨부파일 ID'),
   "fileName": zod.string().describe('파일명'),
   "fileSize": zod.int().describe('파일 크기(bytes)'),
-  "contentType": zod.string().describe('MIME 타입'),
+  "contentType": zod.string().describe('MIME 타입. 업로드 때 보낸 값이 아니라 확장자로 정한다 (`.webp` → `image/webp`)'),
   "downloadUrl": zod.string().describe('다운로드 경로입니다. 액세스 토큰이 필요하므로 `<img src>` 에 바로 넣으면 401 입니다. `fetch` 로 받아 blob URL 로 쓰세요.'),
   "createdAt": zod.iso.datetime({"offset":true}).describe('업로드 시각')
 }).describe('첨부파일')).describe('첨부파일. 올린 순서대로'),
@@ -300,7 +300,7 @@ export const ChangeEmploymentStatusResponse = zod.object({
  *
  * ## 응답 헤더
  *
- * `Content-Type` 은 업로드할 때의 타입이고, `Content-Disposition` 에 원본 파일명이 담깁니다.
+ * `Content-Type` 은 **파일 확장자로 정한 타입**이고(`.webp` → `image/webp`), `Content-Disposition` 에 원본 파일명이 담깁니다.
  * 한글 파일명은 RFC 5987 형식(`filename*=UTF-8''...`)으로 함께 실리므로 그대로 쓰면 됩니다.
  *
  * ```
