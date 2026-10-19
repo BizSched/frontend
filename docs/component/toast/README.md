@@ -146,13 +146,13 @@ Sonner 내부 동작(큐·스와이프·타이머)은 라이브러리 책임이�
 
 ## 단계별 PR 계획
 
-GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-started/about-stacked-prs)로 시작했다. 1/3 브랜치가 `dev`에 병합된 뒤 2/3 브랜치의 base는 `dev`가 됐다. 3/3 브랜치는 2/3 브랜치를 base로 한다.
+GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-started/about-stacked-prs)로 시작했다. 1/3 브랜치가 `dev`에 병합된 뒤 2/3 브랜치의 base는 `dev`가 됐다. 2/3 PR도 `dev`에 병합되어 3/3 PR의 base는 `dev`다.
 
-| 순서 | 브랜치                          | base                   | 내용                                                                               |
-| ---- | ------------------------------- | ---------------------- | ---------------------------------------------------------------------------------- |
-| 1/3  | `feat/common-toast`             | `dev`                  | **이 설계 문서** + `component/README.md`·`docs/README.md` 인덱스 + modal 문서 정합 |
-| 2/3  | `feat/common-toast-ui`          | `dev`                  | `sonner` 도입 + `Toaster.tsx` + layout 마운트 + 테스트                             |
-| 3/3  | `feat/common-toast-docs-result` | `feat/common-toast-ui` | 이 문서에 실측 결과 반영, 상태를 `구현 완료`로 갱신                                |
+| 순서 | 브랜치                          | base  | 내용                                                                               |
+| ---- | ------------------------------- | ----- | ---------------------------------------------------------------------------------- |
+| 1/3  | `feat/common-toast`             | `dev` | **이 설계 문서** + `component/README.md`·`docs/README.md` 인덱스 + modal 문서 정합 |
+| 2/3  | `feat/common-toast-ui`          | `dev` | `sonner` 도입 + `Toaster.tsx` + layout 마운트 + 테스트                             |
+| 3/3  | `feat/common-toast-docs-result` | `dev` | 이 문서에 실측 결과 반영, 상태를 `구현 완료`로 갱신                                |
 
 ### PR 제목
 
