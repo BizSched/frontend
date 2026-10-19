@@ -103,6 +103,8 @@ BE는 `accessToken` / `refreshToken`을 응답 body로 주고, 보호 API에 `Au
 - 두 값은 인가 요청을 시작할 때마다 새로 만들고, 콜백에서 결과와 관계없이 삭제해 한 번만 쓴다. 10분은 제공자 로그인 화면에 머무는 시간을 감안한 값이다.
 - `SameSite=Lax`여도 제공자에서 돌아오는 최상위 GET 이동에는 쿠키가 전송된다.
 - `temp_token`은 BE `tempToken`과 같은 30분이다. `Path=/`는 `proxy.ts`(`/onboarding`)와 2단계 BFF 경로(`/api/users/...`)가 모두 읽기 때문이다.
+- `temp_token`은 정식 토큰 쿠키를 저장하거나 지울 때(로그인·refresh·콜백·2단계 성공, 로그아웃·세션 정리) 함께 지운다. 남아 있으면 `/onboarding`에서 다른 소셜 계정의 가입을 마무리해 세션이 바뀔 수 있다. 그 밖에는 BE를 부른 뒤 콜백이 실패한 경우("콜백")와 2단계 실패 중 같은 임시 토큰으로 다시 성공할 수 없는 경우("2단계 제출")에만 지운다.
+- `oauth_state`·`oauth_code_verifier`를 지울 때는 저장할 때와 같은 `Path`를 넣는다. `Path`가 다르면 브라우저가 다른 쿠키로 보고 지우지 않는다.
 - `Secure`는 정식 토큰 쿠키와 같이 production에서만 켠다.
 
 ### 인가 요청
@@ -111,22 +113,24 @@ BE는 `accessToken` / `refreshToken`을 응답 body로 주고, 보호 API에 `Au
 - 제공자 인가 주소는 카카오 `https://kauth.kakao.com/oauth/authorize`, 구글 `https://accounts.google.com/o/oauth2/v2/auth`다. `response_type=code`, `client_id`, `redirect_uri`, `state`, `code_challenge`, `code_challenge_method`를 넣는다.
 - 구글은 `scope=openid email profile`을 넣는다. 카카오는 콘솔의 동의 항목(이메일·닉네임)을 따른다.
 - `client_id`(카카오 REST API 키·구글 클라이언트 ID)와 콜백 origin은 서버 환경 변수 `KAKAO_CLIENT_ID`·`GOOGLE_CLIENT_ID`·`OAUTH_REDIRECT_ORIGIN`으로 둔다. `redirect_uri`는 BE 설정값과 정확히 같아야 하므로 요청 origin으로 만들지 않는다. client secret은 BE만 갖는다.
-- `provider`가 `kakao`·`google`이 아니면 404를 돌려준다.
+- `provider`가 `kakao`·`google`이 아니면 404를 돌려준다. 인가 시작과 콜백 모두 허용 목록으로 검증한 뒤 쓴다. 값이 임시 쿠키 `Path`에 그대로 들어간다.
 
 ### 콜백
 
 콜백은 `app/oauth/[provider]/route.ts`의 Route Handler다. `redirect_uri`가 `/oauth/{provider}`로 정해져 있고, 쿠키를 저장한 뒤 리다이렉트해야 하는데 page는 쿠키를 저장할 수 없다.
 
-| 결과                                                | 처리                                                                                            |
-| --------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| 쿼리 `error`가 있음 (동의 화면에서 취소 등)         | BE를 부르지 않고 `/login`으로 이동한다. 사용자가 직접 취소한 경우라 문구를 보여주지 않는다      |
-| `state` 불일치·쿠키 없음, `code` 없음               | BE를 부르지 않고 `/login?socialError=BFF_INVALID_OAUTH_STATE`로 이동한다                        |
-| `isNewUser: false`                                  | 정식 토큰을 `autoLogin: false` 수명으로 저장하고 `temp_token`을 지운 뒤 `/dashboard`로 이동한다 |
-| `isNewUser: true`                                   | `temp_token`을 저장하고 `/onboarding`으로 이동한다                                              |
-| 409 `SOCIAL_EMAIL_CONFLICT`                         | `/login?socialError=SOCIAL_EMAIL_CONFLICT&joinType={data.joinType}`로 이동한다                  |
-| 그 밖의 BE 에러·BFF 실패(timeout·응답 검증 실패 등) | `/login?socialError={errorCode}`로 이동한다                                                     |
+| 결과                                                | 처리                                                                                                 |
+| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| 쿼리 `error`가 있음 (동의 화면에서 취소 등)         | BE를 부르지 않고 `/login`으로 이동한다. 사용자가 직접 취소한 경우라 문구를 보여주지 않는다           |
+| `state` 없음·불일치·쿠키 없음, `code` 없음          | BE를 부르지 않고 `/login?socialError=BFF_INVALID_OAUTH_STATE`로 이동한다                             |
+| `isNewUser: false`                                  | 정식 토큰을 `autoLogin: false` 수명으로 저장하고 `temp_token`을 지운 뒤 `/dashboard`로 이동한다      |
+| `isNewUser: true`                                   | `temp_token`을 저장하고 `/onboarding`으로 이동한다                                                   |
+| 409 `SOCIAL_EMAIL_CONFLICT`                         | `temp_token`을 지우고 `/login?socialError=SOCIAL_EMAIL_CONFLICT&joinType={data.joinType}`로 이동한다 |
+| 그 밖의 BE 에러·BFF 실패(timeout·응답 검증 실패 등) | `temp_token`을 지우고 `/login?socialError={errorCode}`로 이동한다                                    |
 
 - 모든 결과에서 `oauth_state`·`oauth_code_verifier`를 삭제한다.
+- 검증을 통과해 BE를 부른 시도는 이전 가입 시도를 대체한다. 실패하면 남은 `temp_token`을 지워, 실패 안내를 받은 뒤 `/onboarding`에서 이전 시도의 가입이 이어지지 않게 한다.
+- 쿼리 `error`와 `state` 검증 실패에서는 `temp_token`을 유지한다. BE를 부르기 전 단계라 다른 사이트가 링크로 만들 수 있는 요청이고, 진행 중인 온보딩을 지울 수 있기 때문이다.
 - 생성 zod(`LoginResponse`)는 세 토큰을 모두 `nullish`로 둔다. `isNewUser`가 `false`인데 `accessToken`·`refreshToken`이 비었거나, `true`인데 `tempToken`이 비었으면 BE 응답 검증 실패(`BFF_INVALID_UPSTREAM_RESPONSE`)로 보고 쿠키를 저장하지 않는다.
 - 콜백은 브라우저가 이동해 오는 GET이라 JSON 에러 응답을 돌려주지 않고 리다이렉트로 끝낸다. 실패를 `withBffHandler`의 에러 응답으로 바꾸지 않는다.
 - 소셜 로그인에는 자동 로그인 선택이 없다. BE refresh 수명(1일)에 맞춰 세션 쿠키로 저장한다.

@@ -6,4 +6,10 @@ const AUTH_COOKIE_NAMES = {
   autoLogin: 'auto_login',
 } as const;
 
-export { AUTH_COOKIE_NAMES };
+const OAUTH_COOKIE_NAMES = {
+  state: 'oauth_state',
+  codeVerifier: 'oauth_code_verifier',
+  tempToken: 'temp_token',
+} as const;
+
+export { AUTH_COOKIE_NAMES, OAUTH_COOKIE_NAMES };
