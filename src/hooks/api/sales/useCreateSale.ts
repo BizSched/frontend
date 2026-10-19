@@ -11,8 +11,8 @@ export const useCreateSale = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (body: SaleCreateRequest) => createSale(body),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: salesKeys.all });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: salesKeys.all });
     },
   });
 };

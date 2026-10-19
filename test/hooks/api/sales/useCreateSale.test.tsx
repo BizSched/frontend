@@ -1,4 +1,8 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import {
+  QueryClient,
+  QueryClientProvider,
+  QueryObserver,
+} from '@tanstack/react-query';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -71,6 +75,42 @@ describe('useCreateSale', () => {
     expect(queryClient.getQueryState(listKey)?.isInvalidated).toBe(true);
     expect(queryClient.getQueryState(monthTotalKey)?.isInvalidated).toBe(true);
     expect(queryClient.getQueryState(categoryKey)?.isInvalidated).toBe(false);
+  });
+
+  it('활성 매출 목록 재조회가 끝난 뒤 저장 성공을 알린다', async () => {
+    vi.mocked(createSale).mockResolvedValue({
+      id: 1,
+      date: request.date,
+      sales: [],
+      totalAmount: 0,
+    });
+    const queryClient = createQueryClient();
+    queryClient.setQueryData(listKey, { items: [] });
+    let resolveRefetch!: (value: { items: { id: number }[] }) => void;
+    const refetch = vi.fn(
+      () =>
+        new Promise<{ items: { id: number }[] }>((resolve) => {
+          resolveRefetch = resolve;
+        }),
+    );
+    const observer = new QueryObserver(queryClient, {
+      queryKey: listKey,
+      queryFn: refetch,
+      staleTime: 60_000,
+    });
+    const unsubscribe = observer.subscribe(() => {});
+    const onSuccess = vi.fn();
+    const { result } = renderCreateSale(queryClient);
+
+    act(() => result.current.mutate(request, { onSuccess }));
+
+    await waitFor(() => expect(refetch).toHaveBeenCalledOnce());
+    expect(onSuccess).not.toHaveBeenCalled();
+
+    resolveRefetch({ items: [{ id: 1 }] });
+    await waitFor(() => expect(onSuccess).toHaveBeenCalledOnce());
+    expect(queryClient.getQueryData(listKey)).toEqual({ items: [{ id: 1 }] });
+    unsubscribe();
   });
 
   it('매출 생성에 성공하면 대시보드의 요약·차트·구성·최근 내역 쿼리를 무효화한다', async () => {
