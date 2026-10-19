@@ -17,6 +17,7 @@ describe('PartTimeStaffCard', () => {
           name: '김알바',
           phone: null,
           createdAt: '2026-10-14T09:00:00+09:00',
+          employmentStatus: 'employed',
         }}
         isDeletePending
         onDetailOpen={onDetailOpen}
@@ -30,4 +31,26 @@ describe('PartTimeStaffCard', () => {
     fireEvent.click(screen.getByRole('button', { name: '김알바 상세 보기' }));
     expect(onDetailOpen).toHaveBeenCalledTimes(1);
   });
+
+  it.each([
+    ['employed', '재직'],
+    ['onLeave', '휴직'],
+    ['resigned', '퇴사'],
+  ] as const)(
+    '재직 상태 %s를 이름 옆 배지로 표시한다',
+    (employmentStatus, label) => {
+      render(
+        <PartTimeStaffCard
+          staff={{
+            id: 42,
+            name: '김알바',
+            createdAt: '2026-10-14T09:00:00+09:00',
+            employmentStatus,
+          }}
+        />,
+      );
+
+      expect(screen.getByText(label).getAttribute('data-slot')).toBe('badge');
+    },
+  );
 });

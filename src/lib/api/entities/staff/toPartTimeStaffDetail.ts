@@ -5,6 +5,8 @@ import type { FindById1Response } from '@lib/api/generated/staff/staff.zod';
 import type { PartTimeStaffDetailItem } from '@lib/types/partTimeStaff';
 import { getPartTimeStaffAttachmentType } from '@lib/utilities/partTime/partTimeStaffAttachment';
 
+import { toPartTimeStaffEmploymentStatus } from './toPartTimeStaffEmploymentStatus';
+
 const toPartTimeStaffDetail = (
   dto: z.infer<typeof FindById1Response>,
 ): PartTimeStaffDetailItem => ({
@@ -12,6 +14,7 @@ const toPartTimeStaffDetail = (
   name: dto.name,
   phone: dto.phone,
   createdAt: dto.createdAt,
+  employmentStatus: toPartTimeStaffEmploymentStatus(dto.employmentStatus),
   birthDate: dto.birthDate,
   gender: match(dto.gender)
     .with('MALE', () => 'male' as const)

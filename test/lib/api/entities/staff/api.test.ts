@@ -4,6 +4,7 @@ import { ZodError } from 'zod';
 import { ApiError } from '@lib/api/apiError';
 import { customFetcher } from '@lib/api/customFetcher';
 import {
+  changeStaffEmploymentStatus,
   createStaff,
   deleteStaff,
   deleteStaffAttachment,
@@ -15,6 +16,7 @@ import {
   uploadStaffAttachment,
 } from '@lib/api/entities/staff/api';
 import {
+  changeEmploymentStatus,
   delete2,
   deleteAttachment,
   downloadAttachment,
@@ -23,6 +25,7 @@ import {
 } from '@lib/api/generated/staff/staff';
 
 vi.mock('@lib/api/generated/staff/staff', () => ({
+  changeEmploymentStatus: vi.fn(),
   delete2: vi.fn(),
   deleteAttachment: vi.fn(),
   getCreateWithFilesUrl: () => '/api/staff',
@@ -197,6 +200,34 @@ describe('staff API', () => {
     },
   );
 
+  it('재직 상태를 BE 값으로 바꿔 요청하고 응답을 FE 값으로 변환한다', async () => {
+    vi.mocked(changeEmploymentStatus).mockResolvedValue({
+      id: 42,
+      employmentStatus: 'RESIGNED',
+      updatedAt: STAFF.createdAt,
+    });
+    await expect(changeStaffEmploymentStatus(42, 'resigned')).resolves.toEqual({
+      id: 42,
+      employmentStatus: 'resigned',
+    });
+    expect(changeEmploymentStatus).toHaveBeenCalledWith(42, {
+      employmentStatus: 'RESIGNED',
+    });
+  });
+
+  it('잘못된 재직 상태 응답을 거부한다', async () => {
+    vi.mocked(changeEmploymentStatus).mockResolvedValue({
+      id: 42,
+      employmentStatus: 'FIRED',
+    } as never);
+    await expect(
+      changeStaffEmploymentStatus(42, 'onLeave'),
+    ).rejects.toBeInstanceOf(ZodError);
+    expect(changeEmploymentStatus).toHaveBeenCalledWith(42, {
+      employmentStatus: 'ON_LEAVE',
+    });
+  });
+
   it('첨부파일은 생성 함수의 Blob 옵션과 취소 signal로 받는다', async () => {
     const blob = new Blob(['file'], { type: 'application/pdf' });
     const signal = new AbortController().signal;
@@ -225,7 +256,7 @@ describe('staff API', () => {
     expect(result).toMatchObject({
       totalCount: 11,
       totalPage: 2,
-      items: [{ id: 42, phone: null }],
+      items: [{ id: 42, phone: null, employmentStatus: 'onLeave' }],
     });
   });
 
@@ -236,6 +267,7 @@ describe('staff API', () => {
       name: STAFF.name,
       phone: null,
       createdAt: STAFF.createdAt,
+      employmentStatus: 'onLeave',
       birthDate: null,
       gender: null,
       hourlyWage: null,

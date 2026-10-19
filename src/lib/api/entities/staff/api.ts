@@ -6,6 +6,7 @@ import type {
   StaffUpdateRequest,
 } from '@lib/api/generated/bizSchedAPI.schemas';
 import {
+  changeEmploymentStatus,
   delete2,
   deleteAttachment,
   downloadAttachment,
@@ -15,12 +16,14 @@ import {
   getUpdateWithFilesUrl,
 } from '@lib/api/generated/staff/staff';
 import {
+  ChangeEmploymentStatusResponse,
   CreateWithFilesResponse,
   Delete2Response,
   FindAll1Response,
   FindById1Response,
   UpdateWithFilesResponse,
 } from '@lib/api/generated/staff/staff.zod';
+import type { PartTimeStaffEmploymentStatus } from '@lib/types/partTimeStaff';
 import {
   PART_TIME_STAFF_ATTACHMENT_MAX_BYTES,
   PART_TIME_STAFF_ATTACHMENT_SIZE_MESSAGE,
@@ -29,6 +32,10 @@ import {
 
 import { toPartTimeStaff } from './toPartTimeStaff';
 import { toPartTimeStaffDetail } from './toPartTimeStaffDetail';
+import {
+  toEmploymentStatusRequest,
+  toPartTimeStaffEmploymentStatus,
+} from './toPartTimeStaffEmploymentStatus';
 import { toPartTimeStaffList } from './toPartTimeStaffList';
 
 const MAX_PAGE_SIZE = 100;
@@ -60,6 +67,23 @@ const getStaffDetail = async (staffId: number, options?: RequestInit) =>
 
 const deleteStaff = async (staffId: number) =>
   Delete2Response.parse(await delete2(staffId)).id;
+
+const changeStaffEmploymentStatus = async (
+  staffId: number,
+  employmentStatus: PartTimeStaffEmploymentStatus,
+) => {
+  const response = ChangeEmploymentStatusResponse.parse(
+    await changeEmploymentStatus(staffId, {
+      employmentStatus: toEmploymentStatusRequest(employmentStatus),
+    }),
+  );
+  return {
+    id: response.id,
+    employmentStatus: toPartTimeStaffEmploymentStatus(
+      response.employmentStatus,
+    ),
+  };
+};
 
 // NOTE: 생성 함수는 multipart만 만들고 attachments를 다루지 않아 전송만 직접 작성한다.
 const createStaff = async (body: StaffCreateRequest) =>
@@ -118,6 +142,7 @@ const getStaffAttachment = async (url: string, options?: RequestInit) => {
 };
 
 export {
+  changeStaffEmploymentStatus,
   createStaff,
   deleteStaff,
   deleteStaffAttachment,
