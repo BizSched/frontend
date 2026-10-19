@@ -27,8 +27,9 @@
 
 `layout.tsx`, `page.tsx`, `globals.css`가 여기 위치한다.
 
-- `app/`: `api/`, `login/`, `signup/`, `onboarding/`, `(main)/`, `layout.tsx`, `page.tsx`
-- `api/`: BFF Route Handler. 인증 전용 경로(`auth/login/`, `auth/logout/` 등)와 범용 통과 경로(`[...path]/`)를 둔다 ([auth.md](./auth.md)의 "BFF 경로")
+- `app/`: `api/`, `oauth/`, `login/`, `signup/`, `onboarding/`, `(main)/`, `layout.tsx`, `page.tsx`
+- `api/`: BFF Route Handler. 인증 전용 경로(`auth/login/`, `auth/logout/`, `oauth/[provider]/authorize/`, `users/signup/additional-info/` 등)와 범용 통과 경로(`[...path]/`)를 둔다 ([auth.md](./auth.md)의 "BFF 경로")
+- `oauth/`: 소셜 로그인 콜백 Route Handler(`[provider]/route.ts`). BE의 `redirect_uri`가 `/oauth/{provider}`라 `api/` 밖에 둔다 ([auth.md](./auth.md)의 "소셜 로그인")
 - `(main)/`: `dashboard/`, `partTime/`(`schedule/`, `staff/`), `sales/`(`dashboard/`, `details/`), `task/`(`calendar/`, `form/`, `detail/`), `layout.tsx`
 
 ### 라우트 그룹 `(main)`
@@ -36,7 +37,7 @@
 **로그인이 필요한 페이지(사이드바 있음)와 로그인이 필요 없는 페이지를 구분하기 위해** `(main)` 라우트 그룹으로 묶는다.
 
 - `(main)/` 안: 로그인 후 접근하는 페이지. `(main)/layout.tsx`가 사이드바(`AppSidebar`) 레이아웃을 공통으로 적용한다.
-- `(main)/` 밖: 로그인 없이 접근하는 페이지(`login/`, `signup/`, 랜딩 `page.tsx`)와, 로그인 후라도 가입이 끝나지 않은 단계의 페이지(`onboarding/`). 사이드바를 적용하지 않는다.
+- `(main)/` 밖: 로그인 없이 접근하는 페이지(`login/`, `signup/`, 랜딩 `page.tsx`)와, 가입이 끝나지 않은 단계의 페이지(`onboarding/`). 사이드바를 적용하지 않는다.
 - 괄호 폴더는 URL에 포함되지 않는다. (`app/(main)/sales/dashboard/page.tsx` → `/sales/dashboard`)
 - 새 페이지를 추가할 때는 로그인 필요 여부로 `(main)/` 안·밖을 먼저 결정한다. 로그인 없이 여는 페이지는 `proxy.ts`가 쓰는 공개 목록(`lib/utilities/auth/getAuthRedirectPath.ts`)에도 넣는다 ([auth.md](./auth.md)의 "로그인 상태 판단")
 

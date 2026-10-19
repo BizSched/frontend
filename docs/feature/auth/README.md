@@ -13,23 +13,28 @@
 | `/onboarding` | 소셜 가입 추가 정보 | [onboarding.md](./onboarding.md) |
 
 ```
-로그인:     /login → /dashboard
-일반 가입:  /signup (계정 정보 + 업종 + 약관) → /login
-소셜 가입:  소셜 로그인 → /onboarding (업종 + 약관) → /dashboard
+로그인:       /login → /dashboard
+일반 가입:    /signup (계정 정보 + 업종 + 약관) → /login
+소셜 로그인:  카카오·구글 → /dashboard (가입된 소셜 계정)
+소셜 가입:    카카오·구글 → /onboarding (업종 + 약관) → /dashboard (처음 보는 소셜 계정)
 ```
 
 일반 가입은 회원가입 화면에서 업종과 약관을 함께 받는다. 소셜 가입은 회원가입 화면을 거치지 않으므로 같은 항목을 `/onboarding`에서 받는다.
 
-일반 가입은 가입 응답에 토큰이 없어 로그인 페이지로 보낸다. 소셜 가입은 추가 정보 제출 응답으로 토큰을 받으므로 바로 `/dashboard`로 간다. 온보딩 제출은 API 연동 전까지 입력값 검증 없이 이동만 한다.
+일반 가입은 가입 응답에 토큰이 없어 로그인 페이지로 보낸다. 소셜 가입은 추가 정보 제출 응답으로 토큰을 받으므로 바로 `/dashboard`로 간다.
+
+로그인·회원가입 화면의 소셜 버튼은 같은 흐름이다. 가입 여부는 BE가 판단한다. 처음 보는 소셜 계정인데 이메일이 이미 다른 방법으로 가입되어 있으면 연결하지 않고 기존 로그인 방법을 안내한다. 흐름·쿠키·에러는 [auth.md](../../architecture/auth.md)의 "소셜 로그인" 참고.
 
 ## API 명세
 
 BE 명세는 Swagger(`/v3/api-docs`)가 기준이다. 토큰 규칙과 BFF 경로는 [auth.md](../../architecture/auth.md), 가입 API는 [signup.md](./signup.md#api) 참고.
 
-| 동작     | BE API                  | BFF 경로                | 요청                             | 응답                                                                  |
-| -------- | ----------------------- | ----------------------- | -------------------------------- | --------------------------------------------------------------------- |
-| 로그인   | `POST /api/auth/login`  | `POST /api/auth/login`  | `email`, `password`, `autoLogin` | BFF는 토큰을 쿠키로 저장하고 `user`(`id`, `email`, `name`)만 돌려준다 |
-| 로그아웃 | `POST /api/auth/logout` | `POST /api/auth/logout` | 없음 (access 토큰 필요)          | 200 + 빈 body. BFF는 쿠키를 삭제하고 204                              |
+| 동작             | BE API                                    | BFF 경로                                                             | 요청                                                                       | 응답                                                                                |
+| ---------------- | ----------------------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| 로그인           | `POST /api/auth/login`                    | `POST /api/auth/login`                                               | `email`, `password`, `autoLogin`                                           | BFF는 토큰을 쿠키로 저장하고 `user`(`id`, `email`, `name`)만 돌려준다               |
+| 로그아웃         | `POST /api/auth/logout`                   | `POST /api/auth/logout`                                              | 없음 (access 토큰 필요)                                                    | 200 + 빈 body. BFF는 쿠키를 삭제하고 204                                            |
+| 소셜 로그인      | `POST /api/oauth/{provider}`              | `GET /api/oauth/{provider}/authorize` → 콜백 `GET /oauth/{provider}` | 브라우저는 이동만 한다. BFF가 `authorizationCode`, `codeVerifier`를 보낸다 | BFF가 토큰 또는 `tempToken`을 쿠키로 저장하고 리다이렉트한다                        |
+| 소셜 가입 마무리 | `PATCH /api/users/signup/additional-info` | 같은 경로                                                            | `industry`, `industryDetail`, `termsAgreed` (`tempToken` 필요)             | BFF는 토큰을 쿠키로 저장하고 `id`, `email`, `industry`, `industryDetail`만 돌려준다 |
 
 - 로그인 실패는 없는 이메일·틀린 비밀번호·소셜 가입 계정 모두 401 `INVALID_CREDENTIALS`다. 화면에는 FE 매핑 문구 "이메일 또는 비밀번호가 일치하지 않습니다. 카카오·구글로 가입하셨다면 소셜 로그인을 이용해 주세요."를 보여준다. 소셜 가입 계정도 같은 응답이라 소셜 로그인을 함께 안내한다.
 - BE는 로그인 입력값을 검증하지 않는다. 빈 값·잘못된 이메일 형식도 401 `INVALID_CREDENTIALS`로 응답하므로 형식 검사는 로그인 폼에서 한다.
@@ -65,7 +70,8 @@ BE 명세는 Swagger(`/v3/api-docs`)가 기준이다. 토큰 규칙과 BFF 경�
 | ----------------------- | ------------------------------------------------------------------------------------------- |
 | `LoginForm`             | 로그인 폼 상태(이메일·비밀번호·자동 로그인), 로그인 실패 인라인 표시, 성공 후 대시보드 이동 |
 | `SignupForm`            | 회원가입 폼 상태와 입력 검사, 가입 실패 인라인 표시, 성공 후 로그인 이동                    |
-| `OnboardingForm`        | 온보딩 폼 상태, 제출 후 대시보드 이동                                                       |
+| `OnboardingForm`        | 온보딩 폼 상태와 입력 검사, 가입 마무리 요청, 성공 후 대시보드 이동                         |
+| `AuthSocialLogin`       | 카카오·구글 버튼. BFF 인가 시작 경로로 이동하는 링크, 소셜 로그인 실패 문구 표시            |
 | `AuthBusinessTypeField` | 업종 드롭다운, `CUSTOM` 선택 시 직접 입력 칸 노출                                           |
 | `TermsAgreement`        | 전체 동의와 약관 목록(`GET /api/terms`) 체크, 전문 보기, 조회 실패 시 다시 불러오기         |
 | `TermsModal`            | 약관 전문(`content`) 표시. `동의하기`를 누르면 해당 항목을 체크한다                         |
@@ -88,6 +94,20 @@ BE 명세는 Swagger(`/v3/api-docs`)가 기준이다. 토큰 규칙과 BFF 경�
 - 업종을 고르지 않으면 업종 필드 아래, 필수 약관에 동의하지 않으면 약관 영역 아래 한 줄로 보여준다.
 - 문구는 [signup.md](./signup.md#입력-검사)의 "입력 검사"를 따른다.
 
+## 소셜 로그인 단계별 PR 계획
+
+흐름·쿠키·에러 규칙은 [auth.md](../../architecture/auth.md)의 "소셜 로그인"이 기준이다.
+
+| 단계 | 브랜치                        | 범위                                                                                                                                                                                                  | 분기  | 상태    |
+| ---- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | ------- |
+| 1    | `docs/social-login-design`    | 소셜 로그인 설계(auth.md "소셜 로그인"), 온보딩·로그인 화면 문서, 단계별 PR 계획 (이 섹션)                                                                                                            | `dev` | PR 대기 |
+| 2    | `feat/social-login-bff-utils` | `state`·PKCE(`code_verifier`, S256 `code_challenge`) 생성, 임시 쿠키(`oauth_state`·`oauth_code_verifier`·`temp_token`) 읽기·쓰기·삭제, 단위 테스트                                                    | 1단계 |         |
+| 3    | `feat/social-login-callback`  | 인가 시작 `GET /api/oauth/{provider}/authorize`, 콜백 `app/oauth/[provider]/route.ts`와 결과별 분기, `/oauth/*` 공개 처리, `AuthSocialLogin` 링크 연결, 로그인 화면 `socialError` 문구, 환경 변수 3종 | 2단계 |         |
+| 4    | `feat/social-onboarding-api`  | 2단계 BFF `PATCH /api/users/signup/additional-info`, `useCompleteSocialSignupMutation`, `OnboardingForm` 연결·실패 처리, `temp_token` 없는 `/onboarding` 진입 차단                                    | 3단계 |         |
+
+- 2단계부터는 바로 앞 단계 브랜치에서 분기한 stacked PR이고, 앞 단계가 머지되면 base를 `dev`로 바꾼다.
+- 4단계는 Swagger의 2단계 요청 업종 enum이 수정된 뒤 진행한다([auth.md](../../architecture/auth.md#결정-대기-항목)의 "소셜 가입 업종 값").
+
 ## 확인 필요
 
 ### 1. 개인정보 수집 항목과 실제 입력 항목 불일치
@@ -102,11 +122,7 @@ BE 명세는 Swagger(`/v3/api-docs`)가 기준이다. 토큰 규칙과 BFF 경�
 
 수집 항목을 실제 입력에 맞출지, 입력 항목을 늘릴지 결정이 필요하다. 본문 수정은 BE 약관 데이터에서 한다.
 
-### 2. `/onboarding` 진입 조건
-
-소셜 로그인 후 신규 회원을 판별해 `/onboarding`으로 보내는 기준과, 로그인하지 않은 사용자의 직접 접근 처리가 정해지지 않았다.
-
-### 3. `components/auth/` 하위 폴더
+### 2. `components/auth/` 하위 폴더
 
 [folder-structure.md](../../architecture/folder-structure.md)는 `auth/form/` 하위 폴더를 두지만 현재 auth 컴포넌트는 모두 `auth/` 바로 아래에 있다.
 
