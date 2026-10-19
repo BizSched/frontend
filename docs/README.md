@@ -73,6 +73,7 @@ docs/
 | [component/chart/README.md](./component/chart/README.md)                                 | Chart — 누적 막대·도넛 compound, shadcn chart 생성물 처리, size 반응형, 빈 상태, 로딩 스켈레톤 |
 | [component/calendar/README.md](./component/calendar/README.md)                           | Calendar — 단일 날짜 선택, 월 이동, 일정 칩·모바일 점, Dropdown 조합                           |
 | [component/ActionButton/README.md](./component/ActionButton/README.md)                   | ActionButton — Base UI Menu 기반 speed dial, `actions` 배열 prop, lucide 아이콘                |
+| [component/badge/README.md](./component/badge/README.md)                                 | Badge — 표시용 pill 라벨, `color` variant, 토큰 불일치 HEX 매핑                                |
 
 ## feature/
 
