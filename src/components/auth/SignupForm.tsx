@@ -7,6 +7,7 @@ import { match, P } from 'ts-pattern';
 
 import { Button } from '@components/_common/Button/Button';
 import { Input } from '@components/_common/Input/Input';
+import { toast } from '@components/_common/Toast/Toaster';
 import { AuthBusinessTypeField } from '@components/auth/AuthBusinessTypeField';
 import { AuthField } from '@components/auth/AuthField';
 import { AuthForm } from '@components/auth/AuthForm';
@@ -49,6 +50,8 @@ const SIGNUP_FORM_DEFAULT_VALUES: SignupFormValues = {
   businessTypeCustom: '',
   terms: TERMS_AGREEMENT_DEFAULT_VALUES,
 };
+
+const SIGNUP_ERROR_TOAST_ID = 'signup-error';
 
 const SIGNUP_FORM_RULES = {
   name: {
@@ -107,6 +110,7 @@ function SignupForm() {
     )
       return;
 
+    toast.dismiss(SIGNUP_ERROR_TOAST_ID);
     signup(
       {
         name: values.name,
@@ -135,9 +139,15 @@ function SignupForm() {
                 .with('INVALID_PASSWORD_FORMAT', () => 'password' as const)
                 .with('INVALID_INDUSTRY_VALUE', () => 'businessType' as const)
                 .with('REQUIRED_TERMS_NOT_AGREED', () => 'terms' as const)
-                .otherwise(() => 'root.server' as const),
+                .otherwise(() => null),
             )
-            .otherwise(() => 'root.server' as const);
+            .otherwise(() => null);
+          if (!field) {
+            toast.error(formatSignupError(error), {
+              id: SIGNUP_ERROR_TOAST_ID,
+            });
+            return;
+          }
           setError(field, {
             type: 'server',
             message: formatSignupError(error),
@@ -257,19 +267,9 @@ function SignupForm() {
         )}
       />
       <div className="flex flex-col gap-6">
-        <div className="flex flex-col gap-2">
-          {errors.root?.server && (
-            <p
-              role="alert"
-              className="pl-1 text-sm tracking-[-0.03em] text-warning-500"
-            >
-              {errors.root.server.message}
-            </p>
-          )}
-          <Button type="submit" disabled={isSubmitDisabled} className="w-full">
-            회원가입 하기
-          </Button>
-        </div>
+        <Button type="submit" disabled={isSubmitDisabled} className="w-full">
+          회원가입 하기
+        </Button>
         <AuthSwitchLink
           question="이미 회원이신가요?"
           linkLabel="로그인"

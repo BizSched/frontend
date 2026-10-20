@@ -10,8 +10,8 @@ import {
 } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { openConfirmModal } from '@components/_common/Modal/openConfirmModal';
 import { SidebarProvider } from '@components/_common/Sidebar/SidebarProvider';
+import { Toaster, toast } from '@components/_common/Toast/Toaster';
 import { AppSidebarContainer } from '@components/Sidebar/AppSidebarContainer';
 
 import { ApiError, NetworkError } from '@lib/api/apiError';
@@ -25,9 +25,6 @@ vi.mock('@lib/api/authSession', () => ({
   endSession: vi.fn(),
   redirectToLogin: vi.fn(),
 }));
-vi.mock('@components/_common/Modal/openConfirmModal', () => ({
-  openConfirmModal: vi.fn(),
-}));
 
 const renderSidebar = () =>
   render(
@@ -35,6 +32,7 @@ const renderSidebar = () =>
       <SidebarProvider>
         <AppSidebarContainer />
       </SidebarProvider>
+      <Toaster />
     </QueryClientProvider>,
   );
 
@@ -46,7 +44,6 @@ describe('AppSidebarContainer', () => {
     vi.mocked(postLogout).mockReset();
     vi.mocked(redirectToLogin).mockReset();
     vi.mocked(endSession).mockReset();
-    vi.mocked(openConfirmModal).mockReset();
     vi.stubGlobal(
       'matchMedia',
       vi.fn(() => ({
@@ -59,6 +56,7 @@ describe('AppSidebarContainer', () => {
 
   afterEach(() => {
     cleanup();
+    toast.dismiss();
     vi.unstubAllGlobals();
   });
 
@@ -69,7 +67,7 @@ describe('AppSidebarContainer', () => {
     clickLogout();
 
     await waitFor(() => expect(redirectToLogin).toHaveBeenCalledTimes(1));
-    expect(openConfirmModal).not.toHaveBeenCalled();
+    expect(screen.queryByText('로그아웃하지 못했어요')).not.toBeInTheDocument();
   });
 
   it('로그아웃 요청 중에 다시 눌러도 한 번만 요청한다', async () => {
@@ -94,51 +92,39 @@ describe('AppSidebarContainer', () => {
   it.each([
     ['5xx', new Error('HTTP 500')],
     ['네트워크 오류', new NetworkError()],
-  ])(
-    '%s로 실패하면 이동하지 않고 재시도 확인 모달을 연다',
-    async (_, error) => {
-      vi.mocked(postLogout).mockRejectedValue(error);
-      vi.mocked(openConfirmModal).mockResolvedValue(false);
-      renderSidebar();
+  ])('%s로 실패하면 이동하지 않고 토스트로 알린다', async (_, error) => {
+    vi.mocked(postLogout).mockRejectedValue(error);
+    renderSidebar();
 
-      clickLogout();
+    clickLogout();
 
-      await waitFor(() =>
-        expect(openConfirmModal).toHaveBeenCalledWith({
-          title: '로그아웃하지 못했어요',
-          description: COMMON_ERROR_MESSAGE,
-          confirmText: '다시 시도',
-        }),
-      );
-      expect(redirectToLogin).not.toHaveBeenCalled();
-    },
-  );
+    expect(
+      await screen.findByText('로그아웃하지 못했어요'),
+    ).toBeInTheDocument();
+    expect(screen.getByText(COMMON_ERROR_MESSAGE)).toBeInTheDocument();
+    expect(redirectToLogin).not.toHaveBeenCalled();
+  });
 
-  it('모달에서 다시 시도를 누르면 로그아웃을 다시 요청한다', async () => {
+  it('실패 후 로그아웃을 다시 누르면 이전 토스트를 지우고 다시 요청한다', async () => {
     vi.mocked(postLogout)
       .mockRejectedValueOnce(new Error('HTTP 500'))
       .mockResolvedValueOnce(undefined);
-    vi.mocked(openConfirmModal).mockResolvedValue(true);
     renderSidebar();
 
+    clickLogout();
+    await screen.findByText('로그아웃하지 못했어요');
     clickLogout();
 
     await waitFor(() => expect(redirectToLogin).toHaveBeenCalledTimes(1));
     expect(postLogout).toHaveBeenCalledTimes(2);
+    await waitFor(() =>
+      expect(
+        screen.queryByText('로그아웃하지 못했어요'),
+      ).not.toBeInTheDocument(),
+    );
   });
 
-  it('모달을 취소하면 다시 요청하지 않는다', async () => {
-    vi.mocked(postLogout).mockRejectedValue(new Error('HTTP 500'));
-    vi.mocked(openConfirmModal).mockResolvedValue(false);
-    renderSidebar();
-
-    clickLogout();
-
-    await waitFor(() => expect(openConfirmModal).toHaveBeenCalled());
-    expect(postLogout).toHaveBeenCalledTimes(1);
-  });
-
-  it('401은 세션 정리가 처리하므로 모달을 열지 않는다', async () => {
+  it('401은 세션 정리가 처리하므로 토스트를 띄우지 않는다', async () => {
     vi.mocked(postLogout).mockRejectedValue(
       new ApiError('UNAUTHORIZED', 401, ''),
     );
@@ -147,6 +133,6 @@ describe('AppSidebarContainer', () => {
     clickLogout();
 
     await waitFor(() => expect(endSession).toHaveBeenCalled());
-    expect(openConfirmModal).not.toHaveBeenCalled();
+    expect(screen.queryByText('로그아웃하지 못했어요')).not.toBeInTheDocument();
   });
 });
