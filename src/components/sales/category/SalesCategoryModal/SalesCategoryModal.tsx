@@ -9,6 +9,7 @@ import { Input } from '@components/_common/Input/Input';
 import { Modal } from '@components/_common/Modal/Modal';
 import { openConfirmModal } from '@components/_common/Modal/openConfirmModal';
 import { TextButton } from '@components/_common/TextButton/TextButton';
+import { toast } from '@components/_common/Toast/Toaster';
 
 import { useCreateSalesCategory } from '@hooks/api/sales-category/useCreateSalesCategory';
 import { useDeleteSalesCategory } from '@hooks/api/sales-category/useDeleteSalesCategory';
@@ -65,7 +66,6 @@ function SalesCategoryModal({
   const updateCategories = useUpdateSalesCategories();
   const [newCategoryName, setNewCategoryName] = useState('');
   const [mutationError, setMutationError] = useState<unknown>(null);
-  // NOTE: 알림은 다음 입력·요청까지만 유효하다. 남겨두면 가상 커서로 지난 결과를 다시 만나고, 같은 문구는 다시 읽히지 않는다
   const [statusMessage, setStatusMessage] = useState('');
   const isPending =
     createCategory.isPending ||
@@ -76,7 +76,6 @@ function SalesCategoryModal({
       defaultValues: toFormValues(categories),
     });
 
-  // NOTE: 추가·삭제로 목록이 바뀌어도 저장하지 않은 이름 변경은 categoryId 기준으로 유지한다. index 기준이면 앞 행 삭제 시 다른 카테고리에 붙는다 (docs/feature/sales/README.md "카테고리 관리")
   useEffect(() => {
     const editedNames = new Map(
       getValues('categories').map(({ categoryId, name }) => [categoryId, name]),
@@ -85,7 +84,6 @@ function SalesCategoryModal({
   }, [categories, getValues, reset]);
   const { fields } = useFieldArray({ control, name: 'categories' });
 
-  // NOTE: 새 행은 서버가 목록 맨 뒤에 붙인다. 연속 추가(초기 세팅)를 위해 포커스는 추가 입력칸에 두고 스크롤만 한다
   useEffect(() => {
     const addedId = addedCategoryIdRef.current;
     if (addedId === null) return;
@@ -137,7 +135,11 @@ function SalesCategoryModal({
     if (isConfirmed) {
       setMutationError(null);
       setStatusMessage('');
-      deleteCategory.mutate(categoryId, { onError: setMutationError });
+      deleteCategory.mutate(categoryId, {
+        onSuccess: () =>
+          toast.success('카테고리를 삭제했어요.', { id: 'category-deleted' }),
+        onError: setMutationError,
+      });
     }
   };
 
@@ -150,7 +152,13 @@ function SalesCategoryModal({
         name: name.trim(),
         order,
       })),
-      { onSuccess: close, onError: setMutationError },
+      {
+        onSuccess: () => {
+          toast.success('카테고리를 저장했어요.', { id: 'category-saved' });
+          close();
+        },
+        onError: setMutationError,
+      },
     );
   });
 

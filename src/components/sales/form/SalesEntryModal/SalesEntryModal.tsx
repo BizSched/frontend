@@ -8,6 +8,7 @@ import { Button } from '@components/_common/Button/Button';
 import { DatePicker } from '@components/_common/DatePicker/DatePicker';
 import { Input } from '@components/_common/Input/Input';
 import { Modal } from '@components/_common/Modal/Modal';
+import { toast } from '@components/_common/Toast/Toaster';
 
 import { useCreateSale } from '@hooks/api/sales/useCreateSale';
 import { useSalesCategoryList } from '@hooks/api/sales-category/useSalesCategoryList';
@@ -77,7 +78,12 @@ function SalesEntryModal({
         })),
         totalAmount: values.reduce((sum, amount) => sum + amount, 0),
       },
-      { onSuccess: close },
+      {
+        onSuccess: () => {
+          toast.success('매출 내역을 저장했어요.', { id: 'sales-saved' });
+          close();
+        },
+      },
     );
   };
 
