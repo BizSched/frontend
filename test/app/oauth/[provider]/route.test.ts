@@ -195,53 +195,17 @@ describe('GET /oauth/[provider]', () => {
       },
     );
 
-    it.each(['EMAIL', 'KAKAO', 'GOOGLE'])(
-      '409 SOCIAL_EMAIL_CONFLICT는 검증한 joinType(%s)을 붙여 보낸다',
-      async (joinType) => {
-        vi.mocked(login).mockRejectedValue(
-          new ApiError('SOCIAL_EMAIL_CONFLICT', 409, '', { joinType }),
-        );
-
-        const response = await callValidCallback();
-
-        expect(locationOf(response)).toBe(
-          `/login?socialError=SOCIAL_EMAIL_CONFLICT&joinType=${joinType}`,
-        );
-        expect(clearTempToken).toHaveBeenCalledOnce();
-      },
-    );
-
-    it.each([
-      ['data 없음', undefined],
-      ['joinType 없음', {}],
-      ['허용되지 않은 joinType', { joinType: 'NAVER' }],
-      ['소문자 joinType', { joinType: 'email' }],
-      ['문자열이 아닌 joinType', { joinType: ['EMAIL'] }],
-    ])(
-      '409 SOCIAL_EMAIL_CONFLICT의 %s이면 joinType을 붙이지 않는다',
-      async (_, data) => {
-        vi.mocked(login).mockRejectedValue(
-          new ApiError('SOCIAL_EMAIL_CONFLICT', 409, '', data),
-        );
-
-        const response = await callValidCallback();
-
-        expect(locationOf(response)).toBe(
-          '/login?socialError=SOCIAL_EMAIL_CONFLICT',
-        );
-      },
-    );
-
-    it('다른 errorCode는 data에 joinType이 있어도 붙이지 않는다', async () => {
+    it('409 SOCIAL_EMAIL_CONFLICT는 BE의 joinType을 붙여 보낸다', async () => {
       vi.mocked(login).mockRejectedValue(
-        new ApiError('OAUTH_EMAIL_REQUIRED', 400, '', { joinType: 'EMAIL' }),
+        new ApiError('SOCIAL_EMAIL_CONFLICT', 409, '', { joinType: 'EMAIL' }),
       );
 
       const response = await callValidCallback();
 
       expect(locationOf(response)).toBe(
-        '/login?socialError=OAUTH_EMAIL_REQUIRED',
+        '/login?socialError=SOCIAL_EMAIL_CONFLICT&joinType=EMAIL',
       );
+      expect(clearTempToken).toHaveBeenCalledOnce();
     });
 
     it.each([

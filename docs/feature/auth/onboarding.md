@@ -32,7 +32,7 @@
 - 요청은 BFF `PATCH /api/users/signup/additional-info`로 보낸다. body는 `industry`, `industryDetail`, `termsAgreed`이고 규칙은 [signup.md](./signup.md#요청-필드)의 같은 필드를 따른다. 이름·이메일은 소셜 프로필에서 받으므로 보내지 않는다.
 - 업종·약관 입력 검사와 문구는 회원가입과 같다([signup.md](./signup.md#입력-검사)).
 - 성공하면 `queryClient.clear()` 후 `/dashboard`로 이동한다. 로그인 성공과 같은 이유다.
-- 요청 중과 성공 후 이동 전에는 업종·약관 조작을 잠근다.
+- 요청 중, 그리고 성공·로그인 화면 이동 전에는 업종·약관 조작을 잠근다. 로그인 화면으로 이동할 때는 `temp_token`이 이미 지워져 다시 제출해도 실패한다.
 - mutation이라 `throwOnError`를 쓰지 않고 `onError`에서 처리한다([error-handling.md](../../architecture/error-handling.md)).
 
 ### 실패

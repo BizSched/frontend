@@ -9,6 +9,7 @@ import type { ErrorResponse } from '@lib/api/generated/bizSchedAPI.schemas';
 
 const VALIDATION_ERROR_CODE = 'VALIDATION_ERROR';
 const UNAUTHORIZED_CODE = 'UNAUTHORIZED';
+const INVALID_TEMP_TOKEN_CODE = 'INVALID_TEMP_TOKEN';
 const INTERNAL_SERVER_ERROR_CODE = 'INTERNAL_SERVER_ERROR';
 
 interface BffError {
@@ -34,6 +35,9 @@ const createValidationErrorResponse = () =>
 
 const createUnauthorizedResponse = () =>
   createErrorResponse(401, UNAUTHORIZED_CODE);
+
+const createInvalidTempTokenResponse = () =>
+  createErrorResponse(401, INVALID_TEMP_TOKEN_CODE);
 
 const isTimeout = (error: NetworkError) =>
   error.cause instanceof Error && error.cause.name === 'TimeoutError';
@@ -90,6 +94,7 @@ const toBffErrorResponse = (error: unknown) => {
 
 export {
   createInvalidOriginResponse,
+  createInvalidTempTokenResponse,
   createPathNotAllowedResponse,
   createUnauthorizedResponse,
   createValidationErrorResponse,
