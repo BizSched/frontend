@@ -10,6 +10,7 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { openConfirmModal } from '@components/_common/Modal/openConfirmModal';
+import { Toaster, toast } from '@components/_common/Toast/Toaster';
 import type { PartTimeStaffDetailPanelProps } from '@components/partTime/staff/PartTimeStaffDetailPanel';
 import { PartTimeStaffList } from '@components/partTime/staff/PartTimeStaffList';
 
@@ -82,7 +83,6 @@ vi.mock('@components/partTime/staff/PartTimeStaffDetailOverlay', () => ({
     onEmploymentStatusChange,
     isEmploymentStatusLocked,
     isEmploymentStatusPending,
-    employmentStatusError,
   }: PartTimeStaffDetailPanelProps) =>
     open ? (
       <div role="dialog">
@@ -104,7 +104,6 @@ vi.mock('@components/partTime/staff/PartTimeStaffDetailOverlay', () => ({
           </button>
         ))}
         {isEmploymentStatusPending && <p>재직 상태 변경 중</p>}
-        {!!employmentStatusError && <p>재직 상태 오류</p>}
         <button onClick={() => onOpenChange(false)}>닫기</button>
       </div>
     ) : null,
@@ -137,6 +136,7 @@ const renderList = (page = 1, items = [STAFF], totalPage = 1) => {
   const result = render(
     <QueryClientProvider client={client}>
       <PartTimeStaffList now={NOW} />
+      <Toaster />
     </QueryClientProvider>,
   );
   return { ...result, client };
@@ -161,6 +161,7 @@ beforeEach(() => {
 });
 afterEach(() => {
   cleanup();
+  toast.dismiss();
   clients.forEach((client) => client.clear());
   clients.length = 0;
   vi.restoreAllMocks();
@@ -238,20 +239,16 @@ describe('PartTimeStaffList API 연동', () => {
     );
   });
 
-  it('삭제 실패는 BE 문구를 인라인으로 표시하고 다시 시도할 수 있다', async () => {
+  it('삭제 실패는 BE 문구를 토스트로 알리고 다시 시도하면 이전 토스트를 지운다', async () => {
     vi.mocked(openConfirmModal).mockResolvedValue(true);
     vi.mocked(deleteStaff).mockRejectedValue(
-      new ApiError('STAFF_NOT_FOUND', 404, '아르바이트생을 찾을 수 없어요.'),
+      new ApiError('INVALID_REQUEST', 400, '삭제할 수 없어요.'),
     );
     renderList();
 
     fireEvent.click(screen.getByRole('button', { name: '김알바 삭제' }));
 
-    await waitFor(() =>
-      expect(screen.getByRole('alert').textContent).toContain(
-        '아르바이트생을 찾을 수 없어요.',
-      ),
-    );
+    expect(await screen.findByText('삭제할 수 없어요.')).toBeTruthy();
     await waitFor(() =>
       expect(
         screen
@@ -264,10 +261,12 @@ describe('PartTimeStaffList API 연동', () => {
     expect(window.history.replaceState).not.toHaveBeenCalled();
     vi.mocked(openConfirmModal).mockResolvedValue(false);
     fireEvent.click(screen.getByRole('button', { name: '김알바 삭제' }));
-    await waitFor(() => expect(screen.queryByRole('alert')).toBeNull());
+    await waitFor(() =>
+      expect(screen.queryByText('삭제할 수 없어요.')).toBeNull(),
+    );
   });
 
-  it('STAFF_NOT_FOUND 오류에서 목록만 새로고침해 이미 삭제된 카드를 제거한다', async () => {
+  it('STAFF_NOT_FOUND 오류면 목록을 자동으로 다시 불러와 이미 삭제된 카드를 제거한다', async () => {
     vi.mocked(openConfirmModal).mockResolvedValue(true);
     vi.mocked(deleteStaff).mockRejectedValue(
       new ApiError('STAFF_NOT_FOUND', 404, '아르바이트생을 찾을 수 없어요.'),
@@ -282,21 +281,18 @@ describe('PartTimeStaffList API 연동', () => {
     renderList();
 
     fireEvent.click(screen.getByRole('button', { name: '김알바 삭제' }));
-    const refresh = await screen.findByRole('button', {
-      name: '목록 새로고침',
-    });
-    expect(getStaffList).not.toHaveBeenCalled();
-    fireEvent.click(refresh);
 
+    expect(
+      await screen.findByText('아르바이트생을 찾을 수 없어요.'),
+    ).toBeTruthy();
     await waitFor(() =>
       expect(screen.getByText('등록된 아르바이트생이 없어요.')).toBeTruthy(),
     );
-    expect(screen.queryByRole('alert')).toBeNull();
     expect(deleteStaff).toHaveBeenCalledTimes(1);
     expect(getStaffList).toHaveBeenCalledTimes(1);
   });
 
-  it('목록 새로고침 실패는 조회 오류와 다시 시도로 복구한다', async () => {
+  it('STAFF_NOT_FOUND 뒤 목록 재조회 실패는 조회 오류와 다시 시도로 복구한다', async () => {
     let rejectList!: (error: Error) => void;
     vi.mocked(openConfirmModal).mockResolvedValue(true);
     vi.mocked(deleteStaff).mockRejectedValue(
@@ -310,17 +306,12 @@ describe('PartTimeStaffList API 연동', () => {
     );
     renderList();
     fireEvent.click(screen.getByRole('button', { name: '김알바 삭제' }));
-    const refresh = await screen.findByRole('button', {
-      name: '목록 새로고침',
-    });
 
-    fireEvent.click(refresh);
     await waitFor(() =>
       expect(
         screen.getByText('아르바이트생 목록을 갱신하는 중입니다.'),
       ).toBeTruthy(),
     );
-    expect(screen.queryByText('아르바이트생을 찾을 수 없어요.')).toBeNull();
     await act(async () => rejectList(new ApiError('INVALID_REQUEST', 400)));
     const retry = await screen.findByRole('button', { name: '다시 시도' });
     expect(deleteStaff).toHaveBeenCalledTimes(1);
@@ -337,9 +328,16 @@ describe('PartTimeStaffList API 연동', () => {
     );
   });
 
-  it('STAFF_NOT_FOUND인 직원의 상세는 닫고 목록 새로고침을 제공한다', async () => {
+  it('STAFF_NOT_FOUND인 직원의 상세는 닫고 목록을 다시 불러온다', async () => {
     navigation.search = 'staffId=42&tag=keep';
     vi.mocked(getStaffDetail).mockResolvedValue(DETAIL);
+    vi.mocked(getStaffList).mockResolvedValue({
+      page: 1,
+      size: 10,
+      totalCount: 0,
+      totalPage: 0,
+      items: [],
+    });
     vi.mocked(openConfirmModal).mockResolvedValue(true);
     vi.mocked(deleteStaff).mockRejectedValue(
       new ApiError('STAFF_NOT_FOUND', 404, '아르바이트생을 찾을 수 없어요.'),
@@ -348,7 +346,8 @@ describe('PartTimeStaffList API 연동', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '김알바 삭제' }));
 
-    await screen.findByRole('button', { name: '목록 새로고침' });
+    await screen.findByText('아르바이트생을 찾을 수 없어요.');
+    await waitFor(() => expect(getStaffList).toHaveBeenCalledTimes(1));
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(window.history.replaceState).toHaveBeenCalledWith(
       null,
@@ -442,21 +441,21 @@ describe('PartTimeStaffList API 연동', () => {
     expect(navigation.back).not.toHaveBeenCalled();
   });
 
-  it('서버·네트워크 삭제 실패는 공통 문구로 표시한다', async () => {
+  it('서버·네트워크 삭제 실패는 공통 문구로 알리고 목록을 다시 불러오지 않는다', async () => {
     vi.mocked(openConfirmModal).mockResolvedValue(true);
     vi.mocked(deleteStaff).mockRejectedValue(new Error('internal details'));
     renderList();
 
     fireEvent.click(screen.getByRole('button', { name: '김알바 삭제' }));
 
-    await waitFor(() =>
-      expect(screen.getByRole('alert').textContent).toBe(
+    expect(
+      await screen.findByText(
         '일시적인 오류가 발생했어요. 잠시 후 다시 시도해주세요.',
       ),
-    );
+    ).toBeTruthy();
     expect(screen.getByRole('button', { name: STAFF.name })).toBeTruthy();
     expect(deleteStaff).toHaveBeenCalledTimes(1);
-    expect(screen.queryByRole('button', { name: '목록 새로고침' })).toBeNull();
+    expect(getStaffList).not.toHaveBeenCalled();
   });
 
   it('다른 직원 상세를 보고 있다면 삭제 후에도 유지한다', async () => {
@@ -765,7 +764,7 @@ describe('PartTimeStaffList 재직 상태 변경', () => {
     expect(openConfirmModal).not.toHaveBeenCalled();
   });
 
-  it('변경 실패는 상세에 전달하고 다른 직원 상세를 열면 지운다', async () => {
+  it('변경 실패는 토스트로 알리고 상세를 유지한다', async () => {
     navigation.search = 'staffId=42';
     vi.mocked(getStaffDetail).mockResolvedValue(DETAIL);
     vi.mocked(changeStaffEmploymentStatus).mockRejectedValue(
@@ -777,12 +776,8 @@ describe('PartTimeStaffList 재직 상태 변경', () => {
       await screen.findByRole('button', { name: 'employed로 변경' }),
     );
 
-    expect(await screen.findByText('재직 상태 오류')).toBeTruthy();
-    expect(screen.queryByRole('alert')).toBeNull();
-    fireEvent.click(screen.getByRole('button', { name: '김알바' }));
-    await waitFor(() =>
-      expect(screen.queryByText('재직 상태 오류')).toBeNull(),
-    );
+    expect(await screen.findByText('바꿀 수 없어요.')).toBeTruthy();
+    expect(screen.getByRole('dialog').textContent).toContain(STAFF.name);
   });
 
   it('STAFF_NOT_FOUND이면 상세 재조회를 기다리지 않고 상세를 닫는다', async () => {
@@ -804,13 +799,10 @@ describe('PartTimeStaffList 재직 상태 변경', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'employed로 변경' }));
 
-    await waitFor(() =>
-      expect(screen.getByRole('alert').textContent).toContain(
-        '아르바이트생을 찾을 수 없어요.',
-      ),
-    );
+    expect(
+      await screen.findByText('아르바이트생을 찾을 수 없어요.'),
+    ).toBeTruthy();
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-    expect(screen.queryByText('재직 상태 오류')).toBeNull();
     await waitFor(() =>
       expect(screen.getByText('등록된 아르바이트생이 없어요.')).toBeTruthy(),
     );
@@ -845,6 +837,7 @@ describe('PartTimeStaffList 재직 상태 변경', () => {
     rerender(
       <QueryClientProvider client={client}>
         <PartTimeStaffList now={NOW} />
+        <Toaster />
       </QueryClientProvider>,
     );
     await waitFor(() =>

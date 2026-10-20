@@ -5,6 +5,7 @@ import { type ChangeEvent, useEffect, useRef, useState } from 'react';
 
 import { Button } from '@components/_common/Button/Button';
 import { Modal } from '@components/_common/Modal/Modal';
+import { toast } from '@components/_common/Toast/Toaster';
 
 import { cn } from '@lib/utilities/cn';
 import { preparePartTimeStaffAttachment } from '@lib/utilities/partTime/preparePartTimeStaffAttachment';
@@ -13,6 +14,7 @@ import IcDelete from '@assets/icons/ic_delete.svg';
 import IcUpload from '@assets/icons/ic_upload.svg';
 
 const ATTACHMENT_ACCEPT = '.jpg,.jpeg,.png,.webp,.pdf';
+const FILE_ERROR_TOAST_ID = 'staff-attachment-file-error';
 
 const FILE_FIELD_CLASS_NAME =
   'flex w-full items-center gap-2 rounded-[16px] border border-dashed border-[#cccccc] bg-[#fafafa] p-4 text-base leading-6 tracking-[-0.02em] max-tablet:rounded-[12px] max-tablet:p-3 max-tablet:text-sm max-tablet:leading-5 max-tablet:tracking-[-0.03em]';
@@ -35,7 +37,6 @@ function PartTimeStaffAttachmentUploadModal({
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File>();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string>();
   const selectionVersion = useRef(0);
 
   useEffect(
@@ -54,16 +55,17 @@ function PartTimeStaffAttachmentUploadModal({
     if (!selectedFile) return;
     const version = ++selectionVersion.current;
     setIsProcessing(true);
-    setErrorMessage(undefined);
+    toast.dismiss(FILE_ERROR_TOAST_ID);
     try {
       const prepared = await preparePartTimeStaffAttachment(selectedFile);
       if (version === selectionVersion.current && prepared) setFile(prepared);
     } catch (error) {
       if (version === selectionVersion.current) {
-        setErrorMessage(
+        toast.error(
           error instanceof Error
             ? error.message
             : '파일을 처리할 수 없어요. 다른 파일을 선택해주세요.',
+          { id: FILE_ERROR_TOAST_ID },
         );
       }
     } finally {
@@ -123,7 +125,6 @@ function PartTimeStaffAttachmentUploadModal({
                   selectionVersion.current += 1;
                   setFile(undefined);
                   setIsProcessing(false);
-                  setErrorMessage(undefined);
                 }}
                 className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring max-tablet:size-5"
               >
@@ -153,11 +154,6 @@ function PartTimeStaffAttachmentUploadModal({
           {isProcessing && (
             <p role="status" className="text-sm text-slate-500">
               이미지를 처리하고 있어요.
-            </p>
-          )}
-          {errorMessage && (
-            <p role="alert" className="text-sm text-slate-500">
-              {errorMessage}
             </p>
           )}
         </div>

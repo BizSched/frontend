@@ -15,6 +15,7 @@ import { Controller, useForm, useWatch } from 'react-hook-form';
 import { Button } from '@components/_common/Button/Button';
 import { RadioGroup } from '@components/_common/Radio/RadioGroup';
 import { RadioGroupItem } from '@components/_common/Radio/RadioGroupItem';
+import { toast } from '@components/_common/Toast/Toaster';
 import { openPartTimeStaffAttachmentUploadModal } from '@components/partTime/staff/openPartTimeStaffAttachmentUploadModal';
 import { PartTimeStaffAttachmentViewer } from '@components/partTime/staff/PartTimeStaffAttachmentViewer';
 import { PartTimeStaffFieldRow } from '@components/partTime/staff/PartTimeStaffFieldRow';
@@ -74,6 +75,7 @@ const GENDER_OPTIONS = [
 ] as const;
 
 const STAFF_LIST_PATH = '/partTime/staff';
+const SAVE_ERROR_TOAST_ID = 'staff-save-error';
 
 const VIEWER_SPACE_CLASS_NAME =
   'max-laptop:pb-[calc(417px+2.375rem+1.5rem)] max-tablet:pb-[calc(14.375rem+1.75rem+1rem)]';
@@ -246,6 +248,7 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
 
   const handleFormSubmit = async (formValues: PartTimeStaffFormValues) => {
     if (isSubmitDisabled) return;
+    toast.dismiss(SAVE_ERROR_TOAST_ID);
     try {
       const result = await saveMutation.mutateAsync(formValues);
       if (!isMounted.current) return;
@@ -255,8 +258,8 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
           ? `${STAFF_LIST_PATH}?staffId=${result.staff.id}`
           : `${STAFF_LIST_PATH}/${result.staff.id}/edit?uploadFailed=1`,
       );
-    } catch {
-      // NOTE: mutation의 오류를 폼에 표시하고 입력을 유지한다.
+    } catch (error) {
+      toast.error(formatCommonError(error), { id: SAVE_ERROR_TOAST_ID });
     }
   };
 
@@ -297,11 +300,6 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
           {isSaving && (
             <p role="status" className="px-2 text-sm text-slate-500">
               정보와 첨부파일을 저장하고 있어요.
-            </p>
-          )}
-          {saveMutation.isError && (
-            <p role="alert" className="px-2 text-sm text-slate-500">
-              {formatCommonError(saveMutation.error)}
             </p>
           )}
           {saveMutation.requiresReview && (

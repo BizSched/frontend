@@ -58,7 +58,6 @@ interface PartTimeStaffDetailPanelProps {
   ) => void;
   isEmploymentStatusLocked?: boolean;
   isEmploymentStatusPending?: boolean;
-  employmentStatusError?: unknown;
 }
 
 function PartTimeStaffDetailPanel({
@@ -80,7 +79,6 @@ function PartTimeStaffDetailPanel({
   onEmploymentStatusChange,
   isEmploymentStatusLocked = false,
   isEmploymentStatusPending = false,
-  employmentStatusError,
 }: PartTimeStaffDetailPanelProps) {
   const titleId = useId();
   const [preview, setPreview] = useState<PartTimeStaffAttachmentPreview>();
@@ -158,11 +156,7 @@ function PartTimeStaffDetailPanel({
     </div>
   );
 
-  const headerNotice = employmentStatusError ? (
-    <p role="alert" className="text-sm text-warning-500">
-      {formatCommonError(employmentStatusError)}
-    </p>
-  ) : isEmploymentStatusPending ? (
+  const headerNotice = isEmploymentStatusPending ? (
     <p role="status" className="text-sm text-slate-500">
       재직 상태를 바꾸는 중입니다.
     </p>
