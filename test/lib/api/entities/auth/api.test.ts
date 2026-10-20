@@ -3,7 +3,13 @@ import { ZodError } from 'zod';
 
 import { ApiError } from '@lib/api/apiError';
 import { customFetcher } from '@lib/api/customFetcher';
-import { postLogin, postLogout, postSignup } from '@lib/api/entities/auth/api';
+import {
+  type CompleteSocialSignupRequest,
+  patchCompleteSocialSignup,
+  postLogin,
+  postLogout,
+  postSignup,
+} from '@lib/api/entities/auth/api';
 import type { SignupRequest } from '@lib/api/generated/bizSchedAPI.schemas';
 
 vi.mock('@lib/api/customFetcher', () => ({ customFetcher: vi.fn() }));
@@ -133,5 +139,112 @@ describe('postLogout', () => {
     expect(customFetcher).toHaveBeenCalledWith('/api/auth/logout', {
       method: 'POST',
     });
+  });
+});
+
+describe('patchCompleteSocialSignup', () => {
+  const request: CompleteSocialSignupRequest = {
+    industry: 'CAFE',
+    termsAgreed: SIGNUP_REQUEST.termsAgreed,
+  };
+  const response = {
+    id: USER.id,
+    email: USER.email,
+    industry: 'CAFE',
+    industryDetail: null,
+  };
+
+  beforeEach(() => {
+    vi.mocked(customFetcher).mockReset();
+  });
+
+  it('토큰 없는 BFF 응답을 검증하고 PATCH 요청으로 업종과 약관만 보낸다', async () => {
+    vi.mocked(customFetcher).mockResolvedValue(response);
+
+    await expect(patchCompleteSocialSignup(request)).resolves.toEqual(response);
+    expect(customFetcher).toHaveBeenCalledWith(
+      '/api/users/signup/additional-info',
+      {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request),
+      },
+    );
+  });
+
+  it.each(['BAKERY', 'PUB', 'CONVENIENCE_STORE'] as const)(
+    '소셜 가입 명세의 옛 enum 대신 일반 가입 업종 %s를 전송한다',
+    async (industry) => {
+      vi.mocked(customFetcher).mockResolvedValue({ ...response, industry });
+
+      await patchCompleteSocialSignup({ ...request, industry });
+
+      expect(customFetcher).toHaveBeenCalledWith(
+        '/api/users/signup/additional-info',
+        expect.objectContaining({
+          body: JSON.stringify({ ...request, industry }),
+        }),
+      );
+    },
+  );
+
+  it('직접 입력 업종을 전달하고 응답에서 계약 밖 필드를 제외한다', async () => {
+    const customResponse = {
+      ...response,
+      industry: 'CUSTOM',
+      industryDetail: '꽃집',
+    };
+    vi.mocked(customFetcher).mockResolvedValue({
+      ...customResponse,
+      accessToken: 'unexpected-access',
+      refreshToken: 'unexpected-refresh',
+    });
+
+    await expect(
+      patchCompleteSocialSignup({
+        ...request,
+        industry: 'CUSTOM',
+        industryDetail: '꽃집',
+      }),
+    ).resolves.toEqual(customResponse);
+    expect(
+      JSON.parse(vi.mocked(customFetcher).mock.calls[0][1]!.body as string),
+    ).toEqual({
+      ...request,
+      industry: 'CUSTOM',
+      industryDetail: '꽃집',
+    });
+  });
+
+  it.each([{ ...request, industry: 'RETAIL' }, { industry: 'CAFE' }])(
+    '잘못된 요청은 HTTP 호출 전에 거부한다: %s',
+    async (invalidRequest) => {
+      await expect(
+        patchCompleteSocialSignup(
+          invalidRequest as unknown as CompleteSocialSignupRequest,
+        ),
+      ).rejects.toBeInstanceOf(ZodError);
+      expect(customFetcher).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([{}, { ...response, industry: 'RETAIL' }, { ...response, id: '1' }])(
+    '계약과 다른 응답은 거부한다: %s',
+    async (invalidResponse) => {
+      vi.mocked(customFetcher).mockResolvedValue(invalidResponse);
+
+      await expect(patchCompleteSocialSignup(request)).rejects.toBeInstanceOf(
+        ZodError,
+      );
+    },
+  );
+
+  it('오류의 status와 joinType을 화면에서 처리할 수 있게 보존한다', async () => {
+    const error = new ApiError('SOCIAL_EMAIL_CONFLICT', 409, '', {
+      joinType: 'EMAIL',
+    });
+    vi.mocked(customFetcher).mockRejectedValue(error);
+
+    await expect(patchCompleteSocialSignup(request)).rejects.toBe(error);
   });
 });

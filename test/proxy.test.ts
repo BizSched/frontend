@@ -89,6 +89,20 @@ describe('proxy', () => {
       },
     );
 
+    it('temp_token 쿠키가 있으면 /onboarding을 연다', () => {
+      expect(redirectPathOf('/onboarding', 'temp_token=temp')).toBeNull();
+    });
+
+    it.each([
+      [undefined, '/login'],
+      ['refresh_token=refresh', '/dashboard'],
+    ])(
+      'temp_token 쿠키가 없으면 /onboarding에서 세션 쿠키(%s)에 따라 %s로 보낸다',
+      (cookie, expected) => {
+        expect(redirectPathOf('/onboarding', cookie)).toBe(expected);
+      },
+    );
+
     it('리다이렉트가 필요 없으면 그대로 진행한다', () => {
       expect(redirectPathOf('/dashboard', 'refresh_token=refresh')).toBeNull();
     });

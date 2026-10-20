@@ -26,8 +26,8 @@ import {
   formatSignupError,
   SIGNUP_ERROR_MESSAGES,
 } from '@lib/api/entities/auth/formatSignupError';
-import { SignupRequestIndustry } from '@lib/api/generated/bizSchedAPI.schemas';
 import { isValidEmail } from '@lib/utilities/auth/isValidEmail';
+import { isValidSignupIndustry } from '@lib/utilities/auth/isValidSignupIndustry';
 import { ROUTE_PATHS } from '@lib/utilities/routePaths';
 
 interface SignupFormValues {
@@ -49,9 +49,6 @@ const SIGNUP_FORM_DEFAULT_VALUES: SignupFormValues = {
   businessTypeCustom: '',
   terms: TERMS_AGREEMENT_DEFAULT_VALUES,
 };
-
-const isValidSignupIndustry = (value: string): value is SignupRequestIndustry =>
-  Object.values(SignupRequestIndustry).some((industry) => industry === value);
 
 const SIGNUP_FORM_RULES = {
   name: {

@@ -11,9 +11,9 @@ import {
 } from '@lib/api/bff/oauthCookies';
 import { parseOAuthProvider } from '@lib/api/bff/oauthProvider';
 import { BFF_ERROR_CODES } from '@lib/api/bffErrorCodes';
-import { SocialEmailConflictJoinType } from '@lib/api/generated/bizSchedAPI.schemas';
 import { login } from '@lib/api/generated/oauth/oauth';
 import { LoginResponse } from '@lib/api/generated/oauth/oauth.zod';
+import { createSocialErrorPath } from '@lib/utilities/auth/createSocialErrorPath';
 import { ROUTE_PATHS } from '@lib/utilities/routePaths';
 
 // NOTE: 생성 zod는 세 토큰을 모두 nullish로 두므로 분기별 필수 토큰을 다시 검증한다 (docs/architecture/auth.md "콜백")
@@ -29,24 +29,8 @@ const SocialLoginResult = zod.discriminatedUnion('isNewUser', [
   }),
 ]);
 
-const SOCIAL_EMAIL_CONFLICT_CODE = 'SOCIAL_EMAIL_CONFLICT';
-
-const SocialEmailConflictData = zod.object({
-  joinType: zod.enum(SocialEmailConflictJoinType),
-});
-
 const redirectTo = (request: Request, path: string) =>
   NextResponse.redirect(new URL(path, request.url), 303);
-
-const createSocialErrorPath = (errorCode: string, data?: unknown) => {
-  const params = new URLSearchParams({ socialError: errorCode });
-  const conflict = SocialEmailConflictData.safeParse(data);
-  if (errorCode === SOCIAL_EMAIL_CONFLICT_CODE && conflict.success) {
-    params.set('joinType', conflict.data.joinType);
-  }
-
-  return `${ROUTE_PATHS.login()}?${params}`;
-};
 
 // NOTE: 브라우저가 이동해 오는 GET이라 withBffHandler의 JSON 에러 응답 대신 실패도 리다이렉트로 끝낸다
 export async function GET(
