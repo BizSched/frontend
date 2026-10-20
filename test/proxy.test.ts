@@ -38,6 +38,7 @@ describe('proxy', () => {
     it.each([
       '/api/auth/login',
       '/api/auth/refresh',
+      '/api/oauth/kakao/authorize',
       '/_next/static/chunks/main.js',
       '/_next/image',
       '/favicon.ico',
@@ -50,12 +51,16 @@ describe('proxy', () => {
       },
     );
 
-    it.each(['/', '/login', '/signup', '/dashboard', '/partTime/staff/3/edit'])(
-      '페이지 %s에는 실행한다',
-      (url) => {
-        expect(isMatched(url)).toBe(true);
-      },
-    );
+    it.each([
+      '/',
+      '/login',
+      '/signup',
+      '/dashboard',
+      '/partTime/staff/3/edit',
+      '/oauth/kakao',
+    ])('페이지 %s에는 실행한다', (url) => {
+      expect(isMatched(url)).toBe(true);
+    });
   });
 
   describe('리다이렉트', () => {
@@ -74,6 +79,15 @@ describe('proxy', () => {
         '/login',
       );
     });
+
+    it.each([undefined, 'refresh_token=refresh'])(
+      '소셜 콜백은 세션 쿠키(%s)와 관계없이 그대로 진행한다',
+      (cookie) => {
+        expect(
+          redirectPathOf('/oauth/kakao?code=code&state=state', cookie),
+        ).toBeNull();
+      },
+    );
 
     it('리다이렉트가 필요 없으면 그대로 진행한다', () => {
       expect(redirectPathOf('/dashboard', 'refresh_token=refresh')).toBeNull();

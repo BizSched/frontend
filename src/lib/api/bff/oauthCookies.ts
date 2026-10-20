@@ -1,13 +1,10 @@
 import 'server-only';
 
 import { cookies } from 'next/headers';
-import type { z } from 'zod';
 
 import { OAUTH_COOKIE_NAMES } from '@lib/api/bff/authCookieNames';
 import { getBaseCookieOptions } from '@lib/api/bff/cookieOptions';
-import type { LoginParams } from '@lib/api/generated/oauth/oauth.zod';
-
-type OAuthProvider = z.infer<typeof LoginParams>['provider'];
+import type { OAuthProvider } from '@lib/api/bff/oauthProvider';
 
 interface OAuthRequestCookieValues {
   state: string;
@@ -94,4 +91,4 @@ export {
   setOAuthRequestCookies,
   setTempToken,
 };
-export type { OAuthProvider, OAuthRequestCookieValues };
+export type { OAuthRequestCookieValues };

@@ -41,4 +41,24 @@ describe('getAuthRedirectPath', () => {
       },
     );
   });
+
+  describe('소셜 로그인 콜백', () => {
+    it.each(['/oauth/kakao', '/oauth/google', '/oauth/unknown'])(
+      '세션이 없어도 %s는 콜백까지 보낸다. provider 검증은 콜백이 한다',
+      (path) => {
+        expect(getAuthRedirectPath(path, false)).toBeNull();
+      },
+    );
+
+    it.each(['/oauth/kakao', '/oauth/google'])(
+      '세션이 있어도 %s는 /dashboard로 보내지 않는다',
+      (path) => {
+        expect(getAuthRedirectPath(path, true)).toBeNull();
+      },
+    );
+
+    it('접두사가 아닌 /oauth는 보호 페이지로 본다', () => {
+      expect(getAuthRedirectPath('/oauth', false)).toBe('/login');
+    });
+  });
 });
