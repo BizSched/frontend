@@ -340,21 +340,27 @@ describe('PartTimeScheduleFormModal 수정 모드', () => {
   it.each([
     { startTime: '13:00', endTime: '13:00' },
     { startTime: '22:00', endTime: '02:00' },
-  ])('같은 시간과 자정을 넘는 근무는 제출하지 않는다', async (times) => {
-    const { onSubmit } = renderForm({ ...SCHEDULE, ...times });
-    fireEvent.change(
-      screen.getByPlaceholderText('간단한 메모를 작성해주세요'),
-      {
-        target: { value: '변경' },
-      },
-    );
-    const button = screen.getByRole('button', { name: '수정 완료' });
-    await waitFor(() =>
-      expect(button.getAttribute('aria-disabled')).toBe('true'),
-    );
-    fireEvent.submit(button.closest('form')!);
-    expect(onSubmit).not.toHaveBeenCalled();
-  });
+  ])(
+    '같은 시간과 자정을 넘는 근무는 문구를 보이고 제출하지 않는다',
+    async (times) => {
+      const { onSubmit } = renderForm({ ...SCHEDULE, ...times });
+      expect(screen.getByRole('alert').textContent).toBe(
+        '마감 시간은 시작 시간보다 늦게 선택해주세요.',
+      );
+      fireEvent.change(
+        screen.getByPlaceholderText('간단한 메모를 작성해주세요'),
+        {
+          target: { value: '변경' },
+        },
+      );
+      const button = screen.getByRole('button', { name: '수정 완료' });
+      await waitFor(() =>
+        expect(button.getAttribute('aria-disabled')).toBe('true'),
+      );
+      fireEvent.submit(button.closest('form')!);
+      expect(onSubmit).not.toHaveBeenCalled();
+    },
+  );
 
   it('빠른 선택도 변경으로 인식하고 제출할 수 있다', async () => {
     const { onSubmit } = renderForm();
@@ -406,24 +412,58 @@ describe('PartTimeScheduleFormModal 수정 모드', () => {
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
-  it('담당 아르바이트생을 다른 재직자로 바꿀 수 있다', async () => {
+  it('담당 아르바이트생은 바꿀 수 없다', async () => {
+    renderForm();
+
+    const trigger = await screen.findByRole('button', { name: /김예림/ });
+    expect(trigger.matches(':disabled')).toBe(true);
+  });
+});
+
+describe('PartTimeScheduleFormModal 추가 모드', () => {
+  const renderForm = () =>
     render(
       <PartTimeScheduleFormModal
         open
         onOpenChange={vi.fn()}
         onSubmit={vi.fn()}
-        mode="edit"
-        schedule={SCHEDULE}
+        mode="create"
         staffs={STAFFS}
       />,
     );
 
-    const trigger = await screen.findByRole('button', { name: /김예림/ });
-    expect(trigger.hasAttribute('disabled')).toBe(false);
+  it('아르바이트생을 선택할 수 있다', async () => {
+    renderForm();
 
-    fireEvent.click(trigger);
-    fireEvent.click(await screen.findByRole('menuitem', { name: '강성구' }));
+    const trigger = await screen.findByRole('button', {
+      name: '아르바이트생을 선택해주세요',
+    });
+    expect(trigger.matches(':disabled')).toBe(false);
+  });
 
-    expect(await screen.findByRole('button', { name: /강성구/ })).toBeTruthy();
+  it('시작과 마감을 모두 고른 뒤 마감이 늦지 않을 때만 문구를 보인다', async () => {
+    renderForm();
+    expect(screen.queryByRole('alert')).toBeNull();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: '근무 마감 시간을 선택해주세요' }),
+    );
+    fireEvent.click(await screen.findByRole('menuitem', { name: '09:00' }));
+    expect(screen.queryByRole('alert')).toBeNull();
+
+    fireEvent.click(
+      screen.getByRole('button', { name: '근무 시작 시간을 선택해주세요' }),
+    );
+    fireEvent.click(await screen.findByRole('menuitem', { name: '09:00' }));
+    const alert = await screen.findByRole('alert');
+    expect(alert.textContent).toBe(
+      '마감 시간은 시작 시간보다 늦게 선택해주세요.',
+    );
+    expect(
+      alert.closest('[role="group"]')?.getAttribute('aria-describedby'),
+    ).toBe(alert.id);
+
+    fireEvent.click(screen.getByRole('button', { name: /오후/ }));
+    await waitFor(() => expect(screen.queryByRole('alert')).toBeNull());
   });
 });

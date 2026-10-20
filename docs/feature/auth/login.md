@@ -41,7 +41,7 @@
 ### 소셜 로그인
 
 - 카카오·구글 버튼은 BFF 인가 시작 경로(`/api/oauth/{provider}/authorize`)로 가는 링크다. 브라우저가 페이지를 이동해야 제공자 로그인 화면으로 갈 수 있어 `fetch`로 부르지 않는다.
-- `SocialButton`의 `render`로 `<a href>`를 그리고 `nativeButton={false}`를 넘긴다. `next/link`는 쓰지 않는다. 시작 경로는 페이지가 아닌 Route Handler라 prefetch·클라이언트 이동 대상이 아니고, prefetch가 일어나면 인가 요청 없이 임시 쿠키만 바뀐다.
+- `SocialButton`의 `render`로 `<a href>`를 그리고 `nativeButton={false}`를 넘긴다. Base UI가 붙이는 `role="button"`은 `role="link"`로 덮어쓴다. 페이지를 이동하는 링크이기 때문이다. `next/link`는 쓰지 않는다. 시작 경로는 페이지가 아닌 Route Handler라 prefetch·클라이언트 이동 대상이 아니고, prefetch가 일어나면 인가 요청 없이 임시 쿠키만 바뀐다.
 - 회원가입 화면의 소셜 버튼도 같은 경로다. 가입 여부는 BE가 판단한다.
 - 소셜 로그인에는 자동 로그인 선택을 적용하지 않는다. 체크박스는 이메일 로그인에만 쓴다.
 

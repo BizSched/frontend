@@ -100,13 +100,13 @@ BE 명세는 Swagger(`/v3/api-docs`)가 기준이다. 토큰 규칙과 BFF 경�
 
 | 단계 | 브랜치                        | 범위                                                                                                                                                                                                                   | 분기  | 상태           |
 | ---- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | -------------- |
-| 1    | `docs/social-login-design`    | 소셜 로그인 설계(auth.md "소셜 로그인"), 온보딩·로그인 화면 문서, 단계별 PR 계획 (이 섹션)                                                                                                                             | `dev` | PR 대기        |
-| 2    | `feat/social-login-bff-utils` | `state`·PKCE(`code_verifier`, S256 `code_challenge`) 생성, 임시 쿠키(`oauth_state`·`oauth_code_verifier`·`temp_token`) 읽기·쓰기·삭제, 정식 토큰 쿠키 저장·삭제 시 `temp_token` 삭제, 공통 쿠키 옵션 분리, 단위 테스트 | 1단계 | 로컬 구현 완료 |
-| 3    | `feat/social-login-callback`  | 인가 시작 `GET /api/oauth/{provider}/authorize`, 콜백 `app/oauth/[provider]/route.ts`와 결과별 분기, `/oauth/*` 공개 처리, `AuthSocialLogin` 링크 연결, 로그인 화면 `socialError` 문구, 환경 변수 3종                  | 2단계 |                |
-| 4    | `feat/social-onboarding-api`  | 2단계 BFF `PATCH /api/users/signup/additional-info`, `useCompleteSocialSignupMutation`, `OnboardingForm` 연결·실패 처리, `temp_token` 없는 `/onboarding` 진입 차단                                                     | 3단계 |                |
+| 1    | `docs/social-login-design`    | 소셜 로그인 설계(auth.md "소셜 로그인"), 온보딩·로그인 화면 문서, 단계별 PR 계획 (이 섹션)                                                                                                                             | `dev` | 머지 완료      |
+| 2    | `feat/social-login-bff-utils` | `state`·PKCE(`code_verifier`, S256 `code_challenge`) 생성, 임시 쿠키(`oauth_state`·`oauth_code_verifier`·`temp_token`) 읽기·쓰기·삭제, 정식 토큰 쿠키 저장·삭제 시 `temp_token` 삭제, 공통 쿠키 옵션 분리, 단위 테스트 | 1단계 | 머지 완료      |
+| 3    | `feat/social-login-callback`  | 인가 시작 `GET /api/oauth/{provider}/authorize`, 콜백 `app/oauth/[provider]/route.ts`와 결과별 분기, `/oauth/*` 공개 처리, `AuthSocialLogin` 링크 연결, 로그인 화면 `socialError` 문구, 환경 변수 3종                  | 2단계 | 머지 완료      |
+| 4    | `feat/social-onboarding-api`  | 2단계 BFF `PATCH /api/users/signup/additional-info`, `useCompleteSocialSignupMutation`, `OnboardingForm` 연결·실패 처리, `temp_token` 없는 `/onboarding` 진입 차단                                                     | 3단계 | 로컬 구현 완료 |
 
 - 2단계부터는 바로 앞 단계 브랜치에서 분기한 stacked PR이고, 앞 단계가 머지되면 base를 `dev`로 바꾼다.
-- 4단계는 Swagger의 2단계 요청 업종 enum이 수정된 뒤 진행한다([auth.md](../../architecture/auth.md#결정-대기-항목)의 "소셜 가입 업종 값").
+- Swagger의 2단계 요청 업종 enum이 고쳐지기 전까지 4단계는 일반 가입 스키마로 요청을 검증한다([auth.md](../../architecture/auth.md#결정-대기-항목)의 "소셜 가입 업종 값").
 
 ### 3단계에서 할 일
 
@@ -118,6 +118,7 @@ BE 명세는 Swagger(`/v3/api-docs`)가 기준이다. 토큰 규칙과 BFF 경�
 
 **인가 시작**
 
+- 환경 변수(`client_id`, `OAUTH_REDIRECT_ORIGIN`)를 먼저 검증한다. 빠졌으면 임시 쿠키를 저장하지 않고 실패한다.
 - `createOAuthState`·`createCodeVerifier`·`createCodeChallenge`로 값을 만들고 `setOAuthRequestCookies(provider, …)`로 저장한 뒤 리다이렉트한다.
 
 **콜백**
@@ -125,12 +126,13 @@ BE 명세는 Swagger(`/v3/api-docs`)가 기준이다. 토큰 규칙과 BFF 경�
 - 아래를 모두 통과해야 BE를 부른다. 하나라도 실패하면 BE를 부르지 않고 `/login?socialError=BFF_INVALID_OAUTH_STATE`로 보낸다.
   - `getOAuthRequestCookies()`가 `null`이 아니다. 빈 값·반쪽 쿠키는 이미 `null`이다.
   - 쿼리 `state`와 `code`가 비어 있지 않다.
-  - 쿼리 `state`가 저장된 `state`와 같다. 비교 방식(`===` 또는 `timingSafeEqual`)은 이 단계에서 정한다. `timingSafeEqual`은 길이가 다르면 예외를 던지므로 길이를 먼저 비교한다.
+  - 쿼리 `state`가 저장된 `state`와 `===`로 같다. 인가 코드 교환에는 PKCE `code_verifier`도 함께 쓴다.
 - 쿼리 `error`(동의 취소)는 검증보다 먼저 보고 문구 없이 `/login`으로 보낸다.
 - 성공·실패와 관계없이 `clearOAuthRequestCookies(provider)`를 부른다. 삭제는 저장 때와 같은 `Path`여야 한다.
 - `isNewUser: false`의 `temp_token` 삭제는 `setAuthCookies`가 맡으므로 콜백에서 따로 부르지 않는다. `isNewUser: true`는 `setTempToken`으로 저장한다.
-- 같은 제공자로 동시에 시작하면 마지막 시도의 쿠키만 남아 앞선 시도는 state 불일치로 실패한다. 이 구조를 유지하고, 실패 안내 후 다시 시작하게 한다. auth.md "임시 쿠키"에 명시하고 테스트로 고정한다.
+- 같은 제공자의 동시 로그인은 지원하지 않는다. 마지막 시도의 쿠키만 남고, 콜백 순서에 따라 여러 시도가 모두 실패할 수 있다. 실패 안내 후 다시 시작하게 한다([auth.md](../../architecture/auth.md)의 "임시 쿠키").
 - BE를 부른 뒤 실패하면(409 `SOCIAL_EMAIL_CONFLICT`, 그 밖의 BE 에러·BFF 실패) `clearTempToken()`을 부른다. 쿼리 `error`·검증 실패에서는 부르지 않는다. 외부에서 만든 링크로 진행 중인 온보딩이 지워지지 않게 하기 위해서다([auth.md](../../architecture/auth.md)의 "콜백").
+- 실패 errorCode는 JSON 에러 응답과 같은 변환(`toBffError`)으로 정한다. 409 `SOCIAL_EMAIL_CONFLICT`는 `ApiError.data.joinType`이 `EMAIL`·`KAKAO`·`GOOGLE`일 때만 쿼리에 붙인다.
 - `BFF_INVALID_OAUTH_STATE`는 공통 실패 문구로 보여준다. `socialError` 매핑에 명시적으로 넣는다([login.md](./login.md)의 "소셜 로그인 실패 안내").
 
 **리다이렉트**
@@ -151,7 +153,8 @@ BE 명세는 Swagger(`/v3/api-docs`)가 기준이다. 토큰 규칙과 BFF 경�
   - 콜백 실패 분기(취소, state 불일치, 쿠키 없음)의 쿠키 삭제
   - 제공자 간 쿠키 분리
   - 같은 제공자로 동시에 시작할 때의 결과
-- 성공 분기(`isNewUser` true·false)는 `http://localhost:3000`에서 실제 카카오·구글로 확인한다. 확인 결과는 PR에 적는다.
+- 신규 회원 분기(`isNewUser: true`)는 `http://localhost:3000`에서 실제 카카오·구글로 확인한다. 확인 결과는 PR에 적는다.
+- 기존 회원 분기(`isNewUser: false`)는 가입을 마치는 2단계 제출이 4단계에서 연결되므로 4단계에서 실제 제공자로 확인한다. 3단계에서는 단위 테스트로 검증한다.
 
 ### 4단계에서 할 일
 
@@ -163,6 +166,7 @@ BE 명세는 Swagger(`/v3/api-docs`)가 기준이다. 토큰 규칙과 BFF 경�
   - 임시 토큰이 없으면 BE를 부르지 않는다
   - 성공·지정된 401·409에서 `temp_token`을 지운다
   - 400에서는 유지한다
+- 온보딩 제출로 가입한 계정으로 다시 소셜 로그인해 기존 회원 분기(`/dashboard` 이동, 정식 토큰 세션 쿠키, `temp_token` 삭제)를 실제 카카오·구글로 확인한다.
 
 ### 적용하지 않는 것
 

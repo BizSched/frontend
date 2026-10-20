@@ -25,6 +25,8 @@ import { getPartTimeScheduleChanges } from '@lib/utilities/partTime/partTimeSche
 
 const STAFF_PLACEHOLDER = '아르바이트생을 선택해주세요';
 
+const END_TIME_ERROR_MESSAGE = '마감 시간은 시작 시간보다 늦게 선택해주세요.';
+
 const FORM_MODAL_TEXT = {
   create: { title: '아르바이트생 스케쥴 추가', submit: '생성' },
   edit: { title: '아르바이트생 스케쥴 수정', submit: '수정 완료' },
@@ -124,11 +126,12 @@ function PartTimeScheduleFormModal({
       schedule,
     ) !== null;
   const text = FORM_MODAL_TEXT[mode];
+  const isEndTimeInvalid = !!startTime && !!endTime && endTime <= startTime;
   const isSubmitDisabled =
     !isValid ||
     !startTime ||
     !endTime ||
-    endTime <= startTime ||
+    isEndTimeInvalid ||
     (mode === 'edit' && !hasChanges) ||
     isLocked;
   const staffOptions = staffs.map((staff) => ({
@@ -214,7 +217,7 @@ function PartTimeScheduleFormModal({
                 rules={{ required: true }}
                 render={({ field }) => (
                   <FormDropdown
-                    disabled={isLocked}
+                    disabled={isLocked || mode === 'edit'}
                     value={field.value || undefined}
                     options={staffOptions}
                     onChange={field.onChange}
@@ -273,6 +276,9 @@ function PartTimeScheduleFormModal({
               label="근무 마감 시간"
               labelId={`${fieldId}-end-time`}
               isRequired
+              errorMessage={
+                isEndTimeInvalid ? END_TIME_ERROR_MESSAGE : undefined
+              }
             >
               <Controller
                 control={control}
