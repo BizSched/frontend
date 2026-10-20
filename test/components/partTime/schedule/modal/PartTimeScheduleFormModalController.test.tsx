@@ -8,6 +8,7 @@ import {
 } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { Toaster, toast } from '@components/_common/Toast/Toaster';
 import type { PartTimeScheduleFormModalProps } from '@components/partTime/schedule/modal/PartTimeScheduleFormModal';
 import { PartTimeScheduleFormModalController } from '@components/partTime/schedule/modal/PartTimeScheduleFormModalController';
 
@@ -33,11 +34,9 @@ vi.mock(
       staffPlaceholder,
       onSubmit,
       isPending,
-      errorMessage,
     }: PartTimeScheduleFormModalProps) => (
       <div>
         <p data-testid="placeholder">{staffPlaceholder ?? '기본'}</p>
-        {errorMessage && <p role="alert">{errorMessage}</p>}
         <p data-testid="pending">{String(isPending)}</p>
         <button
           onClick={() =>
@@ -87,6 +86,7 @@ const renderController = (schedule?: PartTimeSchedule) => {
         mode={schedule ? 'edit' : 'create'}
         schedule={schedule}
       />
+      <Toaster />
     </QueryClientProvider>,
   );
   return { close };
@@ -94,6 +94,7 @@ const renderController = (schedule?: PartTimeSchedule) => {
 
 afterEach(() => {
   cleanup();
+  toast.dismiss();
   clients.forEach((client) => client.clear());
   clients.length = 0;
   vi.resetAllMocks();
@@ -156,7 +157,7 @@ describe('PartTimeScheduleFormModalController', () => {
     expect(close).not.toHaveBeenCalled();
   });
 
-  it('시간 충돌 오류는 모달 안에 표시하고 다시 제출할 수 있다', async () => {
+  it('시간 충돌 오류는 토스트로 알리고 다시 제출하면 이전 토스트를 지운다', async () => {
     vi.mocked(getAllStaffs).mockResolvedValue([]);
     vi.mocked(createSchedule)
       .mockRejectedValueOnce(
@@ -169,13 +170,17 @@ describe('PartTimeScheduleFormModalController', () => {
       .mockResolvedValue(RESIGNED_SCHEDULE);
     const { close } = renderController();
     fireEvent.click(screen.getByRole('button', { name: '제출' }));
-    expect((await screen.findByRole('alert')).textContent).toBe(
-      '해당 시간대에 이미 스케줄이 존재합니다.',
-    );
+    expect(
+      await screen.findByText('해당 시간대에 이미 스케줄이 존재합니다.'),
+    ).toBeTruthy();
     expect(close).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: '제출' }));
     await waitFor(() => expect(close).toHaveBeenCalledTimes(1));
-    expect(screen.queryByRole('alert')).toBeNull();
+    await waitFor(() =>
+      expect(
+        screen.queryByText('해당 시간대에 이미 스케줄이 존재합니다.'),
+      ).toBeNull(),
+    );
   });
 
   it('재직자만 옵션으로 받는다', async () => {

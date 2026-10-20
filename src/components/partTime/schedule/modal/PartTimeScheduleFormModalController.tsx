@@ -2,6 +2,7 @@
 
 import { useRef } from 'react';
 
+import { toast } from '@components/_common/Toast/Toaster';
 import {
   PartTimeScheduleFormModal,
   type PartTimeScheduleFormModalProps,
@@ -16,6 +17,8 @@ import { formatCommonError } from '@lib/api/formatCommonError';
 import type { PartTimeScheduleFormResult } from '@lib/types/partTimeSchedule';
 import { getPartTimeScheduleStaffOptions } from '@lib/utilities/partTime/partTimeSchedule';
 import { getPartTimeScheduleChanges } from '@lib/utilities/partTime/partTimeScheduleForm';
+
+const SAVE_ERROR_TOAST_ID = 'schedule-save-error';
 
 const getStaffPlaceholder = (
   isPending: boolean,
@@ -37,7 +40,6 @@ type PartTimeScheduleFormModalContent = Omit<
   | 'staffs'
   | 'staffPlaceholder'
   | 'isPending'
-  | 'errorMessage'
 >;
 
 interface PartTimeScheduleFormModalControllerProps extends PartTimeScheduleFormModalContent {
@@ -71,8 +73,7 @@ function PartTimeScheduleFormModalController({
   const handleSubmit = async (result: PartTimeScheduleFormResult) => {
     if (isSubmittingRef.current) return;
     isSubmittingRef.current = true;
-    createMutation.reset();
-    updateMutation.reset();
+    toast.dismiss(SAVE_ERROR_TOAST_ID);
 
     try {
       const { date, ...fields } = result;
@@ -93,8 +94,8 @@ function PartTimeScheduleFormModalController({
         await createMutation.mutateAsync({ ...fields, workDate: date });
       }
       close(result);
-    } catch {
-      // NOTE: mutation의 오류 상태를 모달에 표시하고 입력값을 유지한다
+    } catch (error) {
+      toast.error(formatCommonError(error), { id: SAVE_ERROR_TOAST_ID });
     } finally {
       isSubmittingRef.current = false;
     }
@@ -108,9 +109,6 @@ function PartTimeScheduleFormModalController({
       stackIndex={stackIndex}
       open={isOpen}
       isPending={mutation.isPending}
-      errorMessage={
-        mutation.isError ? formatCommonError(mutation.error) : undefined
-      }
       onOpenChange={handleOpenChange}
       onSubmit={handleSubmit}
       onExitComplete={unmount}
