@@ -11,6 +11,7 @@ import {
 } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { Toaster, toast } from '@components/_common/Toast/Toaster';
 import { OnboardingForm } from '@components/auth/OnboardingForm';
 
 import { termsKeys } from '@hooks/api/terms/termsQueryOptions';
@@ -54,6 +55,7 @@ const renderForm = (terms = TERMS) => {
   render(
     <QueryClientProvider client={queryClient}>
       <OnboardingForm />
+      <Toaster />
     </QueryClientProvider>,
   );
   return queryClient;
@@ -104,6 +106,7 @@ describe('OnboardingForm', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     cleanup();
+    toast.dismiss();
   });
 
   it('필수 업종과 약관에 오류를 표시하고 미입력 제출을 막는다', async () => {
@@ -288,7 +291,7 @@ describe('OnboardingForm', () => {
     [new Error('HTTP 500'), COMMON_ERROR_MESSAGE],
     [new NetworkError(), COMMON_ERROR_MESSAGE],
   ])(
-    '재시도 가능한 실패는 입력을 유지하고 인라인 안내 후 재제출한다: %s',
+    '재시도 가능한 실패는 입력을 유지하고 토스트 안내 후 재제출한다: %s',
     async (error, message) => {
       vi.mocked(patchCompleteSocialSignup)
         .mockRejectedValueOnce(error)
@@ -298,7 +301,8 @@ describe('OnboardingForm', () => {
 
       submit();
 
-      expect(await screen.findByRole('alert')).toHaveTextContent(message);
+      expect(await screen.findByText(message)).toBeInTheDocument();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
       expect(screen.getByRole('button', { name: '카페' })).toBeEnabled();
       expect(
         screen.getByRole('checkbox', { name: '[필수] 서비스 이용약관' }),
@@ -308,7 +312,9 @@ describe('OnboardingForm', () => {
       submit();
       await waitFor(() => expect(push).toHaveBeenCalledWith('/dashboard'));
       expect(patchCompleteSocialSignup).toHaveBeenCalledTimes(2);
-      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      await waitFor(() =>
+        expect(screen.queryByText(message)).not.toBeInTheDocument(),
+      );
     },
   );
 
