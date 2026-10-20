@@ -59,6 +59,7 @@
   - `api/authSession.ts`: 브라우저 세션 처리. refresh(탭 안 single-flight), 세션 정리, 전체 새로고침 로그인 이동(`redirectToLogin`). `customFetcher`와 로그아웃 훅이 함께 써서 따로 둔다
   - `api/apiError.ts`: `ApiError`·`NetworkError`. 서버·클라이언트 공용
   - `api/bffErrorCodes.ts`: BFF가 만드는 `BFF_` errorCode 상수. BFF와 클라이언트 formatter가 함께 import하므로 `server-only`인 `bff/` 밖에 둔다
+  - `api/completeSocialSignupBody.ts`: 소셜 가입 2단계 요청 스키마. BE Swagger의 업종 enum이 고쳐질 때까지 일반 가입 스키마로 대신한다. BFF와 브라우저 API 함수가 함께 검증에 쓰므로 `bff/` 밖에 둔다
   - `api/formatCommonError.ts`: 도메인과 무관한 에러의 화면 문구 변환 (공통 formatter)
   - `api/getAuthHeaders.ts`: 쿠키의 access 토큰으로 `Authorization` 헤더를 만드는 헬퍼. `server-only`. 서버 prefetch와 BFF Route Handler가 함께 써서 `bff/` 밖에 둔다
   - `api/generated/`: orval 생성 요청 함수·zod 스키마. 직접 수정하지 않고, 생성 결과를 커밋한다
