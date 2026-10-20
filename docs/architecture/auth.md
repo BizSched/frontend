@@ -71,16 +71,16 @@ BE는 `accessToken` / `refreshToken`을 응답 body로 주고, 보호 API에 `Au
 
 ### BE 계약
 
-| 항목           | 내용                                                                                                                                                                                                                                  |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 계정 식별      | 이메일이 아니라 (제공자, 소셜 계정 id)로 찾는다. 같은 이메일이라도 자동으로 연결하지 않는다. 계정 연결 기능은 아직 없다                                                                                                               |
-| 1단계 요청     | `POST /api/oauth/{provider}` — `authorizationCode`, `codeVerifier`(필수). `state`는 BE가 받지 않으므로 BFF가 검증을 끝낸 뒤 부른다. 토큰 없이 부른다                                                                                  |
-| 1단계 응답     | 200. `isNewUser`가 `false`면 `accessToken`·`refreshToken`, `true`면 `tempToken`만 채워진다                                                                                                                                            |
-| `redirect_uri` | BE 설정값이며 BFF 콜백 주소와 같아야 한다. 다르면 `INVALID_AUTHORIZATION_CODE`. 환경별로 `http://localhost:3000/oauth/{provider}`, `https://bizsched.vercel.app/oauth/{provider}` 두 곳만 등록되어 preview 배포는 지원하지 않는다     |
-| `tempToken`    | 30분. 2단계 요청에만 쓰고, 다른 API에 넣으면 401이다. 이 단계에서는 계정이 만들어지지 않는다                                                                                                                                          |
-| 2단계 요청     | `PATCH /api/users/signup/additional-info` — `Authorization: Bearer {tempToken}`, body는 `industry`·`industryDetail`·`termsAgreed`. 규칙과 업종 값(`RESTAURANT`·`CAFE`·`BAKERY`·`PUB`·`CONVENIENCE_STORE`·`CUSTOM`)은 일반 가입과 같다 |
-| 2단계 응답     | 200. 계정이 만들어지고 `accessToken`·`refreshToken`이 발급된다                                                                                                                                                                        |
-| refresh 수명   | 1일. 자동 로그인을 끈 일반 로그인과 같다                                                                                                                                                                                              |
+| 항목           | 내용                                                                                                                                                                                                                                                                                                                                   |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 계정 식별      | 이메일이 아니라 (제공자, 소셜 계정 id)로 찾는다. 같은 이메일이라도 자동으로 연결하지 않는다. 계정 연결 기능은 아직 없다                                                                                                                                                                                                                |
+| 1단계 요청     | `POST /api/oauth/{provider}` — `authorizationCode`, `codeVerifier`(필수). `state`는 BE가 받지 않으므로 BFF가 검증을 끝낸 뒤 부른다. 토큰 없이 부른다                                                                                                                                                                                   |
+| 1단계 응답     | 200. `isNewUser`가 `false`면 `accessToken`·`refreshToken`, `true`면 `tempToken`만 채워진다                                                                                                                                                                                                                                             |
+| `redirect_uri` | BE 서버 환경 변수이며 BFF 콜백 주소와 같아야 한다. 다르면 `INVALID_AUTHORIZATION_CODE`. BE 서버 하나는 제공자별로 값 하나만 쓰므로, 로컬 FE(`http://localhost:3000/oauth/{provider}`)는 그 값을 쓰는 BE와, 운영 FE(`https://bizsched.vercel.app/oauth/{provider}`)는 운영 값을 쓰는 BE와 짝지어야 한다. preview 배포는 지원하지 않는다 |
+| `tempToken`    | 30분. 2단계 요청에만 쓰고, 다른 API에 넣으면 401이다. 이 단계에서는 계정이 만들어지지 않는다                                                                                                                                                                                                                                           |
+| 2단계 요청     | `PATCH /api/users/signup/additional-info` — `Authorization: Bearer {tempToken}`, body는 `industry`·`industryDetail`·`termsAgreed`. 규칙과 업종 값(`RESTAURANT`·`CAFE`·`BAKERY`·`PUB`·`CONVENIENCE_STORE`·`CUSTOM`)은 일반 가입과 같다                                                                                                  |
+| 2단계 응답     | 200. 계정이 만들어지고 `accessToken`·`refreshToken`이 발급된다                                                                                                                                                                                                                                                                         |
+| refresh 수명   | 1일. 자동 로그인을 끈 일반 로그인과 같다                                                                                                                                                                                                                                                                                               |
 
 | 상황                                     | 응답                                                                                                                         |
 | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
@@ -106,12 +106,14 @@ BE는 `accessToken` / `refreshToken`을 응답 body로 주고, 보호 API에 `Au
 - `temp_token`은 정식 토큰 쿠키를 저장하거나 지울 때(로그인·refresh·콜백·2단계 성공, 로그아웃·세션 정리) 함께 지운다. 남아 있으면 `/onboarding`에서 다른 소셜 계정의 가입을 마무리해 세션이 바뀔 수 있다. 그 밖에는 BE를 부른 뒤 콜백이 실패한 경우("콜백")와 2단계 실패 중 같은 임시 토큰으로 다시 성공할 수 없는 경우("2단계 제출")에만 지운다.
 - `oauth_state`·`oauth_code_verifier`를 지울 때는 저장할 때와 같은 `Path`를 넣는다. `Path`가 다르면 브라우저가 다른 쿠키로 보고 지우지 않는다.
 - `Secure`는 정식 토큰 쿠키와 같이 production에서만 켠다.
+- 같은 제공자의 동시 로그인은 지원하지 않는다. 쿠키 덮어쓰기와 콜백 처리 순서에 따라 여러 시도가 모두 실패할 수 있으며, 다시 시작하도록 안내한다.
 
 ### 인가 요청
 
 - `state`와 `code_verifier`는 `crypto`의 난수 32바이트를 base64url로 만든다. `code_challenge`는 `code_verifier`의 SHA-256을 base64url로 만든 값이고, `code_challenge_method`는 `S256`이다.
 - 제공자 인가 주소는 카카오 `https://kauth.kakao.com/oauth/authorize`, 구글 `https://accounts.google.com/o/oauth2/v2/auth`다. `response_type=code`, `client_id`, `redirect_uri`, `state`, `code_challenge`, `code_challenge_method`를 넣는다.
 - 구글은 `scope=openid email profile`을 넣는다. 카카오는 콘솔의 동의 항목(이메일·닉네임)을 따른다.
+- 카카오 콘솔 동의 항목에 "카카오계정(이메일)"이 없으면 동의 화면에 이메일이 나오지 않고, BE가 모든 가입을 `OAUTH_EMAIL_REQUIRED`로 거절한다. 이메일 동의 항목은 비즈 앱이어야 설정할 수 있다.
 - `client_id`(카카오 REST API 키·구글 클라이언트 ID)와 콜백 origin은 서버 환경 변수 `KAKAO_CLIENT_ID`·`GOOGLE_CLIENT_ID`·`OAUTH_REDIRECT_ORIGIN`으로 둔다. `redirect_uri`는 BE 설정값과 정확히 같아야 하므로 요청 origin으로 만들지 않는다. client secret은 BE만 갖는다.
 - `provider`가 `kakao`·`google`이 아니면 404를 돌려준다. 인가 시작과 콜백 모두 허용 목록으로 검증한 뒤 쓴다. 값이 임시 쿠키 `Path`에 그대로 들어간다.
 
@@ -119,15 +121,18 @@ BE는 `accessToken` / `refreshToken`을 응답 body로 주고, 보호 API에 `Au
 
 콜백은 `app/oauth/[provider]/route.ts`의 Route Handler다. `redirect_uri`가 `/oauth/{provider}`로 정해져 있고, 쿠키를 저장한 뒤 리다이렉트해야 하는데 page는 쿠키를 저장할 수 없다.
 
-| 결과                                                | 처리                                                                                                 |
-| --------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| 쿼리 `error`가 있음 (동의 화면에서 취소 등)         | BE를 부르지 않고 `/login`으로 이동한다. 사용자가 직접 취소한 경우라 문구를 보여주지 않는다           |
-| `state` 없음·불일치·쿠키 없음, `code` 없음          | BE를 부르지 않고 `/login?socialError=BFF_INVALID_OAUTH_STATE`로 이동한다                             |
-| `isNewUser: false`                                  | 정식 토큰을 `autoLogin: false` 수명으로 저장하고 `temp_token`을 지운 뒤 `/dashboard`로 이동한다      |
-| `isNewUser: true`                                   | `temp_token`을 저장하고 `/onboarding`으로 이동한다                                                   |
-| 409 `SOCIAL_EMAIL_CONFLICT`                         | `temp_token`을 지우고 `/login?socialError=SOCIAL_EMAIL_CONFLICT&joinType={data.joinType}`로 이동한다 |
-| 그 밖의 BE 에러·BFF 실패(timeout·응답 검증 실패 등) | `temp_token`을 지우고 `/login?socialError={errorCode}`로 이동한다                                    |
+| 결과                                                | 처리                                                                                                                                                      |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 쿼리 `error`가 있음 (동의 화면에서 취소 등)         | BE를 부르지 않고 `/login`으로 이동한다. 사용자가 직접 취소한 경우라 문구를 보여주지 않는다                                                                |
+| `state` 없음·불일치·쿠키 없음, `code` 없음          | BE를 부르지 않고 `/login?socialError=BFF_INVALID_OAUTH_STATE`로 이동한다                                                                                  |
+| `isNewUser: false`                                  | 정식 토큰을 `autoLogin: false` 수명으로 저장하고 `temp_token`을 지운 뒤 `/dashboard`로 이동한다                                                           |
+| `isNewUser: true`                                   | `temp_token`을 저장하고 `/onboarding`으로 이동한다                                                                                                        |
+| 409 `SOCIAL_EMAIL_CONFLICT`                         | `temp_token`을 지우고 `/login?socialError=SOCIAL_EMAIL_CONFLICT&joinType={data.joinType}`로 이동한다. `joinType`은 `EMAIL`·`KAKAO`·`GOOGLE`일 때만 붙인다 |
+| 그 밖의 BE 에러·BFF 실패(timeout·응답 검증 실패 등) | `temp_token`을 지우고 `/login?socialError={errorCode}`로 이동한다                                                                                         |
 
+- `provider` 검증에 실패하면 쿠키를 건드리지 않고 404를 돌려준다.
+- `state` 검증은 다음을 모두 확인한다. 저장된 `oauth_state`·`oauth_code_verifier`가 모두 있다. 쿼리 `state`·`code`가 비어 있지 않다. 저장된 `state`와 쿼리 `state`가 `===`로 같다.
+- `state` 검증과 함께 PKCE를 쓴다. 인가 코드는 저장된 `code_verifier`와 함께 보내야 BE가 교환할 수 있다.
 - 모든 결과에서 `oauth_state`·`oauth_code_verifier`를 삭제한다.
 - 검증을 통과해 BE를 부른 시도는 이전 가입 시도를 대체한다. 실패하면 남은 `temp_token`을 지워, 실패 안내를 받은 뒤 `/onboarding`에서 이전 시도의 가입이 이어지지 않게 한다.
 - 쿼리 `error`와 `state` 검증 실패에서는 `temp_token`을 유지한다. BE를 부르기 전 단계라 다른 사이트가 링크로 만들 수 있는 요청이고, 진행 중인 온보딩을 지울 수 있기 때문이다.
@@ -234,7 +239,7 @@ orval이 생성한 auth·oauth 요청 함수(`login1`, `refresh`, `logout`, oaut
 
 ## BFF 응답 · 에러 계약
 
-BFF의 실패 응답은 모두 BE `ErrorResponse`와 같은 `{ code, message, errorCode }` 형태로 돌려준다. `customFetcher`가 BE 응답과 같은 방식으로 에러를 변환할 수 있게 하기 위해서다.
+BFF의 실패 응답은 모두 BE `ErrorResponse`와 같은 `{ code, message, errorCode }` 형태로 돌려주고, BE 에러에 `data`가 있으면 함께 돌려준다. `customFetcher`가 BE 응답과 같은 방식으로 에러를 변환할 수 있게 하기 위해서다.
 
 | 상황                             | status       | errorCode                       |
 | -------------------------------- | ------------ | ------------------------------- |
@@ -254,6 +259,7 @@ BFF의 실패 응답은 모두 BE `ErrorResponse`와 같은 `{ code, message, er
 - 클라이언트는 지금 5xx를 `ApiError`로 변환하지 않으므로, BFF의 5xx 코드(`BFF_UPSTREAM_TIMEOUT` 등)로 분기하지 않고 공통 문구로 처리한다. BFF는 원인 추적과 이후 상황별 안내를 위해 코드를 그대로 보낸다.
 - BFF 5xx를 처리할 일이 생기면 BFF 5xx만 골라 변환하지 않고, 클라이언트가 5xx 전부를 `ApiError`로 변환하도록 바꾼다. ([error-handling.md](./error-handling.md)의 "Fetcher 에러 변환")
 - BE 에러를 전달할 때 `ErrorResponse`의 `data` 필드(예: 스케줄 시간 충돌 정보)를 그대로 유지한다. 화면이 이 값으로 분기한다.
+- 에러를 status·errorCode·message·data로 바꾸는 규칙은 JSON 에러 응답과 소셜 콜백이 함께 쓴다. 콜백은 이 errorCode로 `/login?socialError=`를 만든다.
 
 ## Refresh
 

@@ -7,6 +7,7 @@ import {
   createInvalidOriginResponse,
   createUnauthorizedResponse,
   createValidationErrorResponse,
+  toBffError,
   toBffErrorResponse,
 } from '@lib/api/bff/bffErrorResponse';
 
@@ -64,6 +65,22 @@ describe('toBffErrorResponse', () => {
     });
   });
 
+  it('ApiError의 data를 응답 body에 유지한다', async () => {
+    const error = new ApiError('SOCIAL_EMAIL_CONFLICT', 409, '', {
+      joinType: 'EMAIL',
+    });
+
+    await expect(readResponse(toBffErrorResponse(error))).resolves.toEqual({
+      status: 409,
+      body: {
+        code: 409,
+        message: '',
+        errorCode: 'SOCIAL_EMAIL_CONFLICT',
+        data: { joinType: 'EMAIL' },
+      },
+    });
+  });
+
   it('BE message가 없던 ApiError는 message를 비운다', async () => {
     const error = new ApiError('UNKNOWN', 400);
 
@@ -114,6 +131,29 @@ describe('toBffErrorResponse', () => {
     ).resolves.toEqual({
       status: 500,
       body: { code: 500, message: '', errorCode: 'INTERNAL_SERVER_ERROR' },
+    });
+  });
+});
+
+describe('toBffError', () => {
+  it('JSON 응답과 같은 status·errorCode·message·data를 돌려준다', () => {
+    const error = new ApiError('SOCIAL_EMAIL_CONFLICT', 409, undefined, {
+      joinType: 'KAKAO',
+    });
+
+    expect(toBffError(error)).toEqual({
+      status: 409,
+      errorCode: 'SOCIAL_EMAIL_CONFLICT',
+      message: '',
+      data: { joinType: 'KAKAO' },
+    });
+  });
+
+  it('ApiError가 아니면 data가 없다', () => {
+    expect(toBffError(new Error('HTTP 503'))).toEqual({
+      status: 500,
+      errorCode: 'INTERNAL_SERVER_ERROR',
+      message: '',
     });
   });
 });

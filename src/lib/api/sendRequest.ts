@@ -70,7 +70,7 @@ const toFailure = (status: number, text: string) => {
 
   const body = parseJson(text);
   if (isErrorResponse(body)) {
-    return new ApiError(body.errorCode, status, body.message);
+    return new ApiError(body.errorCode, status, body.message, body.data);
   }
 
   return new ApiError(UNKNOWN_ERROR_CODE, status);

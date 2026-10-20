@@ -174,6 +174,30 @@ describe('customFetcher', () => {
         status: 401,
         message: '이메일 또는 비밀번호가 일치하지 않습니다.',
       });
+      expect(error).toHaveProperty('data', undefined);
+    });
+
+    it('4xx JSON body의 data를 ApiError.data로 보존한다', async () => {
+      mockFetch(
+        jsonResponse(
+          {
+            code: 409,
+            message: '',
+            errorCode: 'SOCIAL_EMAIL_CONFLICT',
+            data: { joinType: 'EMAIL' },
+          },
+          409,
+        ),
+      );
+
+      const error = await customFetcher('/api/oauth/kakao').catch((e) => e);
+
+      expect(error).toBeInstanceOf(ApiError);
+      expect(error).toMatchObject({
+        errorCode: 'SOCIAL_EMAIL_CONFLICT',
+        status: 409,
+        data: { joinType: 'EMAIL' },
+      });
     });
 
     it('4xx body가 JSON이 아니면 errorCode를 UNKNOWN으로 둔다', async () => {

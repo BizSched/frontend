@@ -6,7 +6,7 @@ API 에러의 변환·표시 위치·경계 파일 배치의 단일 출처다. [
 
 `API → error formatter → TanStack Query → UI`
 
-- Fetcher는 4xx 실패를 `ApiError(errorCode, status, message)`로, 네트워크 오류를 `NetworkError`로 변환해 throw한다. 5xx는 `ApiError`로 변환하지 않는다.
+- Fetcher는 4xx 실패를 `ApiError(errorCode, status, message, data)`로, 네트워크 오류를 `NetworkError`로 변환해 throw한다. 5xx는 `ApiError`로 변환하지 않는다.
 - TanStack Query는 `throwOnError`로 처리 위치를 나눈다. 컴포넌트 인라인 처리 또는 Error Boundary(`error.tsx`) 위임이다.
 - 컴포넌트는 `format{도메인}Error(error)`가 반환한 메시지를 표시한다.
 - 분기 처리는 `ts-pattern`을 쓴다.
@@ -14,15 +14,16 @@ API 에러의 변환·표시 위치·경계 파일 배치의 단일 출처다. [
 
 ## Fetcher 에러 변환
 
-| 상황                                          | 변환                                             | 이유                                                                                  |
-| --------------------------------------------- | ------------------------------------------------ | ------------------------------------------------------------------------------------- |
-| 4xx 실패 응답, body가 JSON                    | `ApiError(body.errorCode, status, body.message)` | 화면이 errorCode로 분기한다 (예: `TOKEN_EXPIRED` refresh, `INVALID_CREDENTIALS` 안내) |
-| 4xx 실패 응답, body가 JSON이 아님             | `ApiError('UNKNOWN', status)`                    | status를 보존해야 처리 위치 판단(`throwOnError`)이 동작한다                           |
-| 5xx 실패 응답                                 | `ApiError`로 변환하지 않고 일반 `Error`로 throw  | 지금은 5xx를 상황별로 안내하지 않고 공통 문구로 처리한다                              |
-| 네트워크 오류 · timeout                       | `NetworkError`                                   | 서버 응답이 있는 실패와 구분한다                                                      |
-| 성공 응답, body가 비어 있음(204, 200 빈 body) | `undefined` 반환                                 | 빈 body를 JSON으로 파싱하면 실패한다. BE 로그아웃은 200 + 빈 body다                   |
+| 상황                                          | 변환                                                        | 이유                                                                                                                      |
+| --------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| 4xx 실패 응답, body가 JSON                    | `ApiError(body.errorCode, status, body.message, body.data)` | 화면이 errorCode로 분기한다 (예: `TOKEN_EXPIRED` refresh, `INVALID_CREDENTIALS` 안내). `data`는 분기에 필요한 부가 정보다 |
+| 4xx 실패 응답, body가 JSON이 아님             | `ApiError('UNKNOWN', status)`                               | status를 보존해야 처리 위치 판단(`throwOnError`)이 동작한다                                                               |
+| 5xx 실패 응답                                 | `ApiError`로 변환하지 않고 일반 `Error`로 throw             | 지금은 5xx를 상황별로 안내하지 않고 공통 문구로 처리한다                                                                  |
+| 네트워크 오류 · timeout                       | `NetworkError`                                              | 서버 응답이 있는 실패와 구분한다                                                                                          |
+| 성공 응답, body가 비어 있음(204, 200 빈 body) | `undefined` 반환                                            | 빈 body를 JSON으로 파싱하면 실패한다. BE 로그아웃은 200 + 빈 body다                                                       |
 
-- BFF가 만든 실패 응답도 BE와 같은 형태라서 같은 규칙으로 변환된다. BFF 에러 계약은 [auth.md](./auth.md)의 "BFF 응답 · 에러 계약" 참고.
+- `ApiError.data`는 BE `ErrorResponse.data`를 그대로 담은 `unknown`이다. 쓰는 곳에서 zod 등으로 검증한 뒤 쓴다.
+- BFF가 만든 실패 응답도 BE와 같은 형태라서 같은 규칙으로 변환된다. BFF는 BE 에러의 `data`를 유지한다. BFF 에러 계약은 [auth.md](./auth.md)의 "BFF 응답 · 에러 계약" 참고.
 - BFF 5xx(`BFF_UPSTREAM_TIMEOUT` 등)를 처리해야 할 때는 BFF 5xx만 골라 변환하지 않고, status 구분 없이 **5xx 전부를 `ApiError`로 변환**하도록 바꾼다. BFF 5xx만 고르면 분기가 늘고 5xx가 `ApiError`와 일반 `Error` 두 종류로 나뉜다. 이때 `throwOnError`와 retry 기준도 status 기준(5xx는 경계·재시도)으로 함께 바꾼다.
 
 ## errorCode 이름
