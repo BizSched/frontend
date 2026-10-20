@@ -102,7 +102,7 @@ BE 명세는 Swagger(`/v3/api-docs`)가 기준이다. 토큰 규칙과 BFF 경�
 | ---- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | -------------- |
 | 1    | `docs/social-login-design`    | 소셜 로그인 설계(auth.md "소셜 로그인"), 온보딩·로그인 화면 문서, 단계별 PR 계획 (이 섹션)                                                                                                                             | `dev` | 머지 완료      |
 | 2    | `feat/social-login-bff-utils` | `state`·PKCE(`code_verifier`, S256 `code_challenge`) 생성, 임시 쿠키(`oauth_state`·`oauth_code_verifier`·`temp_token`) 읽기·쓰기·삭제, 정식 토큰 쿠키 저장·삭제 시 `temp_token` 삭제, 공통 쿠키 옵션 분리, 단위 테스트 | 1단계 | 머지 완료      |
-| 3    | `feat/social-login-callback`  | 인가 시작 `GET /api/oauth/{provider}/authorize`, 콜백 `app/oauth/[provider]/route.ts`와 결과별 분기, `/oauth/*` 공개 처리, `AuthSocialLogin` 링크 연결, 로그인 화면 `socialError` 문구, 환경 변수 3종                  | 2단계 | 로컬 구현 완료 |
+| 3    | `feat/social-login-callback`  | 인가 시작 `GET /api/oauth/{provider}/authorize`, 콜백 `app/oauth/[provider]/route.ts`와 결과별 분기, `/oauth/*` 공개 처리, `AuthSocialLogin` 링크 연결, 로그인 화면 `socialError` 문구, 환경 변수 3종                  | 2단계 | 머지 완료      |
 | 4    | `feat/social-onboarding-api`  | 2단계 BFF `PATCH /api/users/signup/additional-info`, `useCompleteSocialSignupMutation`, `OnboardingForm` 연결·실패 처리, `temp_token` 없는 `/onboarding` 진입 차단                                                     | 3단계 | 로컬 구현 완료 |
 
 - 2단계부터는 바로 앞 단계 브랜치에서 분기한 stacked PR이고, 앞 단계가 머지되면 base를 `dev`로 바꾼다.
