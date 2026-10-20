@@ -9,6 +9,7 @@
     - Next.js App Router: `page`, `layout`, `loading`, `error`, `not-found`
     - Route Handler(`route`)는 default export가 아니라 HTTP 메서드 이름의 named export(`GET`, `POST` 등)를 쓴다. Next가 default export를 읽지 않는다.
     - Storybook(CSF): `.storybook/main.ts`, `.storybook/preview.tsx`, `*.stories.tsx`
+    - Playwright: `e2e/global-setup.ts`
 - import는 `index.ts`를 거치지 않고 각 파일에서 직접 named import 한다.
   - `index.ts`로 모아 re-export하는 배럴 파일은 사용하지 않는다.
   - alias 기준은 [naming.md](./naming.md) 참고.
