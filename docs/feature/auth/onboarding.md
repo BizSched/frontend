@@ -41,11 +41,11 @@
 | -------------- | ----------------------------------- | ------------------------------------------------------------------------------- |
 | 400            | `REQUIRED_TERMS_NOT_AGREED`         | 약관 영역 인라인. 약관 목록을 다시 조회한다([signup.md](./signup.md#약관-목록)) |
 | 400            | `INVALID_INDUSTRY_VALUE`            | 업종 필드 인라인. 문구는 회원가입과 같다                                        |
-| 400            | 그 밖의 코드                        | 시작하기 버튼 위에 BE `message`(`formatCommonError`)                            |
+| 400            | 그 밖의 코드                        | 토스트로 BE `message`(`formatCommonError`)                                      |
 | 401            | `INVALID_TEMP_TOKEN`                | `/login?socialError=INVALID_TEMP_TOKEN`으로 이동                                |
 | 409            | `SOCIAL_ACCOUNT_ALREADY_REGISTERED` | `/login?socialError=SOCIAL_ACCOUNT_ALREADY_REGISTERED`로 이동                   |
 | 409            | `SOCIAL_EMAIL_CONFLICT`             | `/login?socialError=SOCIAL_EMAIL_CONFLICT&joinType={data.joinType}`로 이동      |
-| 5xx · 네트워크 | —                                   | 시작하기 버튼 위에 공통 문구(`formatCommonError`)                               |
+| 5xx · 네트워크 | —                                   | 토스트로 공통 문구(`formatCommonError`)                                         |
 
 - 401·409는 BFF가 `temp_token`을 지운 뒤다. 이 화면에서 다시 제출할 수 없으므로 로그인 화면에서 소셜 로그인부터 다시 하도록 안내한다. 문구는 [login.md](./login.md#소셜-로그인-실패-안내) 참고.
 - 로그인 화면 이동은 전체 새로고침(`window.location.assign`)으로 한다. 쿠키가 바뀐 상태에서 라우터 캐시를 남기지 않는다.

@@ -10,6 +10,7 @@ import {
 } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { Toaster, toast } from '@components/_common/Toast/Toaster';
 import { LoginForm } from '@components/auth/LoginForm';
 
 import { ApiError, NetworkError } from '@lib/api/apiError';
@@ -28,6 +29,7 @@ const renderLoginForm = (queryClient = new QueryClient()) =>
   render(
     <QueryClientProvider client={queryClient}>
       <LoginForm />
+      <Toaster />
     </QueryClientProvider>,
   );
 
@@ -51,6 +53,7 @@ describe('LoginForm', () => {
 
   afterEach(() => {
     cleanup();
+    toast.dismiss();
   });
 
   it('빈 값으로 제출하면 필드별 문구를 보여주고 요청하지 않는다', async () => {
@@ -177,15 +180,30 @@ describe('LoginForm', () => {
     expect(push).not.toHaveBeenCalled();
   });
 
-  it('네트워크 오류면 공통 문구를 폼 안에 보여준다', async () => {
+  it('네트워크 오류면 공통 문구를 폼 안이 아닌 토스트로 알린다', async () => {
     vi.mocked(postLogin).mockRejectedValue(new NetworkError());
     renderLoginForm();
 
     fillForm(USER.email, 'pw');
     submit();
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      COMMON_ERROR_MESSAGE,
+    expect(await screen.findByText(COMMON_ERROR_MESSAGE)).toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+
+  it('다시 제출하면 이전 오류 토스트를 지운다', async () => {
+    vi.mocked(postLogin)
+      .mockRejectedValueOnce(new NetworkError())
+      .mockImplementation(() => new Promise(() => {}));
+    renderLoginForm();
+
+    fillForm(USER.email, 'pw');
+    submit();
+    await screen.findByText(COMMON_ERROR_MESSAGE);
+    submit();
+
+    await waitFor(() =>
+      expect(screen.queryByText(COMMON_ERROR_MESSAGE)).not.toBeInTheDocument(),
     );
   });
 });

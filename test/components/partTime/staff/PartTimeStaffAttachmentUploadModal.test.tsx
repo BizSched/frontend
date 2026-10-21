@@ -8,6 +8,7 @@ import {
 } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { Toaster, toast } from '@components/_common/Toast/Toaster';
 import { PartTimeStaffAttachmentUploadModal } from '@components/partTime/staff/PartTimeStaffAttachmentUploadModal';
 
 import { preparePartTimeStaffAttachment } from '@lib/utilities/partTime/preparePartTimeStaffAttachment';
@@ -26,6 +27,7 @@ const setup = () => {
       onOpenChange={onOpenChange}
     />,
   );
+  render(<Toaster />);
   const select = (file: File) =>
     fireEvent.change(document.querySelector('input[type="file"]')!, {
       target: { files: [file] },
@@ -36,7 +38,10 @@ const pdf = (name: string) =>
   new File(['pdf'], name, { type: 'application/pdf' });
 
 beforeEach(() => vi.resetAllMocks());
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  toast.dismiss();
+});
 
 describe('PartTimeStaffAttachmentUploadModal', () => {
   it('전처리가 끝난 파일만 폼에 전달한다', async () => {
@@ -61,7 +66,7 @@ describe('PartTimeStaffAttachmentUploadModal', () => {
     expect(onUpload).toHaveBeenCalledWith(prepared);
   });
 
-  it('큰 PDF 오류를 인라인으로 알리고 이전 선택을 유지한다', async () => {
+  it('큰 PDF 오류를 토스트로 알리고 이전 선택을 유지한다', async () => {
     const previous = pdf('이전.pdf');
     vi.mocked(preparePartTimeStaffAttachment)
       .mockResolvedValueOnce(previous)
@@ -70,11 +75,9 @@ describe('PartTimeStaffAttachmentUploadModal', () => {
     select(previous);
     await screen.findByText('이전.pdf');
     select(pdf('큰파일.pdf'));
-    await waitFor(() =>
-      expect(screen.getByRole('alert').textContent).toBe(
-        '3.5MB 이하 파일만 올릴 수 있어요.',
-      ),
-    );
+    expect(
+      await screen.findByText('3.5MB 이하 파일만 올릴 수 있어요.'),
+    ).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: '업로드' }));
     expect(onUpload).toHaveBeenCalledWith(previous);
   });

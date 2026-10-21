@@ -8,6 +8,7 @@ import {
 } from '@components/_common/Calendar/Calendar';
 import { CalendarEventDots } from '@components/_common/Calendar/CalendarEventDots';
 import { openConfirmModal } from '@components/_common/Modal/openConfirmModal';
+import { toast } from '@components/_common/Toast/Toaster';
 import { openPartTimeScheduleFormModal } from '@components/partTime/schedule/modal/openPartTimeScheduleFormModal';
 import { PartTimeScheduleChip } from '@components/partTime/schedule/PartTimeScheduleChip';
 import { PartTimeScheduleDaySummary } from '@components/partTime/schedule/PartTimeScheduleDaySummary';
@@ -28,6 +29,7 @@ import {
 
 const MAX_VISIBLE_SCHEDULE_COUNT = 3;
 const EMPTY_SCHEDULES: PartTimeSchedule[] = [];
+const ACTION_ERROR_TOAST_ID = 'schedule-action-error';
 
 const createDayContent = (
   schedules: PartTimeSchedule[],
@@ -75,7 +77,6 @@ function PartTimeScheduleCalendar({
     isDeleteConfirmOpen ||
     deleteMutation.isPending ||
     attendanceMutation.isPending;
-  const mutationError = deleteMutation.error ?? attendanceMutation.error;
 
   const staffId = selectedStaffId ?? undefined;
   const staffQuery = useStaffOptions();
@@ -147,8 +148,7 @@ function PartTimeScheduleCalendar({
     if (isActionPendingRef.current) return;
     isActionPendingRef.current = true;
     setIsDeleteConfirmOpen(true);
-    deleteMutation.reset();
-    attendanceMutation.reset();
+    toast.dismiss(ACTION_ERROR_TOAST_ID);
     try {
       const isConfirmed = await openConfirmModal({
         title: '스케줄을 삭제하시겠어요?',
@@ -156,8 +156,8 @@ function PartTimeScheduleCalendar({
         confirmText: '삭제',
       });
       if (isConfirmed) await deleteMutation.mutateAsync(schedule.id);
-    } catch {
-      // NOTE: mutation의 오류 상태를 캘린더 위에 표시한다
+    } catch (error) {
+      toast.error(formatCommonError(error), { id: ACTION_ERROR_TOAST_ID });
     } finally {
       setIsDeleteConfirmOpen(false);
       isActionPendingRef.current = false;
@@ -170,15 +170,14 @@ function PartTimeScheduleCalendar({
   ) => {
     if (schedule.date > today || isActionPendingRef.current) return;
     isActionPendingRef.current = true;
-    deleteMutation.reset();
-    attendanceMutation.reset();
+    toast.dismiss(ACTION_ERROR_TOAST_ID);
     try {
       await attendanceMutation.mutateAsync({
         scheduleId: schedule.id,
         body: { status: isCheckedIn ? 'ATTENDED' : 'ABSENT' },
       });
-    } catch {
-      // NOTE: 실패하면 조회 캐시의 기존 출근 상태를 유지한다
+    } catch (error) {
+      toast.error(formatCommonError(error), { id: ACTION_ERROR_TOAST_ID });
     } finally {
       isActionPendingRef.current = false;
     }
@@ -186,11 +185,6 @@ function PartTimeScheduleCalendar({
 
   return (
     <>
-      {mutationError && (
-        <p role="alert" className="text-sm text-warning-500 max-mobile:px-4">
-          {formatCommonError(mutationError)}
-        </p>
-      )}
       {failedQueries.length > 0 && (
         <div
           role="alert"

@@ -2,10 +2,12 @@
 
 import { useRouter } from 'next/navigation';
 import { Controller, useForm } from 'react-hook-form';
+import { match, P } from 'ts-pattern';
 
 import { Button } from '@components/_common/Button/Button';
 import { Checkbox } from '@components/_common/Checkbox/Checkbox';
 import { Input } from '@components/_common/Input/Input';
+import { toast } from '@components/_common/Toast/Toaster';
 import { AuthField } from '@components/auth/AuthField';
 import { AuthForm } from '@components/auth/AuthForm';
 import { AuthSwitchLink } from '@components/auth/AuthSwitchLink';
@@ -13,9 +15,20 @@ import { PasswordInput } from '@components/auth/PasswordInput';
 
 import { useLoginMutation } from '@hooks/api/auth/useAuth';
 
+import { ApiError } from '@lib/api/apiError';
 import { formatAuthError } from '@lib/api/entities/auth/formatAuthError';
 import { isValidEmail } from '@lib/utilities/auth/isValidEmail';
 import { ROUTE_PATHS } from '@lib/utilities/routePaths';
+
+const LOGIN_ERROR_TOAST_ID = 'login-error';
+
+const isInvalidCredentialsError = (error: unknown) =>
+  match(error)
+    .with(
+      P.instanceOf(ApiError),
+      ({ errorCode }) => errorCode === 'INVALID_CREDENTIALS',
+    )
+    .otherwise(() => false);
 
 interface LoginFormValues {
   email: string;
@@ -56,10 +69,16 @@ function LoginForm() {
   const isSubmitDisabled = isPending || isSuccess;
 
   const handleLoginSubmit = (values: LoginFormValues) => {
+    toast.dismiss(LOGIN_ERROR_TOAST_ID);
     login(values, {
       onSuccess: () => router.push(ROUTE_PATHS.dashboard()),
-      onError: (error) =>
-        setError('root.server', { message: formatAuthError(error) }),
+      onError: (error) => {
+        if (isInvalidCredentialsError(error)) {
+          setError('root.server', { message: formatAuthError(error) });
+          return;
+        }
+        toast.error(formatAuthError(error), { id: LOGIN_ERROR_TOAST_ID });
+      },
     });
   };
 

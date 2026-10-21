@@ -172,7 +172,7 @@ describe('PartTimeStaffDetailPanel', () => {
     expect(onEmploymentStatusChange).toHaveBeenCalledWith(42, 'onLeave');
   });
 
-  it('잠긴 동안 드롭다운을 막고 진행·실패를 헤더 아래에 표시한다', () => {
+  it('잠긴 동안 드롭다운을 막고 진행 문구를 헤더 아래에 표시한다', () => {
     const { rerender } = render(
       <PartTimeStaffDetailPanel
         {...BASE}
@@ -197,12 +197,9 @@ describe('PartTimeStaffDetailPanel', () => {
         open
         staff={STAFF}
         onEmploymentStatusChange={vi.fn()}
-        employmentStatusError={
-          new ApiError('INVALID_REQUEST', 400, '바꿀 수 없어요.')
-        }
       />,
     );
-    expect(screen.getByRole('alert').textContent).toBe('바꿀 수 없어요.');
+    expect(screen.queryByRole('status')).toBeNull();
     expect(within(group).getByRole('button').hasAttribute('disabled')).toBe(
       false,
     );

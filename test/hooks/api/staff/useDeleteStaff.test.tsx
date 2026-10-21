@@ -11,6 +11,7 @@ import { scheduleKeys } from '@hooks/api/schedule/scheduleQueryOptions';
 import { staffKeys } from '@hooks/api/staff/staffQueryOptions';
 import { useDeleteStaff } from '@hooks/api/staff/useDeleteStaff';
 
+import { ApiError } from '@lib/api/apiError';
 import { deleteStaff } from '@lib/api/entities/staff/api';
 
 vi.mock('@lib/api/entities/staff/api', () => ({
@@ -167,6 +168,32 @@ describe('useDeleteStaff', () => {
     expect(client.getQueryState(staffKeys.detail(99))?.isInvalidated).toBe(
       false,
     );
+  });
+
+  it('STAFF_NOT_FOUND이면 이미 삭제된 직원이 사라지도록 목록과 해당 상세만 무효화한다', async () => {
+    vi.mocked(deleteStaff).mockRejectedValue(
+      new ApiError('STAFF_NOT_FOUND', 404, '아르바이트생을 찾을 수 없어요.'),
+    );
+    const { result, client } = setup();
+
+    act(() => result.current.mutate(42));
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    [
+      staffKeys.list({ page: 1, size: 10 }),
+      staffKeys.list({ page: 2, size: 10 }),
+      staffKeys.detail(42),
+    ].forEach((key) =>
+      expect(client.getQueryState(key)?.isInvalidated).toBe(true),
+    );
+    expect(client.getQueryState(staffKeys.detail(99))?.isInvalidated).toBe(
+      false,
+    );
+    expect(
+      client.getQueryState(
+        scheduleKeys.list({ from: '2026-09-28', to: '2026-11-01' }),
+      )?.isInvalidated,
+    ).toBe(false);
   });
 
   it('실패하면 기존 캐시를 유지하고 삭제를 재시도하지 않는다', async () => {

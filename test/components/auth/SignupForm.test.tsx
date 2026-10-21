@@ -11,6 +11,7 @@ import {
 } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { Toaster, toast } from '@components/_common/Toast/Toaster';
 import { SignupForm } from '@components/auth/SignupForm';
 
 import { termsKeys } from '@hooks/api/terms/termsQueryOptions';
@@ -56,6 +57,7 @@ const renderForm = (terms = TERMS, staleTime = Infinity) => {
   render(
     <QueryClientProvider client={queryClient}>
       <SignupForm />
+      <Toaster />
     </QueryClientProvider>,
   );
   return queryClient;
@@ -100,7 +102,10 @@ describe('SignupForm', () => {
     vi.mocked(postSignup).mockReset().mockResolvedValue(RESPONSE);
     vi.mocked(getTerms).mockReset().mockResolvedValue(TERMS);
   });
-  afterEach(cleanup);
+  afterEach(() => {
+    cleanup();
+    toast.dismiss();
+  });
 
   it('입력 전에도 제출할 수 있고 빈 값은 필드별로 안내한다', async () => {
     renderForm();
@@ -312,7 +317,7 @@ describe('SignupForm', () => {
     [new Error('HTTP 500'), COMMON_ERROR_MESSAGE],
     [new NetworkError(), COMMON_ERROR_MESSAGE],
   ])(
-    '공통 실패를 버튼 위에 표시하고 입력을 유지한 채 재제출한다: %s',
+    '필드에 연결되지 않는 실패는 토스트로 알리고 입력을 유지한 채 재제출한다: %s',
     async (error, message) => {
       vi.mocked(postSignup)
         .mockRejectedValueOnce(error)
@@ -320,18 +325,17 @@ describe('SignupForm', () => {
       renderForm();
       await fillValidForm();
       submit();
-      const alert = await screen.findByRole('alert');
-      expect(alert).toHaveTextContent(message as string);
-      expect(alert.parentElement).toContainElement(
-        screen.getByRole('button', { name: '회원가입 하기' }),
-      );
+      expect(await screen.findByText(message as string)).toBeInTheDocument();
+      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
       expect(screen.getByLabelText('이름')).toHaveValue(RESPONSE.name);
       expect(screen.getByLabelText('비밀번호')).toHaveValue('abcd1234');
       expect(push).not.toHaveBeenCalled();
       submit();
       await waitFor(() => expect(push).toHaveBeenCalledWith('/login'));
       expect(postSignup).toHaveBeenCalledTimes(2);
-      expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+      await waitFor(() =>
+        expect(screen.queryByText(message as string)).not.toBeInTheDocument(),
+      );
     },
   );
 
