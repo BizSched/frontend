@@ -48,7 +48,7 @@ afterEach(cleanup);
 
 // NOTE: 데스크톱 4열과 모바일 행 레이아웃이 CSS로만 나뉘어 DOM에는 둘 다 있다
 describe('TodayWorkerSection', () => {
-  it('스케쥴을 시간대 칸에 이름·시간·근무 시간과 함께 표시한다', () => {
+  it('스케줄을 시간대 칸에 이름·시간·근무 시간과 함께 표시한다', () => {
     const queryClient = createQueryClient();
     queryClient.setQueryData(scheduleKey, [
       createSchedule(1, '신짱구', '12:00', '18:00'),
@@ -70,7 +70,7 @@ describe('TodayWorkerSection', () => {
     expect(screen.getAllByText('근무자 없음')).toHaveLength(8);
   });
 
-  it('삭제된 알바생의 스케쥴은 표시하지 않는다', () => {
+  it('삭제된 아르바이트생의 스케줄은 표시하지 않는다', () => {
     const queryClient = createQueryClient();
     queryClient.setQueryData(scheduleKey, [
       createSchedule(1, '퇴사자', '09:00', '13:00', true),
@@ -88,13 +88,13 @@ describe('TodayWorkerSection', () => {
       .build(queryClient, { queryKey: scheduleKey })
       .setState({
         status: 'error',
-        error: new ApiError('UNKNOWN', 400, '스케쥴을 불러오지 못했어요'),
+        error: new ApiError('UNKNOWN', 400, '스케줄을 불러오지 못했어요'),
         fetchStatus: 'idle',
       });
 
     renderWith(queryClient, <TodayWorkerSection today={TODAY} />);
 
-    expect(screen.getByText('스케쥴을 불러오지 못했어요')).toBeInTheDocument();
+    expect(screen.getByText('스케줄을 불러오지 못했어요')).toBeInTheDocument();
   });
 });
 

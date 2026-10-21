@@ -157,7 +157,7 @@ src/hooks/overlay/
 <Modal open={isOpen} onOpenChange={setOpen}>
   <Modal.Panel size="md" placement="sheetOnMobile">
     <Modal.Header align="start">
-      <Modal.Title>아르바이트생 스케쥴 추가</Modal.Title>
+      <Modal.Title>아르바이트생 스케줄 추가</Modal.Title>
       <Modal.CloseButton />
     </Modal.Header>
     <Modal.Body>{/* 폼 필드 */}</Modal.Body>

@@ -81,12 +81,12 @@ const formatPartTimeScheduleDuration = (startTime: string, endTime: string) => {
 
 const formatPartTimeScheduleSummaryTitle = (date: string, today: string) => {
   if (date === today) {
-    return '오늘의 스케쥴';
+    return '오늘의 스케줄';
   }
 
   const [, month, day] = date.split('-');
 
-  return `${Number(month)}월 ${Number(day)}일 스케쥴`;
+  return `${Number(month)}월 ${Number(day)}일 스케줄`;
 };
 
 export {

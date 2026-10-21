@@ -34,7 +34,7 @@ describe('scheduleQueryOptions', () => {
     ]);
   });
 
-  it('스케쥴 조회 전체 무효화는 캘린더와 주간 근무 쿼리를 함께 갱신 대상으로 잡는다', async () => {
+  it('스케줄 조회 전체 무효화는 캘린더와 주간 근무 쿼리를 함께 갱신 대상으로 잡는다', async () => {
     vi.mocked(getScheduleList).mockResolvedValue([]);
     const client = new QueryClient();
     try {

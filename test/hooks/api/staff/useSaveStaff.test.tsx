@@ -397,7 +397,7 @@ describe('useSaveStaff', () => {
     expect(client.getQueryState(staffKeys.list())?.isInvalidated).toBe(true);
   });
 
-  it('삭제→변경 정보 저장→파일 추가 순서를 지키고 이름 변경 시 스케쥴도 갱신한다', async () => {
+  it('삭제→변경 정보 저장→파일 추가 순서를 지키고 이름 변경 시 스케줄도 갱신한다', async () => {
     const calls: string[] = [];
     const changed = { ...STAFF, name: '박알바', memo: '', attachments: [] };
     vi.mocked(deleteStaffAttachment).mockImplementation(async () => {
@@ -537,7 +537,7 @@ describe('useSaveStaff', () => {
     expect(updateStaff).toHaveBeenCalledTimes(1);
   });
 
-  it('이름이 그대로면 스케쥴 캐시를 무효화하지 않는다', async () => {
+  it('이름이 그대로면 스케줄 캐시를 무효화하지 않는다', async () => {
     vi.mocked(updateStaff).mockResolvedValue({ ...STAFF, memo: '' });
     const { result, client, keys } = setup(STAFF);
     await act(async () => {

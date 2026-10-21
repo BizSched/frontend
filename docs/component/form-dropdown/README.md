@@ -79,7 +79,7 @@ const [course, setCourse] = useState<string>();
 | `onChange`         | —                  | `(value: string) => void`. 항목 선택 시 호출                                                                                             |
 | `placeholder`      | —                  | 선택값이 없을 때 트리거에 표시할 내용                                                                                                    |
 | `size`             | `"large"`          | `"large"` \| `"medium"` \| `"small"`. 트리거·팝업·셀에 함께 적용                                                                         |
-| `hasDivider`       | `size === "large"` | 항목 사이 구분선. large 기본값은 Figma `271:55308` 기준. 구분선이 없는 화면(예: 스케쥴 추가/수정 모달 `337:127914`)에서는 `false`로 끈다 |
+| `hasDivider`       | `size === "large"` | 항목 사이 구분선. large 기본값은 Figma `271:55308` 기준. 구분선이 없는 화면(예: 스케줄 추가/수정 모달 `337:127914`)에서는 `false`로 끈다 |
 | `disabled`         | —                  | 트리거 비활성화. 팝업이 열리지 않는다                                                                                                    |
 | `className`        | —                  | 트리거(`FormDropdownButton`)에 병합. 너비 변경 등                                                                                        |
 | `contentClassName` | —                  | 팝업(`Dropdown`)에 병합. 옵션이 많을 때 `max-h-*` + `overflow-y-auto` 등                                                                 |

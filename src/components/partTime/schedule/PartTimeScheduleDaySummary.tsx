@@ -94,7 +94,7 @@ function PartTimeScheduleDaySummary({
                   <div className="flex shrink-0 items-center gap-1">
                     <TextButton
                       size="small"
-                      aria-label={`${startTime} ~ ${endTime} ${staff.name} 스케쥴 수정`}
+                      aria-label={`${startTime} ~ ${endTime} ${staff.name} 스케줄 수정`}
                       className="text-slate-400"
                       disabled={isPending}
                       onClick={() => onScheduleEdit(schedule)}
@@ -107,7 +107,7 @@ function PartTimeScheduleDaySummary({
                     />
                     <TextButton
                       size="small"
-                      aria-label={`${startTime} ~ ${endTime} ${staff.name} 스케쥴 삭제`}
+                      aria-label={`${startTime} ~ ${endTime} ${staff.name} 스케줄 삭제`}
                       disabled={isPending}
                       onClick={() => onScheduleDelete(schedule)}
                     >
@@ -121,7 +121,7 @@ function PartTimeScheduleDaySummary({
         </>
       ) : (
         <p className="text-sm font-medium tracking-[-0.03em] text-[#737373]">
-          등록된 스케쥴이 없습니다.
+          등록된 스케줄이 없습니다.
         </p>
       )}
     </section>

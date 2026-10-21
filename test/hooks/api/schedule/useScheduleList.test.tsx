@@ -55,7 +55,7 @@ describe('useScheduleList', () => {
     expect(getScheduleList).toHaveBeenCalledTimes(1);
   });
 
-  it('삭제한 아르바이트생의 스케쥴을 캘린더에서 뺀다', async () => {
+  it('삭제한 아르바이트생의 스케줄을 캘린더에서 뺀다', async () => {
     vi.mocked(getScheduleList).mockResolvedValue([
       createSchedule(1),
       createSchedule(2, true),

@@ -8,9 +8,13 @@ import {
 
 describe('formatCommonError', () => {
   it('BE message가 있으면 그대로 보여준다', () => {
-    const error = new ApiError('STAFF_NOT_FOUND', 404, '알바생이 없습니다.');
+    const error = new ApiError(
+      'STAFF_NOT_FOUND',
+      404,
+      '아르바이트생이 없습니다.',
+    );
 
-    expect(formatCommonError(error)).toBe('알바생이 없습니다.');
+    expect(formatCommonError(error)).toBe('아르바이트생이 없습니다.');
   });
 
   it.each([

@@ -20,7 +20,7 @@ function PartTimeScheduleAddButton() {
       }
       onClick={handleClick}
     >
-      스케쥴 추가
+      스케줄 추가
     </Button>
   );
 }
