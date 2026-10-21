@@ -4,11 +4,6 @@ import { formatCalendarDate } from '@lib/utilities/calendar/calendarDate';
 
 // 시나리오가 서로의 결과(카테고리, 매출)에 의존하므로 순서대로 실행한다.
 test.describe.configure({ mode: 'serial' });
-// 세 브라우저가 같은 계정 데이터를 동시에 바꾸면 충돌한다.
-test.skip(
-  ({ browserName }) => browserName !== 'chromium',
-  '공유 계정 데이터 충돌 방지를 위해 chromium에서만 실행한다.',
-);
 
 const CATEGORY = 'E2E매출';
 const RENAMED = 'E2E수정';
