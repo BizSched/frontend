@@ -12,7 +12,12 @@ import { useSidebar } from './SidebarProvider';
 
 type SidebarTriggerProps = Button.Props;
 
-function SidebarTrigger({ className, onClick, ...props }: SidebarTriggerProps) {
+function SidebarTrigger({
+  className,
+  onClick,
+  children,
+  ...props
+}: SidebarTriggerProps) {
   const { isOpen, isCompact, isOverlayOpen, panelId, toggleSidebar } =
     useSidebar();
   const isExpanded = isCompact ? isOverlayOpen : isOpen;
@@ -33,13 +38,15 @@ function SidebarTrigger({ className, onClick, ...props }: SidebarTriggerProps) {
         if (!event.defaultPrevented) toggleSidebar();
       }}
     >
-      <Image
-        src={isExpanded ? ChevronsLeft : ChevronsRight}
-        alt=""
-        width={32}
-        height={32}
-        unoptimized
-      />
+      {children ?? (
+        <Image
+          src={isExpanded ? ChevronsLeft : ChevronsRight}
+          alt=""
+          width={32}
+          height={32}
+          unoptimized
+        />
+      )}
     </Button>
   );
 }

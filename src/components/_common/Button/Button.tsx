@@ -9,11 +9,11 @@ const buttonVariants = cva(
     variants: {
       hierarchy: {
         primary:
-          'bg-primary-500 text-white-50 hover:bg-secondary-600 disabled:bg-[#bbbbbb]',
+          'border border-transparent bg-primary-500 text-accent-500 hover:bg-secondary-600 hover:text-accent-500 disabled:bg-slate-100 disabled:text-slate-300',
         secondary:
-          'border border-primary-500 text-secondary-600 hover:border-secondary-600 hover:text-primary-500 disabled:border-slate-400 disabled:text-slate-400',
+          'border border-primary-700 bg-transparent text-accent-500 hover:border-primary-700 hover:bg-primary-100 hover:text-accent-500 disabled:border-slate-100 disabled:bg-transparent disabled:text-slate-300',
         tertiary:
-          'border border-[#cccccc] text-secondary-300 hover:border-[#bbbbbb] hover:text-accent-300 disabled:border-slate-400 disabled:text-slate-400',
+          'border border-slate-200 bg-transparent text-slate-400 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-500 disabled:border-slate-100 disabled:bg-transparent disabled:text-slate-300',
       },
       size: {
         large: 'h-14 py-3.5 text-lg leading-7 tracking-[-0.03em]',

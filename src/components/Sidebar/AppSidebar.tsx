@@ -2,6 +2,7 @@
 
 import { Button } from '@base-ui/react/button';
 import { Collapsible } from '@base-ui/react/collapsible';
+import { MenuIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -97,7 +98,9 @@ function AppSidebar({
           </aside>
           <header className="fixed inset-x-0 top-0 z-30 hidden h-14 items-center justify-between bg-white-50 px-4 max-tablet:flex">
             <div className="flex items-center gap-2">
-              <SidebarTrigger />
+              <SidebarTrigger>
+                <MenuIcon size={24} aria-hidden="true" />
+              </SidebarTrigger>
               <span aria-hidden="true" className="text-sm font-semibold">
                 {mobilePageTitle}
               </span>

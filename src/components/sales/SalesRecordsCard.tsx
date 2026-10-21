@@ -1,5 +1,6 @@
 'use client';
 
+import { MoveRight } from 'lucide-react';
 import Link from 'next/link';
 
 import { Card } from '@components/_common/Card/Card';
@@ -146,9 +147,10 @@ function SalesRecordsCard() {
         </Card.Title>
         <Link
           href={ROUTE_PATHS.salesDetails()}
-          className="rounded text-sm font-medium text-primary-700 hover:underline focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none max-tablet:text-xs"
+          className="flex items-center gap-1 rounded text-sm font-medium text-primary-700 hover:underline focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none max-tablet:text-xs"
         >
-          모두 보기 <span aria-hidden="true">›</span>
+          모두 보기
+          <MoveRight aria-hidden="true" size={16} />
         </Link>
       </Card.Header>
 
