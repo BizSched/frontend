@@ -10,7 +10,7 @@ function HeroSection() {
       <div className="flex flex-col items-center gap-12 text-center max-tablet:gap-10">
         <div className="flex flex-col gap-3 font-bold max-tablet:gap-1">
           <p className="text-2xl text-primary-600 max-tablet:text-base max-tablet:font-semibold">
-            BizSched 하나로 알바 관리부터 운영까지
+            BizSched 하나로 아르바이트 관리부터 운영까지
           </p>
           <h1 className="text-display-md text-slate-700 max-tablet:text-xl">
             아르바이트생 관리, 비즈스케드로 계획해요

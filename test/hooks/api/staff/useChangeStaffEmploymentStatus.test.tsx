@@ -62,7 +62,7 @@ afterEach(() => {
 });
 
 describe('useChangeStaffEmploymentStatus', () => {
-  it('성공하면 목록·상세의 상태를 바로 바꾸고 목록·상세·스케쥴을 무효화한다', async () => {
+  it('성공하면 목록·상세의 상태를 바로 바꾸고 목록·상세·스케줄을 무효화한다', async () => {
     vi.mocked(changeStaffEmploymentStatus).mockResolvedValue({
       id: 42,
       employmentStatus: 'resigned',

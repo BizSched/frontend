@@ -108,16 +108,16 @@ describe('getPartTimeStaffWeekDates', () => {
 describe('formatPartTimeStaffWeekTitle', () => {
   it('오늘이 속한 달의 1일이 들어 있는 주를 첫째 주로 센다', () => {
     expect(formatPartTimeStaffWeekTitle('2026-10-04')).toBe(
-      '10월 첫째 주 근무 스케쥴',
+      '10월 첫째 주 근무 스케줄',
     );
     expect(formatPartTimeStaffWeekTitle('2026-10-05')).toBe(
-      '10월 둘째 주 근무 스케쥴',
+      '10월 둘째 주 근무 스케줄',
     );
   });
 
   it('1일이 주 후반인 달은 여섯째 주까지 센다', () => {
     expect(formatPartTimeStaffWeekTitle('2026-08-31')).toBe(
-      '8월 여섯째 주 근무 스케쥴',
+      '8월 여섯째 주 근무 스케줄',
     );
   });
 });

@@ -25,7 +25,7 @@ function TodayWorkerSection({ today }: TodayWorkerSectionProps) {
   return (
     <Card padding="lg" className="gap-6">
       <Card.Header className="justify-center">
-        <Card.Title>오늘 근무 알바생</Card.Title>
+        <Card.Title>오늘 근무 아르바이트생</Card.Title>
       </Card.Header>
 
       <Card.Content>

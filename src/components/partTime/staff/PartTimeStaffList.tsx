@@ -161,7 +161,7 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
       const isConfirmed = await openConfirmModal({
         title: '아르바이트생을 삭제하시겠어요?',
         description:
-          '아직 오지 않은 근무 스케쥴도 함께 삭제돼요. 삭제된 상세 내용과 스케쥴은 복구할 수 없습니다.',
+          '아직 오지 않은 근무 스케줄도 함께 삭제돼요. 삭제된 상세 내용과 스케줄은 복구할 수 없습니다.',
         confirmText: '삭제',
       });
 
@@ -188,7 +188,7 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
         const isConfirmed = await openConfirmModal({
           title: '재직 상태를 바꾸시겠어요?',
           description:
-            '아직 오지 않은 근무 스케쥴이 삭제돼요. 다시 재직으로 바꿔도 복구되지 않아요.',
+            '아직 오지 않은 근무 스케줄이 삭제돼요. 다시 재직으로 바꿔도 복구되지 않아요.',
           confirmText: '변경',
         });
         setIsStatusConfirmOpen(false);

@@ -65,7 +65,7 @@ function AppSidebar({
       : isSalesDetail
         ? '매출 내역'
         : isPartTimeSchedule
-          ? '아르바이트생 스케쥴 관리'
+          ? '아르바이트생 스케줄 관리'
           : isPartTimeStaff
             ? '아르바이트생 관리'
             : 'BizSched'; // NOTE : 라우트별 반환 로직 리팩토링 필요
@@ -166,7 +166,7 @@ function AppSidebar({
                         aria-current={isPartTimeSchedule ? 'page' : undefined}
                         onClick={handleNavigate}
                       >
-                        스케쥴 관리
+                        스케줄 관리
                       </SidebarMenuButton>
                     </li>
                     <li>

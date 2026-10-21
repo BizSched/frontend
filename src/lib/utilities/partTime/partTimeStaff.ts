@@ -120,7 +120,7 @@ const formatPartTimeStaffWeekTitle = (today: string) => {
       DAYS_IN_WEEK,
   );
 
-  return `${todayDate.getUTCMonth() + 1}월 ${WEEK_OF_MONTH_LABELS[weekIndex]} 주 근무 스케쥴`;
+  return `${todayDate.getUTCMonth() + 1}월 ${WEEK_OF_MONTH_LABELS[weekIndex]} 주 근무 스케줄`;
 };
 
 export {

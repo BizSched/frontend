@@ -48,7 +48,7 @@ const createDayContent = (
           id: String(schedule.id),
           tone: schedule.isCheckedIn ? 'muted' : 'accent',
         }))}
-        label={`스케쥴 ${schedules.length}개, 완료 ${checkedInCount}개`}
+        label={`스케줄 ${schedules.length}개, 완료 ${checkedInCount}개`}
       />
     ),
     totalCount: schedules.length,
@@ -151,8 +151,8 @@ function PartTimeScheduleCalendar({
     attendanceMutation.reset();
     try {
       const isConfirmed = await openConfirmModal({
-        title: '스케쥴을 삭제하시겠어요?',
-        description: '삭제된 스케쥴은 복구할 수 없습니다.',
+        title: '스케줄을 삭제하시겠어요?',
+        description: '삭제된 스케줄은 복구할 수 없습니다.',
         confirmText: '삭제',
       });
       if (isConfirmed) await deleteMutation.mutateAsync(schedule.id);
@@ -218,7 +218,7 @@ function PartTimeScheduleCalendar({
           onMonthChange={setMonth}
           today={today}
           contentByDate={contentByDate}
-          label="아르바이트생 스케쥴 캘린더"
+          label="아르바이트생 스케줄 캘린더"
           headerSlot={
             <PartTimeScheduleStaffFilter
               staffs={staffQuery.data ?? []}

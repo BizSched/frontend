@@ -31,7 +31,7 @@ function CtaSection() {
           />
           <div className="relative flex flex-col gap-3 font-bold max-tablet:gap-1">
             <p className="text-2xl text-primary-600 max-tablet:text-base max-tablet:font-semibold">
-              BizSched 하나로 알바 관리부터 운영까지
+              BizSched 하나로 아르바이트 관리부터 운영까지
             </p>
             <h2 className="text-display-md text-slate-700 max-tablet:text-xl">
               아르바이트생 관리,

@@ -28,8 +28,8 @@ const STAFF_PLACEHOLDER = '아르바이트생을 선택해주세요';
 const END_TIME_ERROR_MESSAGE = '마감 시간은 시작 시간보다 늦게 선택해주세요.';
 
 const FORM_MODAL_TEXT = {
-  create: { title: '아르바이트생 스케쥴 추가', submit: '생성' },
-  edit: { title: '아르바이트생 스케쥴 수정', submit: '수정 완료' },
+  create: { title: '아르바이트생 스케줄 추가', submit: '생성' },
+  edit: { title: '아르바이트생 스케줄 수정', submit: '수정 완료' },
 } as const;
 
 const TIME_OPTIONS = Array.from({ length: 24 }, (_, hour) => {

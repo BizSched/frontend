@@ -154,7 +154,7 @@ describe('useDeleteStaff', () => {
     ]);
   });
 
-  it('삭제 후 목록·옵션·해당 상세·모든 스케쥴을 무효화한다', async () => {
+  it('삭제 후 목록·옵션·해당 상세·모든 스케줄을 무효화한다', async () => {
     vi.mocked(deleteStaff).mockResolvedValue(42);
     const { result, client } = setup();
 

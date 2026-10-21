@@ -16,7 +16,7 @@ import { formatCalendarDate } from '@lib/utilities/calendar/calendarDate';
 import { getPartTimeScheduleRange } from '@lib/utilities/partTime/partTimeSchedule';
 
 export const metadata: Metadata = {
-  title: '아르바이트생 스케쥴 관리',
+  title: '아르바이트생 스케줄 관리',
 };
 
 export default async function PartTimeSchedulePage() {
