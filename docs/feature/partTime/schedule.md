@@ -16,7 +16,7 @@
 - `PartTimeScheduleStaffFilter` — 공통 `Dropdown` 기반 아르바이트생 필터, `Calendar`의 `headerSlot`에 주입
 - `PartTimeScheduleChip` — 출근 확인 여부를 `CalendarEventChip`의 `tone`·체크 아이콘으로 변환. 표시 전용이라 클릭 동작이 없다
 - `PartTimeScheduleDaySummary` — 선택 날짜 상세. 진행 바와 스케줄 행 목록(출근 확인 체크박스 · 시간·이름 · `수정 | 삭제` · 메모) (1024px 이상 캘린더 우측, 미만 캘린더 아래)
-- `PartTimeScheduleMemo` — 날짜 상세 행의 메모. 2줄을 넘으면 접고 펼치기·접기 버튼(▼▲)을 둔다
+- `PartTimeScheduleMemo` — 날짜 상세 행의 메모. 2줄을 넘으면 접고 펼치기·접기 버튼(lucide `ChevronDownIcon`·`ChevronUpIcon`)을 둔다
 - `PartTimeScheduleActionButtons` — 모바일 플로팅 버튼. 공통 [`ActionButton`](../../component/ActionButton/README.md)에 보조 액션 공유(링크 아이콘)·추가(연필 아이콘)를 위 → 아래 순서로 `actions`에 넘긴다 (2026-10-01 확정). 메인 `+`는 목록을 여닫는 토글이라 그 자체로 추가 동작을 하지 않는다
 - `PartTimeScheduleFormModal` — 스케줄 추가/수정 모달. 공통 `Modal` Form 계열 조합 ("추가/수정 모달" 참고). 컨트롤러·launcher·라벨·빠른 선택 칩과 함께 `schedule/modal/`에 두었다. 기능 단위 하위 폴더는 [folder-structure.md](../../architecture/folder-structure.md#src-상세-구조) 규칙을 따른다 (2026-10-14 확정)
 
