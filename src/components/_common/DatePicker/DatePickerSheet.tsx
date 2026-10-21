@@ -30,14 +30,15 @@ function DatePickerSheetContent({
   return (
     <Dialog.Portal>
       <Dialog.Backdrop
+        forceRender
         data-slot="date-picker-sheet-backdrop"
-        className="fixed inset-0 z-(--z-popover) bg-overlay data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:animate-in data-[open]:fade-in-0 motion-reduce:animate-none"
+        className="fixed inset-0 z-(--z-popover) bg-overlay has-[~[data-nested]]:bg-transparent data-[closed]:animate-out data-[closed]:fade-out-0 data-[open]:animate-in data-[open]:fade-in-0 motion-reduce:animate-none"
       />
       <Dialog.Popup
         data-slot="date-picker-sheet-content"
         aria-label="날짜 선택"
         className={cn(
-          'fixed inset-x-0 bottom-0 z-(--z-popover) flex max-h-[85dvh] w-full flex-col overflow-y-auto rounded-t-[1rem] border border-b-0 border-[rgb(0_0_0/0.08)] bg-white-50 shadow-[0_20px_24px_-4px_rgb(10_13_18/0.08),0_8px_8px_-4px_rgb(10_13_18/0.03),0_3px_3px_-1.5px_rgb(10_13_18/0.04)] outline-none data-[closed]:animate-out data-[closed]:slide-out-to-bottom data-[open]:animate-in data-[open]:slide-in-from-bottom motion-reduce:animate-none',
+          'fixed inset-x-0 bottom-0 z-(--z-popover) flex max-h-[85dvh] w-full flex-col overflow-y-auto rounded-t-[1rem] border border-b-0 border-[rgb(0_0_0/0.08)] bg-white-50 shadow-[0_20px_24px_-4px_rgb(10_13_18/0.08),0_8px_8px_-4px_rgb(10_13_18/0.03),0_3px_3px_-1.5px_rgb(10_13_18/0.04)] outline-none data-[closed]:animate-out data-[closed]:slide-out-to-bottom data-[nested]:shadow-[0_-20px_24px_-4px_rgb(10_13_18/0.08),0_-8px_8px_-4px_rgb(10_13_18/0.03),0_-3px_3px_-1.5px_rgb(10_13_18/0.04)] data-[open]:animate-in data-[open]:slide-in-from-bottom motion-reduce:animate-none',
           className,
         )}
         {...props}
