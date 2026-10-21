@@ -28,7 +28,7 @@ import { ModalHeader } from '@components/_common/Modal';
 
 ```ts
 // ✅ 결과를 쓰지 않는다
-void openConfirmModal({ title: '스케쥴을 삭제하시겠어요?' });
+void openConfirmModal({ title: '스케줄을 삭제하시겠어요?' });
 
 // ✅ 결과를 쓴다
 const isConfirmed = await openConfirmModal({
@@ -36,7 +36,7 @@ const isConfirmed = await openConfirmModal({
 });
 
 // ❌ 의도가 드러나지 않는다
-openConfirmModal({ title: '스케쥴을 삭제하시겠어요?' });
+openConfirmModal({ title: '스케줄을 삭제하시겠어요?' });
 ```
 
 ## enum 대체 방식

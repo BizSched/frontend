@@ -37,6 +37,7 @@ docs/
 | [convention/accessibility.md](./convention/accessibility.md) | alt·시맨틱 태그·키보드 네비게이션, WCAG 2.1 AA 목표           |
 | [convention/test.md](./convention/test.md)                   | Vitest, 테스트 폴더 구조                                      |
 | [convention/commit.md](./convention/commit.md)               | 커밋 메시지 규칙 (`commit-message-generator` 스킬 적용)       |
+| [convention/glossary.md](./convention/glossary.md)           | 서비스 용어 표기 기준 (스케줄·아르바이트생)                   |
 
 ## collaboration/
 
@@ -82,7 +83,7 @@ docs/
 | ------------------------------------------------------------------ | ------------------------------------------------------ |
 | [feature/README.md](./feature/README.md)                           | 작성 규칙, 도메인 문서·페이지 설계 문서 템플릿         |
 | [feature/partTime/README.md](./feature/partTime/README.md)         | 아르바이트 도메인 개요, API 명세, API 연동 PR 계획     |
-| [feature/partTime/schedule.md](./feature/partTime/schedule.md)     | 아르바이트생 스케쥴 관리 페이지 설계                   |
+| [feature/partTime/schedule.md](./feature/partTime/schedule.md)     | 아르바이트생 스케줄 관리 페이지 설계                   |
 | [feature/partTime/staff.md](./feature/partTime/staff.md)           | 아르바이트생 관리(목록·상세) 페이지 설계               |
 | [feature/partTime/staff-form.md](./feature/partTime/staff-form.md) | 아르바이트생 추가·수정 페이지 설계                     |
 | [feature/sales/README.md](./feature/sales/README.md)               | 매출 도메인 개요와 단계별 범위                         |

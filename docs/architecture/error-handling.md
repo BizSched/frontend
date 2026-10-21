@@ -50,8 +50,8 @@ const formatStaffError = (error: unknown) =>
   match(error)
     .with(P.instanceOf(ApiError), ({ errorCode }) =>
       match(errorCode)
-        .with('STAFF_NOT_FOUND', () => '존재하지 않는 알바생입니다.')
-        .with('STAFF_ALREADY_DELETED', () => '이미 삭제된 알바생입니다.')
+        .with('STAFF_NOT_FOUND', () => '존재하지 않는 아르바이트생입니다.')
+        .with('STAFF_ALREADY_DELETED', () => '이미 삭제된 아르바이트생입니다.')
         .otherwise(() => formatCommonError(error)),
     )
     .otherwise(() => formatCommonError(error));
@@ -121,7 +121,7 @@ const formatStaffError = (error: unknown) =>
 - `error.tsx`는 **공통 메시지 + "다시 시도"** 만 보여준다. Server Component에서 난 에러는 production에서 message가 지워지고 `digest`만 전달되어 `ApiError` 정보를 쓸 수 없기 때문이다.
 - "다시 시도"는 `useQueryErrorResetBoundary()`의 `reset()`을 먼저 호출한 뒤 `error.tsx`의 `reset()`을 호출한다. `error.tsx`의 `reset()`만으로는 실패한 쿼리의 에러 상태가 남아 같은 에러가 바로 다시 던져진다.
 - `(main)/error.tsx`에 공통 본문 경계를 구현했다(2026-10-15). 사이드바는 유지하고, 오류의 내부 message·digest 대신 기존 `COMMON_ERROR_MESSAGE`와 재시도 버튼을 표시한다.
-- segment `not-found.tsx`는 에러 객체가 필요 없으므로 맥락형 문구(예: "알바생을 찾을 수 없습니다")를 그대로 쓴다.
+- segment `not-found.tsx`는 에러 객체가 필요 없으므로 맥락형 문구(예: "아르바이트생을 찾을 수 없습니다")를 그대로 쓴다.
 
 ## 서버 prefetch 실패
 

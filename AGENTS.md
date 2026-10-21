@@ -23,6 +23,7 @@ Next.js v16 기반 프론트엔드 프로젝트. TailwindCSS v4 + Shadcn/ui, Zus
 | 인증 (로그인·토큰·보호 라우트)               | `architecture/auth.md`                                                                                                                     |
 | 렌더링 경계 / RSC / TanStack Query hydration | `architecture/rendering.md`, `architecture/data-flow.md`, `architecture/state-management.md`                                               |
 | UI/스타일 작업                               | `convention/ui-component.md`, `convention/style.md`                                                                                        |
+| 화면 문구·문서 작성                          | `convention/glossary.md`                                                                                                                   |
 | 테스트 작성                                  | `convention/test.md`                                                                                                                       |
 | 커밋 작성                                    | `commit-message-generator` 스킬 자동 적용 (`.claude/skills/commit-message-generator/SKILL.md`), 요약 `convention/commit.md`                |
 | PR 코드 리뷰                                 | `code-review` 스킬 참고 (`.claude/skills/code-review/SKILL.md`), 요약 `collaboration/code-review.md`                                       |
