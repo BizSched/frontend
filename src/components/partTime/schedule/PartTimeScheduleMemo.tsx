@@ -1,10 +1,7 @@
-import Image from 'next/image';
+import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
 
 import { cn } from '@lib/utilities/cn';
-
-import IcChevronDown from '@assets/icons/ic_chevron-down.svg';
-import IcChevronUp from '@assets/icons/ic_chevron-up.svg';
 
 interface PartTimeScheduleMemoProps {
   memo: string;
@@ -53,13 +50,17 @@ function PartTimeScheduleMemo({ memo, className }: PartTimeScheduleMemoProps) {
           className="shrink-0 rounded-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
           onClick={() => setIsExpanded((prev) => !prev)}
         >
-          <Image
-            src={isExpanded ? IcChevronUp : IcChevronDown}
-            alt=""
-            width={16}
-            height={16}
-            unoptimized
-          />
+          {isExpanded ? (
+            <ChevronUpIcon
+              aria-hidden="true"
+              className="size-4 text-[#a4a4a4]"
+            />
+          ) : (
+            <ChevronDownIcon
+              aria-hidden="true"
+              className="size-4 text-[#a4a4a4]"
+            />
+          )}
         </button>
       )}
     </div>
