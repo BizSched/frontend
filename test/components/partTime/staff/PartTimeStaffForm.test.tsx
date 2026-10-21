@@ -9,6 +9,7 @@ import {
 } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { Toaster, toast } from '@components/_common/Toast/Toaster';
 import { openPartTimeStaffAttachmentUploadModal } from '@components/partTime/staff/openPartTimeStaffAttachmentUploadModal';
 import { PartTimeStaffForm } from '@components/partTime/staff/PartTimeStaffForm';
 
@@ -49,6 +50,7 @@ const renderForm = (staff?: PartTimeStaffDetailItem) => {
   return render(
     <QueryClientProvider client={client}>
       <PartTimeStaffForm staff={staff} />
+      <Toaster />
     </QueryClientProvider>,
   );
 };
@@ -79,6 +81,7 @@ beforeEach(() => {
 });
 afterEach(() => {
   cleanup();
+  toast.dismiss();
   clients.forEach((client) => client.clear());
   clients.length = 0;
   vi.unstubAllGlobals();
@@ -109,7 +112,7 @@ describe('PartTimeStaffForm 저장', () => {
     expect(createStaff).toHaveBeenCalledTimes(1);
   });
 
-  it('BE 거절은 인라인으로 표시하고 입력을 유지한 채 재제출한다', async () => {
+  it('BE 거절은 토스트로 알리고 입력을 유지한 채 재제출한다', async () => {
     vi.mocked(updateStaff)
       .mockRejectedValueOnce(
         new ApiError('INVALID', 400, '입력값을 확인해주세요.'),
@@ -121,11 +124,8 @@ describe('PartTimeStaffForm 저장', () => {
     });
     await waitFor(() => expect(isSubmitDisabled()).toBe(false));
     fireEvent.click(submitButton());
-    await waitFor(() =>
-      expect(screen.getByRole('alert').textContent).toBe(
-        '입력값을 확인해주세요.',
-      ),
-    );
+    expect(await screen.findByText('입력값을 확인해주세요.')).toBeTruthy();
+    expect(screen.queryByRole('alert')).toBeNull();
     expect((screen.getByLabelText('메모') as HTMLTextAreaElement).value).toBe(
       '변경',
     );
@@ -133,6 +133,9 @@ describe('PartTimeStaffForm 저장', () => {
     fireEvent.click(submitButton());
     await waitFor(() =>
       expect(replace).toHaveBeenCalledWith('/partTime/staff?staffId=42'),
+    );
+    await waitFor(() =>
+      expect(screen.queryByText('입력값을 확인해주세요.')).toBeNull(),
     );
   });
 

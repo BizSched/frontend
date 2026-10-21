@@ -73,7 +73,6 @@ interface PartTimeScheduleFormModalProps {
   staffPlaceholder?: string;
   stackIndex?: number;
   isPending?: boolean;
-  errorMessage?: string;
 }
 
 const getDefaultValues = (
@@ -97,7 +96,6 @@ function PartTimeScheduleFormModal({
   staffPlaceholder = STAFF_PLACEHOLDER,
   stackIndex = 0,
   isPending = false,
-  errorMessage,
 }: PartTimeScheduleFormModalProps) {
   const fieldId = useId();
   const { control, register, setValue, handleSubmit, formState } =
@@ -201,11 +199,6 @@ function PartTimeScheduleFormModal({
           className="flex min-h-0 flex-1 flex-col gap-10 max-tablet:gap-4"
         >
           <Modal.Body className="-m-1 flex flex-col gap-4 p-1 max-tablet:gap-3">
-            {errorMessage && (
-              <p role="alert" className="text-sm text-warning-500">
-                {errorMessage}
-              </p>
-            )}
             <PartTimeScheduleFormField
               label="아르바이트생 이름"
               labelId={`${fieldId}-staff`}

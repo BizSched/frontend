@@ -13,6 +13,7 @@ import {
 } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { Toaster, toast } from '@components/_common/Toast/Toaster';
 import { PartTimeScheduleFormModal } from '@components/partTime/schedule/modal/PartTimeScheduleFormModal';
 import { PartTimeScheduleFormModalController } from '@components/partTime/schedule/modal/PartTimeScheduleFormModalController';
 
@@ -66,6 +67,7 @@ beforeEach(() => {
 });
 afterEach(() => {
   cleanup();
+  toast.dismiss();
   unsubscribers.forEach((unsubscribe) => unsubscribe());
   unsubscribers.length = 0;
   clients.forEach((client) => client.clear());
@@ -89,6 +91,7 @@ describe('PartTimeScheduleFormModal 폼·컨트롤러 통합', () => {
           mode="edit"
           schedule={schedule}
         />
+        <Toaster />
       </QueryClientProvider>,
     );
     return { close, client };
@@ -279,9 +282,7 @@ describe('PartTimeScheduleFormModal 폼·컨트롤러 통합', () => {
         new ApiError('SCHEDULE_TIME_CONFLICT', 409, '시간이 겹칩니다.'),
       ),
     );
-    expect((await screen.findByRole('alert')).textContent).toBe(
-      '시간이 겹칩니다.',
-    );
+    expect(await screen.findByText('시간이 겹칩니다.')).toBeTruthy();
     const memo = screen.getByPlaceholderText(
       '간단한 메모를 작성해주세요',
     ) as HTMLInputElement;
@@ -297,7 +298,9 @@ describe('PartTimeScheduleFormModal 폼·컨트롤러 통합', () => {
     expect(updateSchedule).toHaveBeenNthCalledWith(2, 10, {
       memo: '다시 저장',
     });
-    expect(screen.queryByRole('alert')).toBeNull();
+    await waitFor(() =>
+      expect(screen.queryByText('시간이 겹칩니다.')).toBeNull(),
+    );
   });
 });
 

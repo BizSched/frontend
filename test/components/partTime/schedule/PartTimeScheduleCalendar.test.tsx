@@ -14,6 +14,7 @@ import {
   type CalendarProps,
 } from '@components/_common/Calendar/Calendar';
 import { openConfirmModal } from '@components/_common/Modal/openConfirmModal';
+import { Toaster, toast } from '@components/_common/Toast/Toaster';
 import { PartTimeScheduleCalendar } from '@components/partTime/schedule/PartTimeScheduleCalendar';
 import type { PartTimeScheduleDaySummaryProps } from '@components/partTime/schedule/PartTimeScheduleDaySummary';
 import type { PartTimeScheduleStaffFilterProps } from '@components/partTime/schedule/PartTimeScheduleStaffFilter';
@@ -122,6 +123,7 @@ const renderCalendar = () => {
   render(
     <QueryClientProvider client={client}>
       <PartTimeScheduleCalendar today="2026-10-15" initialMonth="2026-10" />
+      <Toaster />
     </QueryClientProvider>,
   );
   return client;
@@ -129,6 +131,7 @@ const renderCalendar = () => {
 
 afterEach(() => {
   cleanup();
+  toast.dismiss();
   clients.forEach((client) => client.clear());
   clients.length = 0;
   vi.resetAllMocks();
@@ -379,7 +382,7 @@ describe('PartTimeScheduleCalendar 쓰기', () => {
   });
 
   it.each(['삭제', '출근 변경'])(
-    '%s 실패는 인라인 오류를 표시하고 기존 데이터를 유지한다',
+    '%s 실패는 토스트로 알리고 기존 데이터를 유지한다',
     async (action) => {
       const error = new ApiError('BAD', 400, '요청을 처리하지 못했어요.');
       vi.mocked(openConfirmModal).mockResolvedValue(true);
@@ -387,9 +390,8 @@ describe('PartTimeScheduleCalendar 쓰기', () => {
       vi.mocked(changeScheduleAttendance).mockRejectedValue(error);
       setup();
       fireEvent.click(await screen.findByRole('button', { name: action }));
-      expect((await screen.findByRole('alert')).textContent).toBe(
-        error.message,
-      );
+      expect(await screen.findByText(error.message)).toBeTruthy();
+      expect(screen.queryByRole('alert')).toBeNull();
       expect(screen.getByText('미확인')).toBeTruthy();
       expect(getScheduleList).toHaveBeenCalledTimes(1);
     },

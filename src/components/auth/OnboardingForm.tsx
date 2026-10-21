@@ -6,6 +6,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { match, P } from 'ts-pattern';
 
 import { Button } from '@components/_common/Button/Button';
+import { toast } from '@components/_common/Toast/Toaster';
 import { AuthBusinessTypeField } from '@components/auth/AuthBusinessTypeField';
 import { AuthForm } from '@components/auth/AuthForm';
 import {
@@ -37,6 +38,8 @@ const ONBOARDING_FORM_DEFAULT_VALUES: OnboardingFormValues = {
   businessTypeCustom: '',
   terms: TERMS_AGREEMENT_DEFAULT_VALUES,
 };
+
+const ONBOARDING_ERROR_TOAST_ID = 'onboarding-error';
 
 const ONBOARDING_FORM_RULES = {
   businessType: {
@@ -102,6 +105,7 @@ function OnboardingForm() {
     )
       return;
 
+    toast.dismiss(ONBOARDING_ERROR_TOAST_ID);
     completeSocialSignup(
       {
         industry: values.businessType,
@@ -128,9 +132,15 @@ function OnboardingForm() {
               match(errorCode)
                 .with('INVALID_INDUSTRY_VALUE', () => 'businessType' as const)
                 .with('REQUIRED_TERMS_NOT_AGREED', () => 'terms' as const)
-                .otherwise(() => 'root.server' as const),
+                .otherwise(() => null),
             )
-            .otherwise(() => 'root.server' as const);
+            .otherwise(() => null);
+          if (!field) {
+            toast.error(formatSignupError(error), {
+              id: ONBOARDING_ERROR_TOAST_ID,
+            });
+            return;
+          }
           setError(field, {
             type: 'server',
             message: formatSignupError(error),
@@ -193,19 +203,9 @@ function OnboardingForm() {
           />
         )}
       />
-      <div className="flex flex-col gap-2">
-        {errors.root?.server && (
-          <p
-            role="alert"
-            className="pl-1 text-sm tracking-[-0.03em] text-warning-500"
-          >
-            {errors.root.server.message}
-          </p>
-        )}
-        <Button type="submit" disabled={isSubmitDisabled} className="w-full">
-          시작하기
-        </Button>
-      </div>
+      <Button type="submit" disabled={isSubmitDisabled} className="w-full">
+        시작하기
+      </Button>
     </AuthForm>
   );
 }

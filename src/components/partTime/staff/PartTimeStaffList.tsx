@@ -7,6 +7,7 @@ import { match, P } from 'ts-pattern';
 
 import { openConfirmModal } from '@components/_common/Modal/openConfirmModal';
 import { Pagination } from '@components/_common/Pagination/Pagination';
+import { toast } from '@components/_common/Toast/Toaster';
 import { PartTimeStaffCard } from '@components/partTime/staff/PartTimeStaffCard';
 import { PartTimeStaffDetailOverlay } from '@components/partTime/staff/PartTimeStaffDetailOverlay';
 
@@ -30,6 +31,8 @@ import IcEmpty from '@assets/icons/ic_empty.svg';
 const PAGE_PARAM = 'page';
 const STAFF_ID_PARAM = 'staffId';
 const NO_WEEKLY_SHIFTS: PartTimeStaffShift[] = [];
+const DELETE_ERROR_TOAST_ID = 'staff-delete-error';
+const STATUS_ERROR_TOAST_ID = 'staff-status-error';
 
 const isStaffNotFoundError = (error: unknown) =>
   match(error)
@@ -156,6 +159,7 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
     isDeletePendingRef.current = true;
     setIsDeleteConfirmOpen(true);
     deleteMutation.reset();
+    toast.dismiss(DELETE_ERROR_TOAST_ID);
 
     try {
       const isConfirmed = await openConfirmModal({
@@ -166,8 +170,8 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
       });
 
       if (isConfirmed) await deleteMutation.mutateAsync(staffId);
-    } catch {
-      // NOTE: 삭제 오류는 목록 위에 인라인으로 표시한다
+    } catch (error) {
+      toast.error(formatCommonError(error), { id: DELETE_ERROR_TOAST_ID });
     } finally {
       setIsDeleteConfirmOpen(false);
       isDeletePendingRef.current = false;
@@ -181,6 +185,7 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
     if (isStatusChangeLockedRef.current) return;
     isStatusChangeLockedRef.current = true;
     statusMutation.reset();
+    toast.dismiss(STATUS_ERROR_TOAST_ID);
 
     try {
       if (employmentStatus !== 'employed') {
@@ -196,8 +201,8 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
       }
 
       await statusMutation.mutateAsync({ staffId, employmentStatus });
-    } catch {
-      // NOTE: 재직 상태 변경 오류는 상세 헤더 아래에 인라인으로 표시한다
+    } catch (error) {
+      toast.error(formatCommonError(error), { id: STATUS_ERROR_TOAST_ID });
     } finally {
       setIsStatusConfirmOpen(false);
       isStatusChangeLockedRef.current = false;
@@ -267,29 +272,6 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
 
   return (
     <div className="flex flex-1 flex-col gap-5 max-mobile:gap-4">
-      {deleteMutation.error && (
-        <div role="alert" className="text-sm text-warning-500">
-          <p>{formatCommonError(deleteMutation.error)}</p>
-          {isDeleteStaffNotFound && (
-            <button
-              type="button"
-              disabled={activeListQuery.isFetching}
-              onClick={() => {
-                deleteMutation.reset();
-                void activeListQuery.refetch({ cancelRefetch: false });
-              }}
-              className="mt-2 cursor-pointer underline disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              목록 새로고침
-            </button>
-          )}
-        </div>
-      )}
-      {isStatusStaffNotFound && (
-        <p role="alert" className="text-sm text-warning-500">
-          {formatCommonError(statusMutation.error)}
-        </p>
-      )}
       {deleteMutation.isPending && (
         <p role="status" className="text-sm text-slate-500">
           아르바이트생을 삭제하는 중입니다.
@@ -333,12 +315,6 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
         isEmploymentStatusPending={
           statusMutation.isPending &&
           statusMutation.variables.staffId === staffId
-        }
-        employmentStatusError={
-          statusMutation.variables?.staffId === staffId &&
-          !isStatusStaffNotFound
-            ? statusMutation.error
-            : undefined
         }
       />
     </div>
