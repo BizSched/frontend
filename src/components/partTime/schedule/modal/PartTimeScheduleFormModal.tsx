@@ -336,10 +336,7 @@ function PartTimeScheduleFormModal({
               type="submit"
               disabled={isSubmitDisabled}
               focusableWhenDisabled
-              className={cn(
-                FOOTER_BUTTON_CLASS_NAME,
-                'data-disabled:cursor-not-allowed data-disabled:bg-[#bbbbbb] data-disabled:hover:bg-[#bbbbbb]',
-              )}
+              className={FOOTER_BUTTON_CLASS_NAME}
             >
               {text.submit}
             </Button>

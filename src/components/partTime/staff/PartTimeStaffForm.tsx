@@ -289,7 +289,7 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
               size="small"
               disabled={isSubmitDisabled}
               focusableWhenDisabled
-              className="h-10 w-26.5 max-tablet:h-auto max-tablet:w-auto max-tablet:bg-transparent max-tablet:px-1.5 max-tablet:py-0.5 max-tablet:text-[#333333] max-tablet:hover:bg-transparent data-disabled:cursor-not-allowed data-disabled:bg-[#bbbbbb] data-disabled:hover:bg-[#bbbbbb] max-tablet:data-disabled:bg-transparent max-tablet:data-disabled:text-[#a4a4a4] max-tablet:data-disabled:hover:bg-transparent"
+              className="h-10 w-26.5 max-tablet:h-auto max-tablet:w-auto max-tablet:bg-transparent max-tablet:px-1.5 max-tablet:py-0.5 max-tablet:text-[#333333] max-tablet:hover:bg-transparent max-tablet:data-disabled:bg-transparent max-tablet:data-disabled:text-[#a4a4a4] max-tablet:data-disabled:hover:bg-transparent"
             >
               <span className="max-tablet:hidden">{text.submit}</span>
               <span className="hidden max-tablet:inline">
