@@ -61,13 +61,16 @@ describe('TodayWorkerSection', () => {
     expect(screen.getAllByText('근무자 없음')).toHaveLength(6);
   });
 
-  it('오늘 근무자가 없으면 네 시간대 모두 근무자 없음을 표시한다', () => {
+  it('오늘 근무자가 없으면 빈 상태를 표시한다', () => {
     const queryClient = createQueryClient();
     queryClient.setQueryData(scheduleKey, []);
 
     renderWith(queryClient, <TodayWorkerSection today={TODAY} />);
 
-    expect(screen.getAllByText('근무자 없음')).toHaveLength(8);
+    expect(
+      screen.getByText('오늘 근무하는 알바생이 없습니다'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('근무자 없음')).not.toBeInTheDocument();
   });
 
   it('삭제된 아르바이트생의 스케줄은 표시하지 않는다', () => {

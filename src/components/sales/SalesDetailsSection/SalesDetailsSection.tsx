@@ -2,9 +2,14 @@
 
 import { format, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale/ko';
-import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  PencilIcon,
+  Trash2Icon,
+} from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 
 import { Card } from '@components/_common/Card/Card';
 import { Input } from '@components/_common/Input/Input';
@@ -16,16 +21,17 @@ import { PaginationItem } from '@components/_common/Pagination/PaginationItem';
 import { PaginationRoot } from '@components/_common/Pagination/PaginationRoot';
 import { Table } from '@components/_common/Table/Table';
 import { toast } from '@components/_common/Toast/Toaster';
+import { SalesEditModal } from '@components/sales/SalesEditModal/SalesEditModal';
 
 import { useDeleteSale } from '@hooks/api/sales/useDeleteSale';
 import { useSalesList } from '@hooks/api/sales/useSalesList';
 import { useSalesMonthTotal } from '@hooks/api/sales/useSalesMonthTotal';
 import { useUpdateSale } from '@hooks/api/sales/useUpdateSale';
 import { useSalesCategoryList } from '@hooks/api/sales-category/useSalesCategoryList';
+import { useDatePickerLayout } from '@hooks/datePicker/useDatePickerLayout';
 import { usePageSearchParam } from '@hooks/pagination/usePageSearchParam';
 
 import type { Sale } from '@lib/api/entities/sales/toSale';
-import { cn } from '@lib/utilities/cn';
 import { formatSalesError } from '@lib/utilities/sales/formatSalesError';
 import { isSalesMonth } from '@lib/utilities/sales/salesMonth';
 
@@ -54,6 +60,8 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
   const [hasAmountError, setHasAmountError] = useState(false);
   const [mutationError, setMutationError] = useState<unknown>(null);
   const isPending = updateSale.isPending || deleteSale.isPending;
+  // NOTE: 시트 전환 기준(max-tablet)이 날짜 선택 시트와 같아 레이아웃 훅을 재사용한다
+  const isSheet = useDatePickerLayout() === 'sheet';
   const monthParam = searchParams.get('month');
   const month = isSalesMonth(monthParam) ? monthParam : initialMonth;
 
@@ -83,6 +91,8 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
   const isError = isSalesError || isMonthTotalError || isCategoriesError;
   const error = salesError || monthTotalError || categoriesError;
   const totalPages = Math.max(salesList?.totalPage ?? 1, 1);
+  const editingSale = salesList?.items.find((sale) => sale.id === editingDay);
+  const isSheetOpen = isSheet && editingSale !== undefined;
 
   const scope = month + ':' + page;
   const [editingScope, setEditingScope] = useState(scope);
@@ -111,6 +121,18 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
     setHasAmountError(false);
     setMutationError(null);
   };
+
+  const handleEditCancel = () => {
+    setEditingDay(null);
+    setMutationError(null);
+  };
+
+  const handleAmountChange = (categoryId: number, amount: number) =>
+    setDraftSales((currentSales) =>
+      currentSales.map((item) =>
+        item.categoryId === categoryId ? { ...item, amount } : item,
+      ),
+    );
 
   const handleEditSave = () => {
     if (editingDay === null || isPending) return;
@@ -188,7 +210,8 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
             <MonthSelectDropdown
               value={Number(month.slice(5, 7))}
               onChange={handleMonthChange}
-              className="max-desktop:min-w-0 max-desktop:gap-1 max-desktop:text-base"
+              size="small"
+              className="border-slate-100 px-3 py-1 text-sm font-semibold text-slate-800 max-tablet:text-xs"
             />
             <h2
               id="sales-month-title"
@@ -197,11 +220,11 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
               매출
             </h2>
           </div>
-          <span className="text-xs leading-4 font-medium text-slate-500">
+          <span className="text-sm font-medium text-slate-500">
             월 전체 합계
           </span>
         </div>
-        <p className="text-right text-base leading-6 font-bold text-slate-800 max-desktop:text-sm max-tablet:text-base">
+        <p className="text-right text-base font-bold text-slate-800">
           합계{' '}
           {monthTotal === undefined
             ? '-'
@@ -236,16 +259,13 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
         ) : (
           <Table
             aria-label="날짜별 매출 내역"
-            className={cn(
-              'table-fixed text-sm max-desktop:text-xs',
-              editingDay !== null && 'min-w-[680px]',
-            )}
+            className="table-fixed text-base"
           >
             <Table.Header>
               <Table.Row className="border-slate-200 hover:bg-transparent">
                 <Table.Head
                   scope="col"
-                  className="h-auto w-[118px] px-0 pb-1 text-xs leading-[17px] text-slate-500 max-desktop:w-[76px]"
+                  className="h-auto w-[118px] px-0 pb-1 text-center text-sm text-slate-500 max-desktop:w-[100px]"
                 >
                   날짜
                 </Table.Head>
@@ -253,23 +273,20 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
                   <Table.Head
                     key={category.id}
                     scope="col"
-                    className={cn(
-                      'h-auto px-1 pb-1 text-right text-xs leading-[17px] text-slate-500',
-                      editingDay === null && 'max-tablet:hidden',
-                    )}
+                    className="h-auto px-1 pb-1 text-center text-sm text-slate-500 max-tablet:hidden"
                   >
                     {category.name}
                   </Table.Head>
                 ))}
                 <Table.Head
                   scope="col"
-                  className="h-auto w-[118px] px-0 pb-1 text-right text-xs leading-[17px] text-slate-500 max-desktop:w-[86px] max-tablet:w-auto"
+                  className="h-auto w-[118px] px-0 pb-1 text-center text-sm text-slate-500 max-desktop:w-[100px] max-tablet:w-auto"
                 >
                   합계
                 </Table.Head>
                 <Table.Head
                   scope="col"
-                  className="h-auto w-[52px] p-0 max-desktop:w-7"
+                  className="h-auto w-[104px] p-0 max-tablet:w-20"
                 >
                   <span className="sr-only">내역 수정</span>
                 </Table.Head>
@@ -280,131 +297,145 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
                 const saleDate = parseISO(sale.date);
                 const dateLabel = format(saleDate, 'M월 d일', { locale: ko });
                 const isEditing = editingDay === sale.id;
-                const visibleSales = isEditing ? draftSales : sale.sales;
                 return (
-                  <Table.Row
-                    key={sale.id}
-                    className="h-[59px] border-slate-50 hover:bg-transparent max-desktop:h-[55px]"
-                  >
-                    <Table.Head
-                      scope="row"
-                      className="h-auto px-0 py-3.5 text-sm font-semibold text-slate-950 max-desktop:text-xs"
-                    >
-                      <time dateTime={sale.date}>
-                        {format(saleDate, 'M월 d일', { locale: ko })}
-                      </time>
-                      <span className="ml-2 text-xs font-medium text-slate-300 max-desktop:ml-1 max-desktop:text-[10px]">
-                        {format(saleDate, 'EEEEE', { locale: ko })}
-                      </span>
-                    </Table.Head>
-                    {categories?.map((category) => {
-                      const amount =
-                        visibleSales.find(
-                          (item) => item.categoryId === category.id,
-                        )?.amount ?? 0;
-                      return (
-                        <Table.Cell
-                          key={category.id}
-                          className={cn(
-                            'px-1 py-3.5 text-right font-medium text-slate-600',
-                            editingDay === null && 'max-tablet:hidden',
-                          )}
-                        >
-                          {isEditing ? (
-                            <Input
-                              aria-label={
-                                category.name + ' ' + dateLabel + ' 매출'
-                              }
-                              type="number"
-                              min={0}
-                              step={1}
-                              size="small"
-                              disabled={isPending}
-                              aria-invalid={
-                                hasAmountError &&
-                                (!Number.isInteger(amount) || amount < 0)
-                              }
-                              value={amount}
-                              onChange={(event) =>
-                                setDraftSales((currentSales) =>
-                                  currentSales.map((item) =>
-                                    item.categoryId === category.id
-                                      ? {
-                                          ...item,
-                                          amount: Number(event.target.value),
-                                        }
-                                      : item,
-                                  ),
-                                )
-                              }
-                              className="h-9 min-w-20 border-slate-200 px-2 [&_input]:text-right"
-                            />
-                          ) : (
-                            NUMBER_FORMAT.format(amount)
-                          )}
-                        </Table.Cell>
-                      );
-                    })}
-                    <Table.Cell className="px-0 py-3.5 text-right font-medium text-slate-950">
-                      ₩
-                      {NUMBER_FORMAT.format(
-                        isEditing
-                          ? draftSales.reduce(
-                              (sum, { amount }) => sum + amount,
-                              0,
-                            )
-                          : sale.totalAmount,
-                      )}
-                    </Table.Cell>
-                    <Table.Cell className="px-0 py-3.5 text-right">
-                      {isEditing ? (
-                        <div className="flex flex-col items-end gap-1">
-                          <button
-                            type="button"
-                            aria-label={`${dateLabel} 편집 저장`}
-                            onClick={handleEditSave}
-                            disabled={isPending}
-                            className="cursor-pointer rounded text-xs text-slate-400 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none max-desktop:text-[10px]"
+                  <Fragment key={sale.id}>
+                    <Table.Row className="h-[59px] border-slate-50 hover:bg-transparent max-desktop:h-[55px]">
+                      <Table.Head
+                        scope="row"
+                        className="h-auto px-0 py-3.5 text-base font-semibold text-slate-950"
+                      >
+                        <time dateTime={sale.date}>
+                          {format(saleDate, 'M월 d일', { locale: ko })}
+                        </time>
+                        <span className="ml-2 text-xs font-medium text-slate-300 max-desktop:ml-1">
+                          {format(saleDate, 'EEEEE', { locale: ko })}
+                        </span>
+                      </Table.Head>
+                      {categories?.map((category) => {
+                        const amount =
+                          sale.sales.find(
+                            (item) => item.categoryId === category.id,
+                          )?.amount ?? 0;
+                        return (
+                          <Table.Cell
+                            key={category.id}
+                            className="px-1 py-3.5 text-right font-medium text-slate-600 max-tablet:hidden"
                           >
-                            저장
-                          </button>
-                          <button
-                            type="button"
-                            aria-label={`${dateLabel} 편집 취소`}
-                            onClick={() => {
-                              setEditingDay(null);
-                              setMutationError(null);
-                            }}
-                            disabled={isPending}
-                            className="cursor-pointer rounded text-xs text-slate-400 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none max-desktop:text-[10px]"
-                          >
-                            취소
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-end gap-1">
+                            {NUMBER_FORMAT.format(amount)}
+                          </Table.Cell>
+                        );
+                      })}
+                      <Table.Cell className="px-0 py-3.5 text-right font-medium text-slate-950 max-tablet:pr-1">
+                        ₩{NUMBER_FORMAT.format(sale.totalAmount)}
+                      </Table.Cell>
+                      <Table.Cell className="px-0 py-2 text-right">
+                        <div className="flex items-center justify-end gap-2 max-tablet:gap-1">
                           <button
                             type="button"
                             aria-label={`${dateLabel} 매출 수정`}
                             disabled={editingDay !== null || isPending}
                             onClick={() => handleEdit(sale)}
-                            className="cursor-pointer rounded text-xs text-slate-400 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none max-desktop:text-[10px]"
+                            className="flex size-10 cursor-pointer items-center justify-center rounded-xl bg-slate-50 text-slate-800 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 max-tablet:size-9"
                           >
-                            수정
+                            <PencilIcon
+                              aria-hidden="true"
+                              className="size-4.5"
+                            />
                           </button>
                           <button
                             type="button"
                             aria-label={`${dateLabel} 매출 삭제`}
                             disabled={editingDay !== null || isPending}
                             onClick={() => void handleDelete(sale.id)}
-                            className="cursor-pointer rounded text-xs text-slate-400 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none max-desktop:text-[10px]"
+                            className="flex size-10 cursor-pointer items-center justify-center rounded-xl bg-warning-50 text-warning-500 hover:bg-warning-100 focus-visible:ring-2 focus-visible:ring-warning-500 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 max-tablet:size-9"
                           >
-                            삭제
+                            <Trash2Icon
+                              aria-hidden="true"
+                              className="size-4.5"
+                            />
                           </button>
                         </div>
-                      )}
-                    </Table.Cell>
-                  </Table.Row>
+                      </Table.Cell>
+                    </Table.Row>
+                    {isEditing && !isSheet && (
+                      <Table.Row className="border-slate-50 bg-slate-100 hover:bg-slate-100">
+                        <Table.Cell
+                          colSpan={(categories?.length ?? 0) + 3}
+                          className="px-4 py-4"
+                        >
+                          <div
+                            role="group"
+                            aria-label={`${dateLabel} 매출 수정`}
+                            className="flex flex-wrap items-center gap-3"
+                          >
+                            <span className="text-base font-semibold text-slate-950">
+                              {dateLabel}
+                            </span>
+                            {categories?.map((category) => {
+                              const amount =
+                                draftSales.find(
+                                  (item) => item.categoryId === category.id,
+                                )?.amount ?? 0;
+                              return (
+                                <Input
+                                  key={category.id}
+                                  aria-label={
+                                    category.name + ' ' + dateLabel + ' 매출'
+                                  }
+                                  type="number"
+                                  min={0}
+                                  step={1}
+                                  size="small"
+                                  disabled={isPending}
+                                  aria-invalid={
+                                    hasAmountError &&
+                                    (!Number.isInteger(amount) || amount < 0)
+                                  }
+                                  value={amount}
+                                  onChange={(event) =>
+                                    handleAmountChange(
+                                      category.id,
+                                      Number(event.target.value),
+                                    )
+                                  }
+                                  className="h-9 min-w-24 flex-1 border-slate-200 px-2 text-base [&_input]:text-right"
+                                />
+                              );
+                            })}
+                            <span className="ml-auto font-medium text-slate-950">
+                              ₩
+                              {NUMBER_FORMAT.format(
+                                draftSales.reduce(
+                                  (sum, { amount }) => sum + amount,
+                                  0,
+                                ),
+                              )}
+                            </span>
+                          </div>
+                          <div className="mt-3 flex justify-end gap-2">
+                            <button
+                              type="button"
+                              aria-label={`${dateLabel} 편집 취소`}
+                              onClick={handleEditCancel}
+                              disabled={isPending}
+                              className="cursor-pointer rounded px-3 py-1 text-base text-slate-500 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none"
+                            >
+                              취소
+                            </button>
+                            <button
+                              type="button"
+                              aria-label={`${dateLabel} 편집 저장`}
+                              onClick={handleEditSave}
+                              disabled={isPending}
+                              className="cursor-pointer rounded bg-primary-500 px-3 py-1 text-base text-white focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none"
+                            >
+                              저장
+                            </button>
+                          </div>
+                        </Table.Cell>
+                      </Table.Row>
+                    )}
+                  </Fragment>
                 );
               })}
             </Table.Body>
@@ -412,12 +443,28 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
         )}
       </div>
 
-      {editingDay !== null && hasAmountError && (
+      {isSheetOpen && (
+        <SalesEditModal
+          open
+          onOpenChange={(open) => {
+            if (!open) handleEditCancel();
+          }}
+          date={editingSale.date}
+          categories={categories ?? []}
+          draftSales={draftSales}
+          hasAmountError={hasAmountError}
+          mutationError={mutationError}
+          isPending={isPending}
+          onAmountChange={handleAmountChange}
+          onSave={handleEditSave}
+        />
+      )}
+      {!isSheetOpen && editingDay !== null && hasAmountError && (
         <p role="alert" className="mt-2 text-sm text-warning-500">
           0 이상의 정수로 입력해 주세요.
         </p>
       )}
-      {mutationError !== null && (
+      {!isSheetOpen && mutationError !== null && (
         <p role="alert" className="mt-2 text-sm text-warning-500">
           {formatSalesError(mutationError)}
         </p>
@@ -429,7 +476,7 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
               aria-label="이전 페이지"
               disabled={page <= 1}
               onClick={() => setCurrentPage(page - 1)}
-              className="max-desktop:size-8 max-desktop:rounded-md max-desktop:text-xs"
+              className="max-desktop:size-8 max-desktop:rounded-md max-desktop:text-sm"
             >
               <ChevronLeftIcon aria-hidden="true" />
             </PaginationButton>
@@ -441,7 +488,7 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
                   isActive={pageNumber === page}
                   aria-label={`${pageNumber}페이지`}
                   onClick={() => setCurrentPage(pageNumber)}
-                  className="max-desktop:size-8 max-desktop:rounded-md max-desktop:text-xs"
+                  className="max-desktop:size-8 max-desktop:rounded-md max-desktop:text-sm"
                 >
                   {pageNumber}
                 </PaginationButton>
@@ -453,7 +500,7 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
               aria-label="다음 페이지"
               disabled={page >= totalPages}
               onClick={() => setCurrentPage(page + 1)}
-              className="max-desktop:size-8 max-desktop:rounded-md max-desktop:text-xs"
+              className="max-desktop:size-8 max-desktop:rounded-md max-desktop:text-sm"
             >
               <ChevronRightIcon aria-hidden="true" />
             </PaginationButton>

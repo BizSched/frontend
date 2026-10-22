@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 import { Card } from '@components/_common/Card/Card';
 
 import { useScheduleList } from '@hooks/api/schedule/useScheduleList';
@@ -12,6 +14,8 @@ import {
   type ShiftPeriod,
 } from '@lib/utilities/partTime/partTimeSchedule';
 
+import IcEmpty from '@assets/icons/ic_empty.svg';
+
 import { WorkerCard } from './WorkerCard';
 
 interface TodayWorkerSectionProps {
@@ -21,15 +25,24 @@ interface TodayWorkerSectionProps {
 function TodayWorkerSection({ today }: TodayWorkerSectionProps) {
   const { data, error } = useScheduleList({ from: today, to: today });
   const groups = data && groupPartTimeSchedulesByShift(data);
+  const isEmpty =
+    groups && SHIFT_PERIODS.every((period) => groups[period].length === 0);
 
   return (
-    <Card padding="lg" className="gap-6">
+    <Card padding="lg" className="gap-6" data-testid="today-worker">
       <Card.Header className="justify-center">
         <Card.Title>오늘 근무 아르바이트생</Card.Title>
       </Card.Header>
 
       <Card.Content>
-        {groups ? (
+        {isEmpty ? (
+          <div className="flex flex-col items-center justify-center gap-2 py-6">
+            <Image src={IcEmpty} alt="" width={100} height={128} unoptimized />
+            <span className="text-base font-semibold text-slate-400">
+              오늘 근무하는 알바생이 없습니다
+            </span>
+          </div>
+        ) : groups ? (
           <>
             <div className="grid grid-cols-4 gap-4 max-tablet:hidden">
               {SHIFT_PERIODS.map((period) => (

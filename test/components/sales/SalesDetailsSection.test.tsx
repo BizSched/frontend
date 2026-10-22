@@ -69,6 +69,12 @@ const getSeptemberThirtiethRow = () =>
 
 beforeEach(() => {
   vi.resetAllMocks();
+  vi.stubGlobal('matchMedia', (media: string) => ({
+    media,
+    matches: false,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  }));
   salesList = {
     page: 1,
     size: 10,
@@ -131,6 +137,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
 
@@ -206,18 +213,23 @@ describe('SalesDetailsSection', () => {
     },
   );
 
-  it('편집 중에는 모바일에서도 카테고리 헤더와 모든 행의 열을 함께 표시한다', () => {
+  it('모바일 편집은 시트에서 열고 표의 카테고리 열은 숨긴다', () => {
+    vi.stubGlobal('matchMedia', (media: string) => ({
+      media,
+      matches: true,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }));
     renderSalesDetailsSection();
     const header = screen.getByRole('columnheader', { name: '상품 판매' });
     expect(header).toHaveClass('max-tablet:hidden');
     fireEvent.click(screen.getByRole('button', { name: '9월 30일 매출 수정' }));
-    expect(header).not.toHaveClass('max-tablet:hidden');
-    const otherRow = screen.getByRole('row', { name: /9월 29일/ });
     expect(
-      within(otherRow).getByRole('cell', { name: '372,000' }),
-    ).not.toHaveClass('max-tablet:hidden');
-    fireEvent.click(screen.getByRole('button', { name: '9월 30일 편집 취소' }));
+      screen.getByRole('dialog', { name: '매출 내역 수정' }),
+    ).toBeInTheDocument();
     expect(header).toHaveClass('max-tablet:hidden');
+    fireEvent.click(screen.getByRole('button', { name: '취소' }));
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('편집을 취소하면 원래 금액을 유지한다', () => {

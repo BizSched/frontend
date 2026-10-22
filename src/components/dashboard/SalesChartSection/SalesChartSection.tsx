@@ -22,15 +22,16 @@ function SalesChartSection({ date }: SalesChartSectionProps) {
   const isEmpty = data?.rows.every(({ totalAmount }) => totalAmount === 0);
 
   return (
-    <Card padding="lg" className="gap-6">
+    <Card padding="lg" className="gap-6" data-testid="sales-chart">
       <Card.Header>
         <Card.Title>이번 달 매출 차트</Card.Title>
-        <Card.Title className="flex cursor-pointer items-center text-lg text-gray-500 underline">
-          <Link href="/sales/dashboard" className="flex items-center">
-            자세히 보기
-            <MoveRight className="ml-2 text-gray-500" size={16} />
-          </Link>
-        </Card.Title>
+        <Link
+          href="/sales/dashboard"
+          className="flex items-center gap-1 rounded text-sm font-medium text-primary-700 hover:underline focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none max-tablet:text-xs"
+        >
+          자세히 보기
+          <MoveRight aria-hidden="true" size={16} />
+        </Link>
       </Card.Header>
 
       <Card.Content className="flex h-[270px] flex-col">
