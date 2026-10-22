@@ -9,9 +9,7 @@ import type {
 import {
   applyPartTimeStaffInputFormat,
   countPartTimeStaffCharacters,
-  countPartTimeStaffMemoLength,
   hasPartTimeStaffUnsupportedClear,
-  limitPartTimeStaffMemo,
   createPartTimeStaffFormNewAttachment,
   formatPartTimeStaffBirthDateInput,
   formatPartTimeStaffHourlyWageInput,
@@ -71,13 +69,7 @@ describe('countPartTimeStaffCharacters', () => {
   });
 });
 
-describe('메모 제한과 선택값 삭제 보류', () => {
-  it('메모를 UTF-16 500자로 제한하고 이모지를 나누지 않는다', () => {
-    expect(limitPartTimeStaffMemo('😀'.repeat(251))).toBe('😀'.repeat(250));
-    expect(limitPartTimeStaffMemo('가'.repeat(499) + '😀')).toBe(
-      '가'.repeat(499),
-    );
-  });
+describe('선택값 삭제 보류', () => {
   it('시급 0도 기존 값으로 취급하고 메모 삭제는 허용한다', () => {
     const initial = toPartTimeStaffFormValues({
       id: 42,
@@ -95,22 +87,6 @@ describe('메모 제한과 선택값 삭제 보류', () => {
       hasPartTimeStaffUnsupportedClear({ ...initial, memo: '' }, initial),
     ).toBe(false);
     expect(hasPartTimeStaffUnsupportedClear(initial, initial)).toBe(false);
-  });
-});
-
-describe('countPartTimeStaffMemoLength', () => {
-  it('공백제외는 줄바꿈을 포함한 모든 공백 문자를 뺀다', () => {
-    expect(countPartTimeStaffMemoLength('주말 오픈\n\t담당 ')).toEqual({
-      withSpaces: 10,
-      withoutSpaces: 6,
-    });
-  });
-
-  it('빈 메모는 0자다', () => {
-    expect(countPartTimeStaffMemoLength('')).toEqual({
-      withSpaces: 0,
-      withoutSpaces: 0,
-    });
   });
 });
 

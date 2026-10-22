@@ -95,11 +95,6 @@ interface PartTimeStaffFormattedInputChange {
   deleteDirection?: PartTimeStaffInputDeleteDirection;
 }
 
-interface PartTimeStaffMemoLength {
-  withSpaces: number;
-  withoutSpaces: number;
-}
-
 export type {
   PartTimeStaffAttachment,
   PartTimeStaffAttachmentPreview,
@@ -114,7 +109,6 @@ export type {
   PartTimeStaffFormSavedAttachment,
   PartTimeStaffFormValues,
   PartTimeStaffInputDeleteDirection,
-  PartTimeStaffMemoLength,
   PartTimeStaffListItem,
   PartTimeStaffListResponse,
   PartTimeStaffShift,
