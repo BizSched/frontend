@@ -131,9 +131,9 @@ describe('Card', () => {
     expect(screen.getByTestId('header')).toHaveClass('flex', 'gap-2');
     expect(screen.getByTestId('header')).not.toHaveClass('gap-4');
     expect(screen.getByTestId('title')).toHaveClass('font-semibold', 'text-lg');
-    expect(screen.getByTestId('title')).not.toHaveClass('text-xl');
+    expect(screen.getByTestId('title')).not.toHaveClass('text-base');
     expect(screen.getByTestId('description')).toHaveClass(
-      'font-medium',
+      'font-normal',
       'text-xs',
     );
     expect(screen.getByTestId('description')).not.toHaveClass('text-sm');

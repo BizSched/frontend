@@ -8,16 +8,17 @@ import { Button } from '@components/_common/Button/Button';
 import type { PaginationSize } from '@hooks/pagination/usePaginationSize';
 
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 const BUTTON_OVERRIDE_CLASS_NAME = 'gap-0 px-0 py-0 [&_svg]:size-5';
 
 const paginationButtonVariants = cva(
-  'inline-flex items-center justify-center outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-40 motion-reduce:transition-none',
+  'inline-flex items-center justify-center transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-40 motion-reduce:transition-none',
   {
     variants: {
       size: {
-        lg: 'size-12 rounded-[1rem] text-sm tracking-[-0.03em]',
-        sm: 'size-8 rounded-md text-xs tracking-normal',
+        lg: cn(typographyVariants({ role: 'label' }), 'size-12 rounded-[1rem]'),
+        sm: cn(typographyVariants({ role: 'label' }), 'size-8 rounded-md'),
       } satisfies Record<PaginationSize, string>,
       isActive: {
         true: 'bg-primary font-semibold shadow-[0_0.625rem_2.5rem_rgb(255_158_89/0.3)]',

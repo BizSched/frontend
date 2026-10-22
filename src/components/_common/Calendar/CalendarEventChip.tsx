@@ -2,9 +2,13 @@ import { cva } from 'class-variance-authority';
 import type { ReactNode } from 'react';
 
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 const calendarEventChipVariants = cva(
-  'flex min-w-0 items-center gap-1 rounded-sm border px-2 py-1 text-xs leading-4 [&_svg]:size-4 [&_svg]:shrink-0',
+  cn(
+    typographyVariants({ role: 'caption' }),
+    'flex min-w-0 items-center gap-1 rounded-sm border px-2 py-1 [&_svg]:size-4 [&_svg]:shrink-0',
+  ),
   {
     variants: {
       tone: {

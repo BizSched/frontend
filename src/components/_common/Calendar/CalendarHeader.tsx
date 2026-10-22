@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 
 import { formatCalendarMonthLabel } from '@lib/utilities/calendar/calendarDate';
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 interface CalendarHeaderProps {
   month: string;
@@ -29,7 +30,10 @@ function CalendarHeader({
       </button>
       <p
         aria-live="polite"
-        className="min-w-[7.5rem] text-center text-lg leading-7 font-semibold tracking-[-0.03em] text-slate-500"
+        className={cn(
+          typographyVariants({ role: 'sectionTitle' }),
+          'min-w-[7.5rem] text-center text-slate-500',
+        )}
       >
         {formatCalendarMonthLabel(month)}
       </p>
@@ -47,9 +51,9 @@ function CalendarHeader({
   return (
     <header
       className={cn(
-        'max-tablet:px-4 flex items-center px-8 py-5',
+        'flex items-center px-8 py-5 max-tablet:px-4',
         headerSlot &&
-          'max-tablet:flex-col max-tablet:items-stretch justify-between gap-4',
+          'justify-between gap-4 max-tablet:flex-col max-tablet:items-stretch',
         !headerSlot && 'justify-center',
         'max-mobile:py-6',
       )}

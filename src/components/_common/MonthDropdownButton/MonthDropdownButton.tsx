@@ -3,14 +3,18 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { ChevronDownIcon } from 'lucide-react';
 
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 const monthDropdownButtonVariants = cva(
   'inline-flex shrink-0 cursor-pointer items-center rounded-full border border-slate-200 px-2 font-bold whitespace-nowrap text-slate-900 transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-6 [&_svg]:shrink-0 [&_svg]:text-slate-300 [&_svg]:transition-transform data-[popup-open]:[&_svg]:rotate-180',
   {
     variants: {
       size: {
-        large: 'min-w-[5.25rem] gap-2.5 text-xl',
-        small: 'gap-1 text-base',
+        large: cn(
+          typographyVariants({ role: 'label' }),
+          'min-w-[5.25rem] gap-2.5',
+        ),
+        small: cn(typographyVariants({ role: 'label' }), 'gap-1'),
       },
     },
     defaultVariants: {

@@ -19,6 +19,7 @@ import { useDatePickerLayout } from '@hooks/datePicker/useDatePickerLayout';
 
 import { formatCalendarDate } from '@lib/utilities/calendar/calendarDate';
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 interface DatePickerProps {
   value?: Date;
@@ -78,7 +79,10 @@ function DatePicker(props: DatePickerProps) {
   };
 
   const triggerClassName = cn(
-    'flex h-14 w-full cursor-pointer items-center rounded-[16px] border border-slate-300 bg-white-50 px-4 text-base tracking-[-0.02em] text-slate-700 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 data-[popup-open]:border-ring motion-reduce:transition-none',
+    cn(
+      typographyVariants({ role: 'body' }),
+      'flex h-14 w-full cursor-pointer items-center rounded-[16px] border border-slate-300 bg-white-50 px-4 text-slate-700 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 data-[popup-open]:border-ring motion-reduce:transition-none',
+    ),
     !selectedDate && 'text-muted-foreground',
     className,
   );
