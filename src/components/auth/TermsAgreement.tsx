@@ -10,6 +10,7 @@ import { useTerms } from '@hooks/api/terms/useTerms';
 
 import type { TermsResponse } from '@lib/api/generated/bizSchedAPI.schemas';
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 type TermsAgreementValues = Record<number, boolean>;
 const TERMS_AGREEMENT_DEFAULT_VALUES: TermsAgreementValues = {};
@@ -62,7 +63,14 @@ function TermsAgreement({
       <legend className="sr-only">약관 동의</legend>
       {isError ? (
         <div role="alert" className="flex flex-col items-start gap-2">
-          <p className="text-sm text-slate-500">약관을 불러오지 못했어요.</p>
+          <p
+            className={cn(
+              typographyVariants({ role: 'supporting' }),
+              'text-slate-500',
+            )}
+          >
+            약관을 불러오지 못했어요.
+          </p>
           <Button
             type="button"
             hierarchy="tertiary"
@@ -73,21 +81,44 @@ function TermsAgreement({
           </Button>
         </div>
       ) : terms === undefined ? (
-        <p role="status" className="text-sm text-slate-400">
+        <p
+          role="status"
+          className={cn(
+            typographyVariants({ role: 'supporting' }),
+            'text-slate-400',
+          )}
+        >
           약관을 불러오는 중이에요.
         </p>
       ) : terms.length === 0 ? (
-        <p className="text-sm text-slate-400">동의할 약관이 없습니다.</p>
+        <p
+          className={cn(
+            typographyVariants({ role: 'supporting' }),
+            'text-slate-400',
+          )}
+        >
+          동의할 약관이 없습니다.
+        </p>
       ) : (
         <>
-          <label className="flex cursor-pointer items-center gap-2 text-base font-semibold tracking-[-0.03em] text-slate-700">
+          <label
+            className={cn(
+              typographyVariants({ role: 'label' }),
+              'flex cursor-pointer flex-wrap items-center gap-2 text-slate-700',
+            )}
+          >
             <Checkbox
               checked={isAllAgreed}
               onCheckedChange={handleAllChange}
               disabled={disabled}
             />
             전체 동의
-            <span className="text-sm font-medium text-slate-400">
+            <span
+              className={cn(
+                typographyVariants({ role: 'supporting' }),
+                'text-slate-400',
+              )}
+            >
               (선택 항목 포함)
             </span>
           </label>
@@ -98,7 +129,12 @@ function TermsAgreement({
                 key={document.id}
                 className="flex items-start justify-between gap-2"
               >
-                <label className="flex min-w-0 cursor-pointer items-start gap-2 text-sm leading-5 tracking-[-0.03em] text-slate-500">
+                <label
+                  className={cn(
+                    typographyVariants({ role: 'label' }),
+                    'flex min-w-0 cursor-pointer items-start gap-2 text-slate-500',
+                  )}
+                >
                   <Checkbox
                     disabled={disabled}
                     checked={value[document.id] === true}
@@ -110,7 +146,7 @@ function TermsAgreement({
                   <span>
                     <span
                       className={cn(
-                        'font-semibold',
+                        typographyVariants({ role: 'label' }),
                         document.required
                           ? 'text-accent-500'
                           : 'text-slate-400',
@@ -126,7 +162,10 @@ function TermsAgreement({
                   disabled={disabled}
                   aria-label={`${document.title} 전문 보기`}
                   onClick={() => void handleDocumentOpen(document)}
-                  className="shrink-0 cursor-pointer rounded-lg text-sm leading-5 tracking-[-0.03em] text-slate-400 underline underline-offset-2 outline-none hover:text-slate-500 focus-visible:ring-3 focus-visible:ring-ring/50"
+                  className={cn(
+                    typographyVariants({ role: 'label' }),
+                    'shrink-0 cursor-pointer rounded-lg text-slate-400 underline underline-offset-2 outline-none hover:text-slate-500 focus-visible:ring-3 focus-visible:ring-ring/50',
+                  )}
                 >
                   전문 보기
                 </button>
@@ -139,7 +178,10 @@ function TermsAgreement({
         <p
           id={errorId}
           role="alert"
-          className="text-sm tracking-[-0.03em] text-warning-500"
+          className={cn(
+            typographyVariants({ role: 'supporting' }),
+            'text-warning-500',
+          )}
         >
           {errorMessage}
         </p>

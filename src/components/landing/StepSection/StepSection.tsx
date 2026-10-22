@@ -1,5 +1,8 @@
 import Image from 'next/image';
 
+import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
+
 import ImgStepDocument from '@assets/images/landing/img_step-document.svg';
 import ImgStepRegister from '@assets/images/landing/img_step-register.svg';
 import ImgStepSchedule from '@assets/images/landing/img_step-schedule.svg';
@@ -26,11 +29,16 @@ function StepSection() {
   return (
     <section className="bg-slate-50">
       <div className="mx-auto flex max-w-[744px] flex-col items-center px-6 pt-[100px] pb-10 max-tablet:px-4 max-tablet:pt-14 max-tablet:pb-14">
-        <div className="flex flex-col gap-3 text-center font-bold max-tablet:gap-1">
-          <p className="text-2xl text-primary-600 max-tablet:text-base max-tablet:font-semibold">
+        <div className="flex flex-col gap-3 text-center max-tablet:gap-1">
+          <p
+            className={cn(
+              typographyVariants({ role: 'subtitle' }),
+              'text-primary-600',
+            )}
+          >
             목표 설정부터 기록까지
           </p>
-          <h2 className="text-display-md text-slate-700 max-tablet:text-xl">
+          <h2 className="text-display-md font-bold tracking-[-0.03em] text-slate-700 max-tablet:text-xl">
             쉽고 빠르게 할 일을 시작해요
           </h2>
         </div>
@@ -38,20 +46,35 @@ function StepSection() {
           {STEPS.map(({ icon, title, description }, index) => (
             <li
               key={title}
-              className="flex flex-1 flex-col items-center gap-4 rounded-[32px] bg-white px-8 pt-8 pb-10 text-center whitespace-pre shadow-[0_0_60px_rgba(0,0,0,0.05)]"
+              className="flex min-w-0 flex-1 flex-col items-center gap-4 rounded-[32px] bg-white px-8 pt-8 pb-10 text-center whitespace-pre-line shadow-[0_0_60px_rgba(0,0,0,0.05)]"
             >
               <span
                 aria-hidden
-                className="flex size-9 items-center justify-center rounded-full bg-primary-500 text-xl font-bold text-white drop-shadow-[0_4px_8px_rgba(255,158,89,0.2)]"
+                className={cn(
+                  typographyVariants({ role: 'label' }),
+                  'flex size-9 items-center justify-center rounded-full bg-primary-500 text-white drop-shadow-[0_4px_8px_rgba(255,158,89,0.2)]',
+                )}
               >
                 {index + 1}
               </span>
               <Image src={icon} alt="" unoptimized />
               <div className="flex flex-col gap-2">
-                <h3 className="text-xl font-semibold text-slate-700">
+                <h3
+                  className={cn(
+                    typographyVariants({ role: 'subtitle' }),
+                    'text-slate-700',
+                  )}
+                >
                   {title}
                 </h3>
-                <p className="font-medium text-slate-400">{description}</p>
+                <p
+                  className={cn(
+                    typographyVariants({ role: 'body' }),
+                    'text-slate-400',
+                  )}
+                >
+                  {description}
+                </p>
               </div>
             </li>
           ))}

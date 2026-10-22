@@ -2,6 +2,9 @@ import Image from 'next/image';
 
 import { LandingStartLink } from '@components/landing/LandingStartLink/LandingStartLink';
 
+import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
+
 import ImgCtaCheckbox from '@assets/images/landing/img_cta-checkbox.svg';
 import ImgCtaDot from '@assets/images/landing/img_cta-dot.svg';
 import ImgCtaStar from '@assets/images/landing/img_cta-star.svg';
@@ -29,11 +32,16 @@ function CtaSection() {
             unoptimized
             className="absolute top-[337px] left-[551px] w-[91px] max-tablet:top-[170px] max-tablet:left-[278px] max-tablet:w-[46px]"
           />
-          <div className="relative flex flex-col gap-3 font-bold max-tablet:gap-1">
-            <p className="text-2xl text-primary-600 max-tablet:text-base max-tablet:font-semibold">
+          <div className="relative flex flex-col gap-3 max-tablet:gap-1">
+            <p
+              className={cn(
+                typographyVariants({ role: 'subtitle' }),
+                'text-primary-600',
+              )}
+            >
               BizSched 하나로 아르바이트 관리부터 운영까지
             </p>
-            <h2 className="text-display-md text-slate-700 max-tablet:text-xl">
+            <h2 className="text-display-md font-bold tracking-[-0.03em] text-slate-700 max-tablet:text-xl">
               아르바이트생 관리,
               <br />
               비즈스케드로 계획해요

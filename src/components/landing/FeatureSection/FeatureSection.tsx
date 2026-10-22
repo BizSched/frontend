@@ -1,5 +1,8 @@
 import Image from 'next/image';
 
+import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
+
 import ImgFeatureNoteSticker from '@assets/images/landing/img_feature-note-sticker.svg';
 import ImgFeatureProgressBadge from '@assets/images/landing/img_feature-progress-badge.svg';
 import ImgFeatureSchedule from '@assets/images/landing/img_feature-schedule.png';
@@ -18,10 +21,15 @@ function FeatureSection() {
     <section className="bg-primary-500">
       <div className="mx-auto flex max-w-[744px] flex-col px-[72px] pt-[81px] pb-[87px] max-tablet:px-7 max-tablet:pt-11 max-tablet:pb-[54px]">
         <div className="flex flex-col gap-3 max-tablet:gap-1">
-          <p className="text-2xl font-semibold text-primary-300 max-tablet:text-base">
+          <p
+            className={cn(
+              typographyVariants({ role: 'subtitle' }),
+              'text-primary-300',
+            )}
+          >
             더 똑똑한 아르바이트생 관리
           </p>
-          <h2 className="text-display-md font-bold text-white max-tablet:text-xl">
+          <h2 className="text-display-md font-bold tracking-[-0.03em] text-white max-tablet:text-xl">
             비즈 스케드가 특별한 이유
           </h2>
         </div>
@@ -29,7 +37,10 @@ function FeatureSection() {
           {FEATURES.map(({ icon, label }) => (
             <li
               key={label}
-              className="flex items-center gap-3 text-xl font-bold text-white max-tablet:gap-2 max-tablet:text-base"
+              className={cn(
+                typographyVariants({ role: 'subtitle' }),
+                'flex items-center gap-3 text-white max-tablet:gap-2',
+              )}
             >
               <Image
                 src={icon}
@@ -58,7 +69,7 @@ function FeatureSection() {
             src={ImgFeatureNoteSticker}
             alt=""
             unoptimized
-            className="absolute top-[-26px] left-[523px] w-[152px] max-w-none max-tablet:top-[-1px] max-tablet:left-[274px] max-tablet:w-[77px]"
+            className="absolute top-[-26px] left-[523px] w-[152px] max-w-none max-tablet:top-[-1px] max-tablet:right-0 max-tablet:left-auto max-tablet:w-[77px]"
           />
         </div>
       </div>
