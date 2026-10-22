@@ -1,5 +1,6 @@
 import { Checkbox } from '@components/_common/Checkbox/Checkbox';
 import { TextButton } from '@components/_common/TextButton/TextButton';
+import { PartTimeScheduleMemo } from '@components/partTime/schedule/PartTimeScheduleMemo';
 
 import type { PartTimeSchedule } from '@lib/types/partTimeSchedule';
 import { cn } from '@lib/utilities/cn';
@@ -75,45 +76,51 @@ function PartTimeScheduleDaySummary({
           </div>
           <ul className="flex flex-col gap-1">
             {schedules.map((schedule) => {
-              const { id, startTime, endTime, staff, isCheckedIn } = schedule;
+              const { id, startTime, endTime, staff, isCheckedIn, memo } =
+                schedule;
 
               return (
-                <li key={id} className="flex items-center gap-2 px-1 py-1.5">
-                  <label className="flex min-w-0 flex-1 items-center gap-1">
-                    <Checkbox
-                      checked={isCheckedIn}
-                      disabled={schedule.date > today || isPending}
-                      onCheckedChange={(checked) =>
-                        onAttendanceChange(schedule, checked)
-                      }
-                    />
-                    <span className="truncate text-sm font-medium tracking-[-0.03em] text-[#737373]">
-                      {startTime} ~ {endTime} {staff.name}
-                    </span>
-                  </label>
-                  <div className="flex shrink-0 items-center gap-1">
-                    <TextButton
-                      size="small"
-                      aria-label={`${startTime} ~ ${endTime} ${staff.name} 스케줄 수정`}
-                      className="text-slate-400"
-                      disabled={isPending}
-                      onClick={() => onScheduleEdit(schedule)}
-                    >
-                      수정
-                    </TextButton>
-                    <span
-                      aria-hidden="true"
-                      className="h-3 w-px bg-slate-200"
-                    />
-                    <TextButton
-                      size="small"
-                      aria-label={`${startTime} ~ ${endTime} ${staff.name} 스케줄 삭제`}
-                      disabled={isPending}
-                      onClick={() => onScheduleDelete(schedule)}
-                    >
-                      삭제
-                    </TextButton>
+                <li key={id} className="flex flex-col gap-0.5 px-1 py-1.5">
+                  <div className="flex items-center gap-2">
+                    <label className="flex min-w-0 flex-1 items-center gap-1">
+                      <Checkbox
+                        checked={isCheckedIn}
+                        disabled={schedule.date > today || isPending}
+                        onCheckedChange={(checked) =>
+                          onAttendanceChange(schedule, checked)
+                        }
+                      />
+                      <span className="truncate text-sm font-medium tracking-[-0.03em] text-[#737373]">
+                        {startTime} ~ {endTime} {staff.name}
+                      </span>
+                    </label>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <TextButton
+                        size="small"
+                        aria-label={`${startTime} ~ ${endTime} ${staff.name} 스케줄 수정`}
+                        className="text-slate-400"
+                        disabled={isPending}
+                        onClick={() => onScheduleEdit(schedule)}
+                      >
+                        수정
+                      </TextButton>
+                      <span
+                        aria-hidden="true"
+                        className="h-3 w-px bg-slate-200"
+                      />
+                      <TextButton
+                        size="small"
+                        aria-label={`${startTime} ~ ${endTime} ${staff.name} 스케줄 삭제`}
+                        disabled={isPending}
+                        onClick={() => onScheduleDelete(schedule)}
+                      >
+                        삭제
+                      </TextButton>
+                    </div>
                   </div>
+                  {memo.trim() && (
+                    <PartTimeScheduleMemo memo={memo} className="pl-5.5" />
+                  )}
                 </li>
               );
             })}

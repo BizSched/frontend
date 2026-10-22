@@ -15,7 +15,8 @@
 - `PartTimeScheduleCalendar` — 선택 날짜·월·필터 상태를 갖고 하위 컴포넌트를 조합하는 클라이언트 컨테이너
 - `PartTimeScheduleStaffFilter` — 공통 `Dropdown` 기반 아르바이트생 필터, `Calendar`의 `headerSlot`에 주입
 - `PartTimeScheduleChip` — 출근 확인 여부를 `CalendarEventChip`의 `tone`·체크 아이콘으로 변환. 표시 전용이라 클릭 동작이 없다
-- `PartTimeScheduleDaySummary` — 선택 날짜 상세. 진행 바와 스케줄 행 목록(출근 확인 체크박스 · 시간·이름 · `수정 | 삭제`) (1024px 이상 캘린더 우측, 미만 캘린더 아래)
+- `PartTimeScheduleDaySummary` — 선택 날짜 상세. 진행 바와 스케줄 행 목록(출근 확인 체크박스 · 시간·이름 · `수정 | 삭제` · 메모) (1024px 이상 캘린더 우측, 미만 캘린더 아래)
+- `PartTimeScheduleMemo` — 날짜 상세 행의 메모. 2줄을 넘으면 접고 펼치기·접기 버튼(lucide `ChevronDownIcon`·`ChevronUpIcon`)을 둔다
 - `PartTimeScheduleActionButtons` — 모바일 플로팅 버튼. 공통 [`ActionButton`](../../component/ActionButton/README.md)에 보조 액션 공유(링크 아이콘)·추가(연필 아이콘)를 위 → 아래 순서로 `actions`에 넘긴다 (2026-10-01 확정). 메인 `+`는 목록을 여닫는 토글이라 그 자체로 추가 동작을 하지 않는다
 - `PartTimeScheduleFormModal` — 스케줄 추가/수정 모달. 공통 `Modal` Form 계열 조합 ("추가/수정 모달" 참고). 컨트롤러·launcher·라벨·빠른 선택 칩과 함께 `schedule/modal/`에 두었다. 기능 단위 하위 폴더는 [folder-structure.md](../../architecture/folder-structure.md#src-상세-구조) 규칙을 따른다 (2026-10-14 확정)
 
@@ -60,7 +61,7 @@ API 명세와 DTO → FE 타입 변환은 [도메인 문서](./README.md#api-명
 ## 렌더링 경계
 
 - `page.tsx`는 Server Component다. `await connection()`으로 요청 시점에 렌더링해 `today`를 매 요청 계산한다
-- `"use client"`는 상태를 가진 `PartTimeScheduleCalendar` 한 곳에만 둔다. Chip·DaySummary는 지시어 없이 작성했고, Calendar가 import해 클라이언트 번들에 포함된다
+- `"use client"`는 상태를 가진 `PartTimeScheduleCalendar` 한 곳에만 둔다. Chip·DaySummary·Memo는 지시어 없이 작성했고, Calendar가 import해 클라이언트 번들에 포함된다
 - `PartTimeScheduleHeader`는 Server Component다. 클릭 핸들러가 필요한 "스케줄 추가" 버튼만 `PartTimeScheduleAddButton`(Client)으로 분리했다. "스케줄 공유" 버튼은 7단계에서 같은 방식으로 분리한다
 - `PartTimeScheduleActionButtons`는 `ActionButton`의 `actions[].onClick`(함수)을 넘겨야 해서 Client Component다. `ActionButton` 자체가 `"use client"`라도 함수 prop은 Server Component에서 넘길 수 없다 ([ActionButton 렌더링 경계](../../component/ActionButton/README.md#렌더링-경계))
 - `PartTimeScheduleFormModal`은 RHF를 쓰므로 Client Component다. 여는 쪽(헤더 "스케줄 추가" 버튼, FAB, 날짜 상세 행 `수정`)도 클릭 핸들러가 필요하다. 헤더는 이 단계에서 "스케줄 추가" 버튼만 클라이언트 파일로 분리한다
@@ -99,6 +100,8 @@ API 명세와 DTO → FE 타입 변환은 [도메인 문서](./README.md#api-명
 | 날짜 상세 행 체크박스            | 출근 확인을 토글한다. 내일 이후 근무는 비활성                                                          |
 | 날짜 상세 행 `수정`              | 해당 스케줄 수정 모달을 연다. 3단계에서 연결                                                           |
 | 날짜 상세 행 `삭제`              | 삭제 확인 모달(`openConfirmModal`)을 연다. 확인하면 삭제를 요청한다                                    |
+| 날짜 상세 행 메모                | 동작 없음. 출근 확인 `label` 밖에 두어 눌러도 출근 상태가 바뀌지 않는다                                |
+| 날짜 상세 행 메모 ▼·▲            | 2줄을 넘는 메모를 펼치거나 접는다. 요청 중에도 비활성화하지 않는다                                     |
 
 - **칩·점은 표시 전용이다** — `PartTimeScheduleChip`은 `CalendarEventChip`에 `onClick`을 넘기지 않는다. 칩(744px 이상)이나 점(744px 미만) 위를 누르면 선택 날짜가 바뀌지 않는데, 이는 공통 Calendar의 의도된 동작이다. 일정 칩 클릭은 선택 날짜를 바꾸지 않는다는 공통 Calendar 계약을 따른다 ([calendar/README.md](../../component/calendar/README.md) "업무 일정 칩" 항목). 날짜를 바꾸려면 날짜 숫자·빈 영역·`+N`을 누른다 (2026-10-02 실측)
 
@@ -106,6 +109,7 @@ API 명세와 DTO → FE 타입 변환은 [도메인 문서](./README.md#api-명
 
 - **`--z-dropdown` 토큰 신설** — 필터 드롭다운이 캘린더 셀(`z-10`)·사이드바 레일(`z-30`) 위에 떠야 해서 `theme.css`에 추가하고 `DropdownContent`에 적용했다. 처음 값은 `100`이었고, 3단계에서 추가/수정 모달 안 드롭다운이 모달 뒤에 가려져 `1500`으로 올렸다 (2026-10-02 확정). 근거는 [dropdown/README.md](../../component/dropdown/README.md) "설계 결정 요약"
 - **날짜 상세 전환 기준은 `laptop`(1024px)** — 1024px 미만에서는 캘린더 옆에 우측 패널(378px)을 두면 셀이 지나치게 좁아진다. 그래서 `max-laptop:`부터 `PartTimeScheduleDaySummary`를 캘린더 아래로 옮긴다. 캘린더와 목록은 하나의 흰 카드로 묶는다. 셀의 칩 → 점 전환은 공통 Calendar 기준(`max-tablet:`)을 그대로 따른다
+- **날짜 상세 행 메모는 시간·이름 아래에 둔다** (2026-10-21 확정) — 메모가 공백뿐이면 그리지 않는다. 체크박스 폭만큼 들여 시간·이름과 시작선을 맞추고 `text-xs`·`text-slate-400`으로 시간·이름보다 옅게 표시한다. 메모 최대 500자가 패널을 늘리지 않도록 2줄까지만 보이고, 넘치면 ▼로 펼치고 ▲로 접는다. 넘침은 `ResizeObserver`로 접힌 높이와 실제 높이를 비교해 판단하므로 패널 폭이 바뀌어도 맞춰진다. 줄바꿈·긴 단어는 `whitespace-pre-wrap`·`wrap-break-word`로 줄을 넘긴다
 - **삭제된 아르바이트생(`staff.isDeleted`)은 숨긴다** — 캘린더 일정·날짜 상세·필터 목록에서 모두 제외한다 (2026-10-01 확정, 2026-10-14 재확인). 스케줄 화면은 현재 관리 중인 아르바이트생의 근무를 본다. BE 기간 조회 응답에는 지난 근무가 남으므로 `staff.isDeleted`로 거른다
 - **하드코딩 색상은 #51에서 토큰화** — `#f2f2f2`, `#fafafa`, `#333333`, `#737373`, `#ffe5b7`가 `theme.css` 토큰에 없다. 이 페이지에서는 임의 값으로 두고, 토큰화는 #51에서 다룬다
 
@@ -245,6 +249,7 @@ RHF 기본 `rules`로 처리한다. 폼 검증은 zod 스키마로 바뀔 수 �
 
 - **사이드바 메뉴 연결 완료 (2026-10-05)** — `app/(main)/partTime/`에 공통 사이드바 레이아웃을 적용하고, `ROUTE_PATHS`로 스케줄 관리·아르바이트생 관리 메뉴를 연결했다. 현재 메뉴 표시와 모바일 메뉴 선택 시 닫기를 적용한다.
 - **하드코딩 색상 토큰화** — #51
+- **추가/수정 모달 메모 입력 확대** — 메모는 최대 500자인데 한 줄 `Input`이라 긴 내용을 확인하며 쓰기 어렵다. 아르바이트생 폼처럼 `textarea`·글자 수 표시로 바꿀지 Figma와 함께 확인한다 (#246)
 - **DatePicker 모바일 바텀시트** — 공통 DatePicker에 744px 미만 바텀시트 표시를 추가한다. 추가되면 이 페이지 추가/수정 모달의 근무 날짜 필드를 팝오버에서 바텀시트로 바꾼다 (이슈 번호 미정)
 - **아이콘 lucide 교체** — 2단계에서 추가한 SVG 아이콘(`ic_checkbox`, `ic_plus-white`)을 `lucide-react`로 바꾼다. #102 헤더 "스케줄 공유" 버튼은 처음부터 lucide `LinkIcon`을 쓴다
   - 모바일 FAB 아이콘(`ic_link`, `ic_pencil`, `ic_plus-large`)은 교체 대상이 아니다. FAB를 공통 `ActionButton`으로 만들면 메인 `+`는 컴포넌트 안의 lucide `PlusIcon`을 쓰고, 보조 아이콘도 lucide로 넘기므로 SVG를 추가하지 않는다 ([ActionButton 레이어 구조](../../component/ActionButton/README.md#레이어-구조))
