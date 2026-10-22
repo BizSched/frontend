@@ -6,7 +6,7 @@ import type { ReactNode } from 'react';
 import { cn } from '@lib/utilities/cn';
 
 const formDropdownButtonVariants = cva(
-  'bg-white-50 inline-flex shrink-0 cursor-pointer items-center justify-between gap-2 px-4 text-[#333333] outline-none transition-shadow focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed data-[popup-open]:shadow-[0px_2px_4px_rgba(0,0,0,0.08)] [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:text-[#a4a4a4] [&_svg]:transition-transform data-[popup-open]:[&_svg]:rotate-180',
+  'inline-flex shrink-0 cursor-pointer items-center justify-between gap-2 bg-white-50 px-4 text-slate-500 transition-shadow outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed data-[popup-open]:shadow-[0px_2px_4px_rgba(0,0,0,0.08)] [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:text-slate-300 [&_svg]:transition-transform data-[popup-open]:[&_svg]:rotate-180',
   {
     variants: {
       size: {
@@ -46,7 +46,7 @@ function FormDropdownButton({
     >
       <span
         data-placeholder={hasValue ? undefined : true}
-        className="truncate data-placeholder:text-[#a4a4a4]"
+        className="truncate data-placeholder:text-slate-300"
       >
         {hasValue ? children : placeholder}
       </span>

@@ -137,7 +137,7 @@ function PartTimeStaffDetail({
       }
       body={
         memo && (
-          <p className="text-sm leading-5 tracking-[-0.03em] wrap-break-word whitespace-pre-wrap text-[#333333]">
+          <p className="text-sm leading-5 tracking-[-0.03em] wrap-break-word whitespace-pre-wrap text-slate-500">
             {memo}
           </p>
         )

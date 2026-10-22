@@ -1,11 +1,9 @@
 'use client';
 
-import Image from 'next/image';
+import { PlusIcon } from 'lucide-react';
 
 import { Button } from '@components/_common/Button/Button';
 import { openPartTimeScheduleFormModal } from '@components/partTime/schedule/modal/openPartTimeScheduleFormModal';
-
-import IcPlusWhite from '@assets/icons/ic_plus-white.svg';
 
 function PartTimeScheduleAddButton() {
   const handleClick = () => {
@@ -15,9 +13,7 @@ function PartTimeScheduleAddButton() {
   return (
     <Button
       size="small"
-      icon={
-        <Image src={IcPlusWhite} alt="" width={20} height={20} unoptimized />
-      }
+      icon={<PlusIcon size={20} strokeWidth={1.5} />}
       onClick={handleClick}
     >
       스케줄 추가

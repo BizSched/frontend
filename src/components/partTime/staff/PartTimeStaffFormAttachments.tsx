@@ -1,12 +1,10 @@
-import Image from 'next/image';
+import { XIcon } from 'lucide-react';
 
 import { PartTimeStaffAttachmentBox } from '@components/partTime/staff/PartTimeStaffAttachmentBox';
 import { PartTimeStaffAttachmentFile } from '@components/partTime/staff/PartTimeStaffAttachmentFile';
 
 import type { PartTimeStaffFormAttachment } from '@lib/types/partTimeStaff';
 import { PART_TIME_STAFF_ATTACHMENT_MAX_COUNT } from '@lib/utilities/partTime/partTimeStaffAttachment';
-
-import IcDelete from '@assets/icons/ic_delete.svg';
 
 const ROW_BUTTON_CLASS_NAME =
   'flex min-w-0 cursor-pointer rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring';
@@ -42,7 +40,7 @@ function PartTimeStaffFormAttachments({
         >
           <PartTimeStaffAttachmentFile
             name="첨부파일"
-            nameClassName="text-[#737373]"
+            nameClassName="text-white-950"
           />
         </button>
       </li>
@@ -66,13 +64,7 @@ function PartTimeStaffFormAttachments({
             onClick={() => onAttachmentRemove(attachment)}
             className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <Image
-              src={IcDelete}
-              alt=""
-              width={13.8}
-              height={13.8}
-              unoptimized
-            />
+            <XIcon size={24} strokeWidth={1.8} className="text-slate-300" />
           </button>
         </li>
       ))}

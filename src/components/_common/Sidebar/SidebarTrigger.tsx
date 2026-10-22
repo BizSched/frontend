@@ -1,12 +1,9 @@
 'use client';
 
 import { Button } from '@base-ui/react/button';
-import Image from 'next/image';
+import { ChevronsLeftIcon, ChevronsRightIcon } from 'lucide-react';
 
 import { cn } from '@lib/utilities/cn';
-
-import ChevronsLeft from '@assets/icons/ic_chevrons-left.svg';
-import ChevronsRight from '@assets/icons/ic_chevrons-right.svg';
 
 import { useSidebar } from './SidebarProvider';
 
@@ -21,6 +18,7 @@ function SidebarTrigger({
   const { isOpen, isCompact, isOverlayOpen, panelId, toggleSidebar } =
     useSidebar();
   const isExpanded = isCompact ? isOverlayOpen : isOpen;
+  const Icon = isExpanded ? ChevronsLeftIcon : ChevronsRightIcon;
 
   return (
     <Button
@@ -38,15 +36,7 @@ function SidebarTrigger({
         if (!event.defaultPrevented) toggleSidebar();
       }}
     >
-      {children ?? (
-        <Image
-          src={isExpanded ? ChevronsLeft : ChevronsRight}
-          alt=""
-          width={32}
-          height={32}
-          unoptimized
-        />
-      )}
+      {children ?? <Icon size={32} className="text-slate-300" />}
     </Button>
   );
 }

@@ -53,12 +53,12 @@ function PartTimeScheduleMemo({ memo, className }: PartTimeScheduleMemoProps) {
           {isExpanded ? (
             <ChevronUpIcon
               aria-hidden="true"
-              className="size-4 text-[#a4a4a4]"
+              className="size-4 text-slate-300"
             />
           ) : (
             <ChevronDownIcon
               aria-hidden="true"
-              className="size-4 text-[#a4a4a4]"
+              className="size-4 text-slate-300"
             />
           )}
         </button>

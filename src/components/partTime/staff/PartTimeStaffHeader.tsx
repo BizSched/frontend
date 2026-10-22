@@ -1,10 +1,8 @@
-import Image from 'next/image';
+import { PlusIcon } from 'lucide-react';
 import Link from 'next/link';
 
 import { Button } from '@components/_common/Button/Button';
 import { Input } from '@components/_common/Input/Input';
-
-import IcPlusWhite from '@assets/icons/ic_plus-white.svg';
 
 function PartTimeStaffHeader() {
   return (
@@ -23,15 +21,7 @@ function PartTimeStaffHeader() {
           size="small"
           nativeButton={false}
           render={<Link href="/partTime/staff/new" />}
-          icon={
-            <Image
-              src={IcPlusWhite}
-              alt=""
-              width={24}
-              height={24}
-              unoptimized
-            />
-          }
+          icon={<PlusIcon size={24} strokeWidth={1.5} />}
         >
           아르바이트생
         </Button>

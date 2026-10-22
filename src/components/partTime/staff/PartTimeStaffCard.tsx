@@ -79,7 +79,7 @@ function PartTimeStaffCard({
               type="button"
               aria-label={`${name} 더보기`}
               disabled={isDeletePending}
-              className="relative flex cursor-pointer items-center justify-center rounded-lg text-[#a4a4a4] outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              className="relative flex cursor-pointer items-center justify-center rounded-lg text-slate-300 outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             >
               <EllipsisVerticalIcon
                 className="size-6 max-tablet:size-4"
@@ -95,13 +95,13 @@ function PartTimeStaffCard({
           <span className="shrink-0 rounded-[8px] border border-primary-900 bg-white-50 px-2 py-1 text-xs leading-4 font-semibold text-primary-900">
             PHONE
           </span>
-          <span className="truncate text-sm leading-5 tracking-[-0.03em] text-[#333333] max-tablet:text-xs max-tablet:leading-4 max-tablet:tracking-normal">
+          <span className="truncate text-sm leading-5 tracking-[-0.03em] text-slate-500 max-tablet:text-xs max-tablet:leading-4 max-tablet:tracking-normal">
             {phone}
           </span>
         </div>
         <time
           dateTime={createdAt}
-          className="shrink-0 text-xs leading-4 text-[#a4a4a4]"
+          className="shrink-0 text-xs leading-4 text-slate-300"
         >
           {formatPartTimeStaffCreatedAt(createdAt)}
         </time>

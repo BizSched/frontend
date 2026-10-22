@@ -1,7 +1,7 @@
 'use client';
 
 import { Dialog } from '@base-ui/react/dialog';
-import Image from 'next/image';
+import { XIcon } from 'lucide-react';
 import { type CSSProperties, useId, useMemo, useState } from 'react';
 
 import { FormDropdown } from '@components/_common/FormDropdown/FormDropdown';
@@ -21,8 +21,6 @@ import {
   PART_TIME_STAFF_EMPLOYMENT_STATUS_LABELS,
   PART_TIME_STAFF_EMPLOYMENT_STATUSES,
 } from '@lib/utilities/partTime/partTimeStaff';
-
-import IcDelete from '@assets/icons/ic_delete.svg';
 
 const EMPLOYMENT_STATUS_OPTIONS = PART_TIME_STAFF_EMPLOYMENT_STATUSES.map(
   (employmentStatus) => ({
@@ -167,7 +165,7 @@ function PartTimeStaffDetailPanel({
       aria-label="닫기"
       className="flex size-6 cursor-pointer items-center justify-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-      <Image src={IcDelete} alt="" width={13.8} height={13.8} unoptimized />
+      <XIcon size={24} strokeWidth={1.8} className="text-slate-300" />
     </Dialog.Close>
   );
 

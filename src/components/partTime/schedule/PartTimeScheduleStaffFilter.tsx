@@ -1,10 +1,10 @@
+import { ChevronDownIcon } from 'lucide-react';
 import Image from 'next/image';
 
 import { Dropdown } from '@components/_common/Dropdown/Dropdown';
 
 import type { PartTimeStaff } from '@lib/types/partTimeSchedule';
 
-import IcChevronDown from '@assets/icons/ic_chevron-down.svg';
 import ImgGoal from '@assets/icons/img_goal.svg';
 
 const ALL_STAFF_LABEL = '아르바이트생 전체 스케줄';
@@ -56,17 +56,13 @@ function PartTimeScheduleStaffFilter({
           <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#ffe5b7]">
             <Image src={ImgGoal} alt="" width={18} height={17.78} unoptimized />
           </span>
-          <span className="truncate text-sm font-semibold tracking-[-0.03em] text-[#333333]">
+          <span className="truncate text-sm font-semibold tracking-[-0.03em] text-slate-500">
             {selectedStaff?.name ?? ALL_STAFF_LABEL}
           </span>
         </span>
-        <Image
-          src={IcChevronDown}
-          alt=""
-          width={24}
-          height={24}
-          unoptimized
-          className="transition-transform group-data-popup-open:rotate-180"
+        <ChevronDownIcon
+          size={24}
+          className="text-slate-300 transition-transform group-data-popup-open:rotate-180"
         />
       </button>
     </Dropdown>

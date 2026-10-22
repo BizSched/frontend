@@ -26,7 +26,7 @@ function PartTimeScheduleFormField({
     >
       <p
         id={labelId}
-        className="flex gap-px px-1 text-base font-semibold tracking-[-0.03em] text-[#333333] max-tablet:text-sm"
+        className="flex gap-px px-1 text-base font-semibold tracking-[-0.03em] text-slate-500 max-tablet:text-sm"
       >
         {label}
         {isRequired && (

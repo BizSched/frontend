@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import { PlusIcon } from 'lucide-react';
 import { useState } from 'react';
 
 import { Card } from '@components/_common/Card/Card';
@@ -10,8 +10,6 @@ import { useSalesChart } from '@hooks/api/sales/useSalesChart';
 
 import { cn } from '@lib/utilities/cn';
 import { formatSalesError } from '@lib/utilities/sales/formatSalesError';
-
-import Plus from '@assets/icons/ic_plus-white.svg';
 
 import { SalesWeeklyChart } from './SalesWeeklyChart';
 
@@ -97,7 +95,7 @@ function SalesChartCard({ month, date }: SalesChartCardProps) {
         aria-hidden="true"
         className="absolute top-5 -right-3 hidden size-14 items-center justify-center rounded-full bg-primary-500 shadow-[0_4px_16px_rgba(255,158,89,0.2)] max-tablet:flex"
       >
-        <Image src={Plus} alt="" width={24} height={24} />
+        <PlusIcon size={24} strokeWidth={1.5} className="text-white" />
       </span>
 
       {data ? (

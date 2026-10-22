@@ -345,7 +345,7 @@ function PartTimeScheduleFormModal({
               </div>
               <p
                 id={`${fieldId}-memo-length`}
-                className="-mt-1 px-1 text-right text-xs leading-4 text-[#a4a4a4]"
+                className="-mt-1 px-1 text-right text-xs leading-4 text-slate-300"
               >
                 공백포함 {memoLength.withSpaces}자 | 공백제외{' '}
                 {memoLength.withoutSpaces}자

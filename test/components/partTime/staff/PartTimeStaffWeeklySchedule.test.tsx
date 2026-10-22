@@ -5,8 +5,6 @@ import { PartTimeStaffWeeklySchedule } from '@components/partTime/staff/PartTime
 
 import { ApiError } from '@lib/api/apiError';
 
-vi.mock('@assets/icons/ic_checkbox.svg', () => ({ default: '/checkbox.svg' }));
-
 const NOW = '2026-10-15T12:00';
 const SHIFT = {
   id: 1,

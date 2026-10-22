@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import { FileUpIcon, XIcon } from 'lucide-react';
 import { type ChangeEvent, useEffect, useRef, useState } from 'react';
 
 import { Button } from '@components/_common/Button/Button';
@@ -9,9 +9,6 @@ import { toast } from '@components/_common/Toast/Toaster';
 
 import { cn } from '@lib/utilities/cn';
 import { preparePartTimeStaffAttachment } from '@lib/utilities/partTime/preparePartTimeStaffAttachment';
-
-import IcDelete from '@assets/icons/ic_delete.svg';
-import IcUpload from '@assets/icons/ic_upload.svg';
 
 const ATTACHMENT_ACCEPT = '.jpg,.jpeg,.png,.webp,.pdf';
 const FILE_ERROR_TOAST_ID = 'staff-attachment-file-error';
@@ -93,7 +90,7 @@ function PartTimeStaffAttachmentUploadModal({
       >
         <div className="flex flex-col gap-8 max-tablet:gap-6">
           <Modal.Header align="start">
-            <Modal.Title className="leading-7.5 text-[#262626] max-tablet:text-base max-tablet:leading-6">
+            <Modal.Title className="leading-7.5 text-slate-500 max-tablet:text-base max-tablet:leading-6">
               첨부파일 업로드
             </Modal.Title>
             <Modal.CloseButton />
@@ -107,15 +104,11 @@ function PartTimeStaffAttachmentUploadModal({
           />
           {file ? (
             <div className={FILE_FIELD_CLASS_NAME}>
-              <Image
-                src={IcUpload}
-                alt=""
-                width={24}
-                height={24}
-                className="shrink-0 max-tablet:size-5"
-                unoptimized
+              <FileUpIcon
+                size={24}
+                className="shrink-0 text-slate-400 max-tablet:size-5"
               />
-              <span className="min-w-0 flex-1 truncate text-[#0d0b0a]">
+              <span className="min-w-0 flex-1 truncate text-slate-950">
                 {file.name}
               </span>
               <button
@@ -128,7 +121,7 @@ function PartTimeStaffAttachmentUploadModal({
                 }}
                 className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring max-tablet:size-5"
               >
-                <Image src={IcDelete} alt="" width={9} height={9} unoptimized />
+                <XIcon size={16} strokeWidth={1.8} className="text-slate-300" />
               </button>
             </div>
           ) : (
@@ -137,17 +130,10 @@ function PartTimeStaffAttachmentUploadModal({
               onClick={() => inputRef.current?.click()}
               className={cn(
                 FILE_FIELD_CLASS_NAME,
-                'cursor-pointer text-[#737373] outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                'cursor-pointer text-white-950 outline-none focus-visible:ring-2 focus-visible:ring-ring',
               )}
             >
-              <Image
-                src={IcUpload}
-                alt=""
-                width={24}
-                height={24}
-                className="shrink-0 max-tablet:size-5"
-                unoptimized
-              />
+              <FileUpIcon size={24} className="shrink-0 max-tablet:size-5" />
               파일을 선택해주세요
             </button>
           )}
@@ -166,7 +152,7 @@ function PartTimeStaffAttachmentUploadModal({
               onUpload(file);
             }
           }}
-          className="w-full max-tablet:h-10 max-tablet:py-2.5 max-tablet:text-sm max-tablet:leading-5 data-disabled:cursor-not-allowed data-disabled:bg-[#bbbbbb] data-disabled:hover:bg-[#bbbbbb]"
+          className="w-full max-tablet:h-10 max-tablet:py-2.5 max-tablet:text-sm max-tablet:leading-5 data-disabled:cursor-not-allowed data-disabled:bg-slate-200 data-disabled:hover:bg-slate-200"
         >
           업로드
         </Button>

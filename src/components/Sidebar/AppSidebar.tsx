@@ -2,7 +2,18 @@
 
 import { Button } from '@base-ui/react/button';
 import { Collapsible } from '@base-ui/react/collapsible';
-import { MenuIcon } from 'lucide-react';
+import {
+  BellIcon,
+  CalendarDaysIcon,
+  ChevronDownIcon,
+  LayoutDashboardIcon,
+  LogOutIcon,
+  type LucideIcon,
+  MenuIcon,
+  SettingsIcon,
+  UserGroupIcon,
+  WalletIcon,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -19,15 +30,6 @@ import { SidebarTrigger } from '@components/_common/Sidebar/SidebarTrigger';
 
 import { ROUTE_PATHS } from '@lib/utilities/routePaths';
 
-import Bell from '@assets/icons/ic_bell.svg';
-import Calendar from '@assets/icons/ic_calendar-days.svg';
-import ChevronDown from '@assets/icons/ic_chevron-down.svg';
-import ProfileChevron from '@assets/icons/ic_chevron-down.svg';
-import Dashboard from '@assets/icons/ic_layout-dashboard.svg';
-import Logout from '@assets/icons/ic_log-out.svg';
-import Settings from '@assets/icons/ic_settings.svg';
-import UserGroup from '@assets/icons/ic_user-group.svg';
-import SalesIcon from '@assets/icons/ic_wallet.svg';
 import Avatar from '@assets/icons/sidebar/ic_avatar.svg';
 
 interface AppSidebarProps {
@@ -38,9 +40,17 @@ interface AppSidebarProps {
   onProfileClick?: () => void;
   onNotificationsClick?: () => void;
 }
-function SideIcon({ icons }: { icons: string }) {
-  return <Image src={icons} alt="" width={24} height={24} unoptimized />;
+function SideIcon({ icon: Icon }: { icon: LucideIcon }) {
+  return <Icon size={24} />;
 }
+
+const PAGE_TITLES: Record<string, string> = {
+  [ROUTE_PATHS.dashboard()]: '대시보드',
+  [ROUTE_PATHS.sales()]: '매출 대시보드',
+  [ROUTE_PATHS.salesDetails()]: '매출 내역',
+  [ROUTE_PATHS.partTimeSchedule()]: '아르바이트생 스케줄 관리',
+};
+
 function AppSidebar({
   profile,
   hasUnreadNotifications = false,
@@ -52,24 +62,18 @@ function AppSidebar({
   const pathname = usePathname();
   const { setIsOverlayOpen } = useSidebar();
   const isDashboard = pathname === ROUTE_PATHS.dashboard();
-  const isSales = pathname === ROUTE_PATHS.sales();
+  const isSalesDashboard = pathname === ROUTE_PATHS.sales();
   const isSalesDetail = pathname === ROUTE_PATHS.salesDetails();
+  const isSales = isSalesDashboard || isSalesDetail;
   const isPartTimeSchedule = pathname === ROUTE_PATHS.partTimeSchedule();
+  const partTimeStaffPath = ROUTE_PATHS.partTimeStaff();
   const isPartTimeStaff =
-    pathname === ROUTE_PATHS.partTimeStaff() ||
-    pathname.startsWith(ROUTE_PATHS.partTimeStaff() + '/');
+    pathname === partTimeStaffPath ||
+    pathname.startsWith(`${partTimeStaffPath}/`);
   const isPartTime = isPartTimeSchedule || isPartTimeStaff;
-  const mobilePageTitle = isDashboard
-    ? '대시보드'
-    : isSales
-      ? '매출 대시보드'
-      : isSalesDetail
-        ? '매출 내역'
-        : isPartTimeSchedule
-          ? '아르바이트생 스케줄 관리'
-          : isPartTimeStaff
-            ? '아르바이트생 관리'
-            : 'BizSched'; // NOTE : 라우트별 반환 로직 리팩토링 필요
+  const mobilePageTitle = isPartTimeStaff
+    ? '아르바이트생 관리'
+    : (PAGE_TITLES[pathname] ?? 'BizSched');
   const handleNavigate = () => setIsOverlayOpen(false);
 
   return (
@@ -89,7 +93,7 @@ function AppSidebar({
               className="-mt-2 flex size-8 items-center justify-center rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:cursor-not-allowed"
             >
               <span className="relative">
-                <Image src={Bell} alt="" width={24} height={24} unoptimized />
+                <BellIcon size={24} className="text-white-950" />
                 {hasUnreadNotifications && (
                   <span className="absolute top-0 right-0 size-1.5 rounded-full bg-primary-500" />
                 )}
@@ -111,7 +115,7 @@ function AppSidebar({
               onClick={onNotificationsClick}
               className="relative flex size-8 items-center justify-center rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:cursor-not-allowed"
             >
-              <Image src={Bell} alt="" width={24} height={24} unoptimized />
+              <BellIcon size={24} className="text-white-950" />
               {hasUnreadNotifications && (
                 <span className="absolute top-1 right-1 size-1.5 rounded-full bg-primary-500" />
               )}
@@ -136,7 +140,7 @@ function AppSidebar({
                 aria-current={isDashboard ? 'page' : undefined}
                 onClick={handleNavigate}
               >
-                <SideIcon icons={Dashboard} />
+                <SideIcon icon={LayoutDashboardIcon} />
                 대시보드
               </SidebarMenuButton>
             </li>
@@ -145,16 +149,14 @@ function AppSidebar({
                 key={isPartTime ? 'partTime' : 'other'}
                 defaultOpen={isPartTime}
               >
-                <Collapsible.Trigger render={<SidebarMenuButton />}>
-                  <SideIcon icons={UserGroup} />
+                <Collapsible.Trigger
+                  render={<SidebarMenuButton isActive={isPartTime} />}
+                >
+                  <SideIcon icon={UserGroupIcon} />
                   <span className="flex-1">아르바이트</span>
-                  <Image
-                    src={ChevronDown}
-                    alt=""
-                    width={24}
-                    height={24}
+                  <ChevronDownIcon
+                    size={24}
                     className="[[aria-expanded=true]>&]:rotate-180"
-                    unoptimized
                   />
                 </Collapsible.Trigger>
                 <Collapsible.Panel>
@@ -194,16 +196,14 @@ function AppSidebar({
                 key={isSales ? 'sales' : 'other'}
                 defaultOpen={isSales}
               >
-                <Collapsible.Trigger render={<SidebarMenuButton />}>
-                  <SideIcon icons={SalesIcon} />
+                <Collapsible.Trigger
+                  render={<SidebarMenuButton isActive={isSales} />}
+                >
+                  <SideIcon icon={WalletIcon} />
                   <span className="flex-1">매출</span>
-                  <Image
-                    src={ChevronDown}
-                    alt=""
-                    width={24}
-                    height={24}
+                  <ChevronDownIcon
+                    size={24}
                     className="[[aria-expanded=true]>&]:rotate-180"
-                    unoptimized
                   />
                 </Collapsible.Trigger>
                 <Collapsible.Panel>
@@ -214,8 +214,8 @@ function AppSidebar({
                         nativeButton={false}
                         role="link"
                         render={<Link href={ROUTE_PATHS.sales()} />}
-                        isActive={isSales}
-                        aria-current={isSales ? 'page' : undefined}
+                        isActive={isSalesDashboard}
+                        aria-current={isSalesDashboard ? 'page' : undefined}
                         onClick={handleNavigate}
                       >
                         매출 대시보드
@@ -240,7 +240,7 @@ function AppSidebar({
             </li>
             <li>
               <SidebarMenuButton disabled title="준비 중">
-                <SideIcon icons={Calendar} />
+                <SideIcon icon={CalendarDaysIcon} />
                 업무
               </SidebarMenuButton>
             </li>
@@ -252,17 +252,12 @@ function AppSidebar({
           <SidebarMenuButton
             disabled={!onSettingsClick}
             onClick={onSettingsClick}
-            className="text-[#737373]"
           >
-            <Image src={Settings} alt="" width={24} height={24} unoptimized />
+            <SettingsIcon size={24} />
             설정
           </SidebarMenuButton>
-          <SidebarMenuButton
-            disabled={!onLogoutClick}
-            onClick={onLogoutClick}
-            className="text-[#737373]"
-          >
-            <Image src={Logout} alt="" width={24} height={24} unoptimized />
+          <SidebarMenuButton disabled={!onLogoutClick} onClick={onLogoutClick}>
+            <LogOutIcon size={24} />
             로그아웃
           </SidebarMenuButton>
         </div>
@@ -284,17 +279,11 @@ function AppSidebar({
               />
             </span>
             <span className="min-w-0 text-sm tracking-[-0.03em]">
-              <span className="flex items-center font-medium text-[#333]">
+              <span className="flex items-center font-medium text-slate-500">
                 <span className="truncate">{profile?.name ?? '내 프로필'}</span>
-                <Image
-                  src={ProfileChevron}
-                  alt=""
-                  width={16}
-                  height={16}
-                  unoptimized
-                />
+                <ChevronDownIcon size={16} className="text-slate-300" />
               </span>
-              <span className="block truncate text-[#a0a0a0]">
+              <span className="block truncate text-slate-200">
                 {profile?.email ?? '계정 정보'}
               </span>
             </span>

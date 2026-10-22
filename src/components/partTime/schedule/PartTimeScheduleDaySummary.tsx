@@ -90,7 +90,7 @@ function PartTimeScheduleDaySummary({
                           onAttendanceChange(schedule, checked)
                         }
                       />
-                      <span className="truncate text-sm font-medium tracking-[-0.03em] text-[#737373]">
+                      <span className="truncate text-sm font-medium tracking-[-0.03em] text-white-950">
                         {startTime} ~ {endTime} {staff.name}
                       </span>
                     </label>
@@ -127,7 +127,7 @@ function PartTimeScheduleDaySummary({
           </ul>
         </>
       ) : (
-        <p className="text-sm font-medium tracking-[-0.03em] text-[#737373]">
+        <p className="text-sm font-medium tracking-[-0.03em] text-white-950">
           등록된 스케줄이 없습니다.
         </p>
       )}
