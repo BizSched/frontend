@@ -1,10 +1,8 @@
 import { Button as ButtonPrimitive } from '@base-ui/react/button';
 import { cva, type VariantProps } from 'class-variance-authority';
-import Image from 'next/image';
+import { XIcon } from 'lucide-react';
 
 import { cn } from '@lib/utilities/cn';
-
-import IcDelete from '@assets/icons/ic_delete.svg';
 
 import { ICON_BUTTON_BASE_CLASSNAME } from './iconButtonBase';
 
@@ -32,7 +30,7 @@ function DeleteButton({
   size = 'small',
   ...props
 }: DeleteButtonProps) {
-  const iconSize = size === 'large' ? 9 : 6.5;
+  const iconSize = size === 'large' ? 16 : 11;
 
   return (
     <ButtonPrimitive
@@ -43,13 +41,7 @@ function DeleteButton({
       )}
       {...props}
     >
-      <Image
-        src={IcDelete}
-        alt=""
-        width={iconSize}
-        height={iconSize}
-        unoptimized
-      />
+      <XIcon size={iconSize} strokeWidth={1.8} className="text-[#A4A4A4]" />
     </ButtonPrimitive>
   );
 }

@@ -1,10 +1,8 @@
-import Image from 'next/image';
+import { CheckIcon } from 'lucide-react';
 
 import { CalendarEventChip } from '@components/_common/Calendar/CalendarEventChip';
 
 import type { PartTimeSchedule } from '@lib/types/partTimeSchedule';
-
-import IcCheckbox from '@assets/icons/ic_checkbox.svg';
 
 interface PartTimeScheduleChipProps {
   schedule: PartTimeSchedule;
@@ -19,13 +17,7 @@ function PartTimeScheduleChip({ schedule }: PartTimeScheduleChipProps) {
       tone={isCheckedIn ? 'muted' : 'accent'}
       leadingSlot={
         isCheckedIn && (
-          <Image
-            src={IcCheckbox}
-            alt="완료"
-            width={16}
-            height={16}
-            unoptimized
-          />
+          <CheckIcon aria-label="완료" size={16} className="text-[#A4A4A4]" />
         )
       }
     />

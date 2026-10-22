@@ -2,7 +2,7 @@
 
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale/ko';
-import Image from 'next/image';
+import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { DayPicker } from 'react-day-picker';
 import type {
   ChevronProps,
@@ -18,9 +18,6 @@ import { DatePickerCell } from '@components/_common/DatePicker/DatePickerCell';
 import { CALENDAR_TIME_ZONE } from '@lib/utilities/calendar/calendarDate';
 import { cn } from '@lib/utilities/cn';
 
-import IcChevronLeft from '@assets/icons/ic_chevron-left.svg';
-import IcChevronRight from '@assets/icons/ic_chevron-right.svg';
-
 const NAVIGATION_BUTTON_CLASS_NAME =
   'flex size-8 cursor-pointer items-center justify-center rounded-[0.375rem] outline-none focus-visible:ring-3 focus-visible:ring-ring/50 aria-disabled:pointer-events-none aria-disabled:opacity-40';
 
@@ -33,15 +30,9 @@ interface DatePickerCalendarProps {
 }
 
 function DatePickerChevron({ orientation }: ChevronProps) {
-  return (
-    <Image
-      src={orientation === 'right' ? IcChevronRight : IcChevronLeft}
-      alt=""
-      width={24}
-      height={24}
-      unoptimized
-    />
-  );
+  const Icon = orientation === 'right' ? ChevronRightIcon : ChevronLeftIcon;
+
+  return <Icon size={24} className="text-[#A4A4A4]" />;
 }
 
 const DATE_PICKER_COMPONENTS = {

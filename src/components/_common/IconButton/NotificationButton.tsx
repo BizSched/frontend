@@ -1,10 +1,8 @@
 import { Button as ButtonPrimitive } from '@base-ui/react/button';
 import { cva } from 'class-variance-authority';
-import Image from 'next/image';
+import { BellIcon } from 'lucide-react';
 
 import { cn } from '@lib/utilities/cn';
-
-import IcBell from '@assets/icons/ic_bell.svg';
 
 import { ICON_BUTTON_BASE_CLASSNAME } from './iconButtonBase';
 
@@ -31,11 +29,11 @@ function NotificationButton({
       )}
       {...props}
     >
-      <Image src={IcBell} alt="" width={24} height={24} unoptimized />
+      <BellIcon size={24} className="text-[#737373]" />
       {unread && (
         <span
           aria-hidden
-          className="bg-primary-500 absolute top-1 right-1 size-3 rounded-full"
+          className="absolute top-1 right-1 size-3 rounded-full bg-primary-500"
         />
       )}
     </ButtonPrimitive>

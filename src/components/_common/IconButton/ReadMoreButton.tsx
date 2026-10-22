@@ -1,11 +1,8 @@
 import { Button as ButtonPrimitive } from '@base-ui/react/button';
 import { cva } from 'class-variance-authority';
-import Image from 'next/image';
+import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 
 import { cn } from '@lib/utilities/cn';
-
-import IcChevronDown from '@assets/icons/ic_chevron-down.svg';
-import IcChevronUp from '@assets/icons/ic_chevron-up.svg';
 
 import { ICON_BUTTON_BASE_CLASSNAME } from './iconButtonBase';
 
@@ -23,7 +20,7 @@ function ReadMoreButton({
   state = 'default',
   ...props
 }: ReadMoreButtonProps) {
-  const isOpen = state === 'open';
+  const Icon = state === 'open' ? ChevronUpIcon : ChevronDownIcon;
 
   return (
     <ButtonPrimitive
@@ -34,13 +31,7 @@ function ReadMoreButton({
       )}
       {...props}
     >
-      <Image
-        src={isOpen ? IcChevronUp : IcChevronDown}
-        alt=""
-        width={24}
-        height={24}
-        unoptimized
-      />
+      <Icon size={24} className="text-[#A4A4A4]" />
     </ButtonPrimitive>
   );
 }

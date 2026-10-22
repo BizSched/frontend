@@ -2,7 +2,18 @@
 
 import { Button } from '@base-ui/react/button';
 import { Collapsible } from '@base-ui/react/collapsible';
-import { MenuIcon } from 'lucide-react';
+import {
+  BellIcon,
+  CalendarDaysIcon,
+  ChevronDownIcon,
+  LayoutDashboardIcon,
+  LogOutIcon,
+  type LucideIcon,
+  MenuIcon,
+  SettingsIcon,
+  UserGroupIcon,
+  WalletIcon,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -19,15 +30,6 @@ import { SidebarTrigger } from '@components/_common/Sidebar/SidebarTrigger';
 
 import { ROUTE_PATHS } from '@lib/utilities/routePaths';
 
-import Bell from '@assets/icons/ic_bell.svg';
-import Calendar from '@assets/icons/ic_calendar-days.svg';
-import ChevronDown from '@assets/icons/ic_chevron-down.svg';
-import ProfileChevron from '@assets/icons/ic_chevron-down.svg';
-import Dashboard from '@assets/icons/ic_layout-dashboard.svg';
-import Logout from '@assets/icons/ic_log-out.svg';
-import Settings from '@assets/icons/ic_settings.svg';
-import UserGroup from '@assets/icons/ic_user-group.svg';
-import SalesIcon from '@assets/icons/ic_wallet.svg';
 import Avatar from '@assets/icons/sidebar/ic_avatar.svg';
 
 interface AppSidebarProps {
@@ -38,8 +40,8 @@ interface AppSidebarProps {
   onProfileClick?: () => void;
   onNotificationsClick?: () => void;
 }
-function SideIcon({ icons }: { icons: string }) {
-  return <Image src={icons} alt="" width={24} height={24} unoptimized />;
+function SideIcon({ icon: Icon }: { icon: LucideIcon }) {
+  return <Icon size={24} className="text-[#A4A4A4]" />;
 }
 function AppSidebar({
   profile,
@@ -89,7 +91,7 @@ function AppSidebar({
               className="-mt-2 flex size-8 items-center justify-center rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:cursor-not-allowed"
             >
               <span className="relative">
-                <Image src={Bell} alt="" width={24} height={24} unoptimized />
+                <BellIcon size={24} className="text-[#737373]" />
                 {hasUnreadNotifications && (
                   <span className="absolute top-0 right-0 size-1.5 rounded-full bg-primary-500" />
                 )}
@@ -111,7 +113,7 @@ function AppSidebar({
               onClick={onNotificationsClick}
               className="relative flex size-8 items-center justify-center rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-primary-500 disabled:cursor-not-allowed"
             >
-              <Image src={Bell} alt="" width={24} height={24} unoptimized />
+              <BellIcon size={24} className="text-[#737373]" />
               {hasUnreadNotifications && (
                 <span className="absolute top-1 right-1 size-1.5 rounded-full bg-primary-500" />
               )}
@@ -136,7 +138,7 @@ function AppSidebar({
                 aria-current={isDashboard ? 'page' : undefined}
                 onClick={handleNavigate}
               >
-                <SideIcon icons={Dashboard} />
+                <SideIcon icon={LayoutDashboardIcon} />
                 대시보드
               </SidebarMenuButton>
             </li>
@@ -146,15 +148,11 @@ function AppSidebar({
                 defaultOpen={isPartTime}
               >
                 <Collapsible.Trigger render={<SidebarMenuButton />}>
-                  <SideIcon icons={UserGroup} />
+                  <SideIcon icon={UserGroupIcon} />
                   <span className="flex-1">아르바이트</span>
-                  <Image
-                    src={ChevronDown}
-                    alt=""
-                    width={24}
-                    height={24}
-                    className="[[aria-expanded=true]>&]:rotate-180"
-                    unoptimized
+                  <ChevronDownIcon
+                    size={24}
+                    className="text-[#A4A4A4] [[aria-expanded=true]>&]:rotate-180"
                   />
                 </Collapsible.Trigger>
                 <Collapsible.Panel>
@@ -195,15 +193,11 @@ function AppSidebar({
                 defaultOpen={isSales}
               >
                 <Collapsible.Trigger render={<SidebarMenuButton />}>
-                  <SideIcon icons={SalesIcon} />
+                  <SideIcon icon={WalletIcon} />
                   <span className="flex-1">매출</span>
-                  <Image
-                    src={ChevronDown}
-                    alt=""
-                    width={24}
-                    height={24}
-                    className="[[aria-expanded=true]>&]:rotate-180"
-                    unoptimized
+                  <ChevronDownIcon
+                    size={24}
+                    className="text-[#A4A4A4] [[aria-expanded=true]>&]:rotate-180"
                   />
                 </Collapsible.Trigger>
                 <Collapsible.Panel>
@@ -240,7 +234,7 @@ function AppSidebar({
             </li>
             <li>
               <SidebarMenuButton disabled title="준비 중">
-                <SideIcon icons={Calendar} />
+                <SideIcon icon={CalendarDaysIcon} />
                 업무
               </SidebarMenuButton>
             </li>
@@ -254,7 +248,7 @@ function AppSidebar({
             onClick={onSettingsClick}
             className="text-[#737373]"
           >
-            <Image src={Settings} alt="" width={24} height={24} unoptimized />
+            <SettingsIcon size={24} className="text-[#A4A4A4]" />
             설정
           </SidebarMenuButton>
           <SidebarMenuButton
@@ -262,7 +256,7 @@ function AppSidebar({
             onClick={onLogoutClick}
             className="text-[#737373]"
           >
-            <Image src={Logout} alt="" width={24} height={24} unoptimized />
+            <LogOutIcon size={24} className="text-[#A4A4A4]" />
             로그아웃
           </SidebarMenuButton>
         </div>
@@ -286,13 +280,7 @@ function AppSidebar({
             <span className="min-w-0 text-sm tracking-[-0.03em]">
               <span className="flex items-center font-medium text-[#333]">
                 <span className="truncate">{profile?.name ?? '내 프로필'}</span>
-                <Image
-                  src={ProfileChevron}
-                  alt=""
-                  width={16}
-                  height={16}
-                  unoptimized
-                />
+                <ChevronDownIcon size={16} className="text-[#A4A4A4]" />
               </span>
               <span className="block truncate text-[#a0a0a0]">
                 {profile?.email ?? '계정 정보'}

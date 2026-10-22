@@ -1,5 +1,5 @@
 import { cva } from 'class-variance-authority';
-import Image from 'next/image';
+import { CheckIcon } from 'lucide-react';
 
 import { CalendarEventChip } from '@components/_common/Calendar/CalendarEventChip';
 
@@ -14,8 +14,6 @@ import {
   getPartTimeStaffShiftStatus,
   getPartTimeStaffWeekDates,
 } from '@lib/utilities/partTime/partTimeStaff';
-
-import IcCheckbox from '@assets/icons/ic_checkbox.svg';
 
 const weeklyShiftChipVariants = cva('justify-center gap-0 px-0.5', {
   variants: {
@@ -135,12 +133,10 @@ function PartTimeStaffWeeklySchedule({
                           leadingSlot={
                             <>
                               {status === 'completed' && (
-                                <Image
-                                  src={IcCheckbox}
-                                  alt="완료"
-                                  width={16}
-                                  height={16}
-                                  unoptimized
+                                <CheckIcon
+                                  aria-label="완료"
+                                  size={16}
+                                  className="text-[#A4A4A4]"
                                 />
                               )}
                               {status === 'missed' && (

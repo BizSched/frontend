@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import { FileUpIcon, XIcon } from 'lucide-react';
 import { type ChangeEvent, useEffect, useRef, useState } from 'react';
 
 import { Button } from '@components/_common/Button/Button';
@@ -9,9 +9,6 @@ import { toast } from '@components/_common/Toast/Toaster';
 
 import { cn } from '@lib/utilities/cn';
 import { preparePartTimeStaffAttachment } from '@lib/utilities/partTime/preparePartTimeStaffAttachment';
-
-import IcDelete from '@assets/icons/ic_delete.svg';
-import IcUpload from '@assets/icons/ic_upload.svg';
 
 const ATTACHMENT_ACCEPT = '.jpg,.jpeg,.png,.webp,.pdf';
 const FILE_ERROR_TOAST_ID = 'staff-attachment-file-error';
@@ -107,13 +104,9 @@ function PartTimeStaffAttachmentUploadModal({
           />
           {file ? (
             <div className={FILE_FIELD_CLASS_NAME}>
-              <Image
-                src={IcUpload}
-                alt=""
-                width={24}
-                height={24}
-                className="shrink-0 max-tablet:size-5"
-                unoptimized
+              <FileUpIcon
+                size={24}
+                className="shrink-0 text-[#6B6A68] max-tablet:size-5"
               />
               <span className="min-w-0 flex-1 truncate text-[#0d0b0a]">
                 {file.name}
@@ -128,7 +121,7 @@ function PartTimeStaffAttachmentUploadModal({
                 }}
                 className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring max-tablet:size-5"
               >
-                <Image src={IcDelete} alt="" width={9} height={9} unoptimized />
+                <XIcon size={16} strokeWidth={1.8} className="text-[#A4A4A4]" />
               </button>
             </div>
           ) : (
@@ -140,14 +133,7 @@ function PartTimeStaffAttachmentUploadModal({
                 'cursor-pointer text-[#737373] outline-none focus-visible:ring-2 focus-visible:ring-ring',
               )}
             >
-              <Image
-                src={IcUpload}
-                alt=""
-                width={24}
-                height={24}
-                className="shrink-0 max-tablet:size-5"
-                unoptimized
-              />
+              <FileUpIcon size={24} className="shrink-0 max-tablet:size-5" />
               파일을 선택해주세요
             </button>
           )}
