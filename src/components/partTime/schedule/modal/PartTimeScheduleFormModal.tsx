@@ -1,12 +1,11 @@
 'use client';
 
-import { useId } from 'react';
+import { type ChangeEvent, useId } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 
 import { Button } from '@components/_common/Button/Button';
 import { DatePicker } from '@components/_common/DatePicker/DatePicker';
 import { FormDropdown } from '@components/_common/FormDropdown/FormDropdown';
-import { Input } from '@components/_common/Input/Input';
 import { Modal } from '@components/_common/Modal/Modal';
 import { PartTimeScheduleFormField } from '@components/partTime/schedule/modal/PartTimeScheduleFormField';
 import { PartTimeScheduleQuickTimeSelect } from '@components/partTime/schedule/modal/PartTimeScheduleQuickTimeSelect';
@@ -22,6 +21,12 @@ import {
 } from '@lib/utilities/calendar/calendarDate';
 import { cn } from '@lib/utilities/cn';
 import { getPartTimeScheduleChanges } from '@lib/utilities/partTime/partTimeScheduleForm';
+import {
+  PART_TIME_MEMO_MAX_LENGTH,
+  countPartTimeMemoLength,
+  isComposingInput,
+  limitPartTimeMemo,
+} from '@lib/utilities/partTime/partTimeTextInput';
 
 const STAFF_PLACEHOLDER = '아르바이트생을 선택해주세요';
 
@@ -48,6 +53,12 @@ const DROPDOWN_CLASS_NAME = cn(
 
 const DROPDOWN_CONTENT_CLASS_NAME =
   'max-h-72 overflow-y-auto drop-shadow-[0px_4px_8px_rgba(0,0,0,0.1)]';
+
+const MEMO_FRAME_CLASS_NAME =
+  'flex min-h-30 w-full flex-col rounded-[16px] border border-slate-300 bg-white-50 p-4 transition-colors focus-within:ring-2 focus-within:ring-primary-500 has-[:disabled]:cursor-not-allowed has-[:disabled]:bg-slate-50 max-tablet:min-h-24 max-tablet:rounded-[12px] max-tablet:p-3';
+
+const MEMO_CLASS_NAME =
+  'w-full flex-1 resize-none bg-transparent field-sizing-content text-base tracking-[-0.02em] text-slate-700 outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:text-slate-500 max-tablet:text-sm max-tablet:tracking-[-0.03em]';
 
 const FOOTER_BUTTON_CLASS_NAME =
   'w-auto min-w-0 max-tablet:h-12 max-tablet:py-3 max-tablet:text-base max-tablet:leading-6';
@@ -123,6 +134,7 @@ function PartTimeScheduleFormModal({
       },
       schedule,
     ) !== null;
+  const memoLength = countPartTimeMemoLength(memo);
   const text = FORM_MODAL_TEXT[mode];
   const isEndTimeInvalid = !!startTime && !!endTime && endTime <= startTime;
   const isSubmitDisabled =
@@ -303,17 +315,41 @@ function PartTimeScheduleFormModal({
               />
             </PartTimeScheduleFormField>
             <PartTimeScheduleFormField label="메모" labelId={`${fieldId}-memo`}>
-              <Input
-                disabled={isLocked}
-                aria-labelledby={`${fieldId}-memo`}
-                placeholder="간단한 메모를 작성해주세요"
-                maxLength={500}
-                className={cn(
-                  FIELD_CLASS_NAME,
-                  '[&_input]:placeholder:text-muted-foreground',
-                )}
-                {...register('memo', { maxLength: 500 })}
-              />
+              <div className={MEMO_FRAME_CLASS_NAME}>
+                <textarea
+                  disabled={isLocked}
+                  aria-labelledby={`${fieldId}-memo`}
+                  aria-describedby={`${fieldId}-memo-length`}
+                  placeholder="간단한 메모를 작성해주세요"
+                  className={MEMO_CLASS_NAME}
+                  {...register('memo', {
+                    maxLength: PART_TIME_MEMO_MAX_LENGTH,
+                    onChange: (event: ChangeEvent<HTMLTextAreaElement>) => {
+                      if (!isComposingInput(event)) {
+                        setValue(
+                          'memo',
+                          limitPartTimeMemo(event.currentTarget.value),
+                          { shouldValidate: true },
+                        );
+                      }
+                    },
+                  })}
+                  onCompositionEnd={(event) =>
+                    setValue(
+                      'memo',
+                      limitPartTimeMemo(event.currentTarget.value),
+                      { shouldValidate: true, shouldDirty: true },
+                    )
+                  }
+                />
+              </div>
+              <p
+                id={`${fieldId}-memo-length`}
+                className="-mt-1 px-1 text-right text-xs leading-4 text-[#a4a4a4]"
+              >
+                공백포함 {memoLength.withSpaces}자 | 공백제외{' '}
+                {memoLength.withoutSpaces}자
+              </p>
             </PartTimeScheduleFormField>
           </Modal.Body>
           <Modal.Footer layout="split" className="max-tablet:gap-2">
@@ -336,10 +372,7 @@ function PartTimeScheduleFormModal({
               type="submit"
               disabled={isSubmitDisabled}
               focusableWhenDisabled
-              className={cn(
-                FOOTER_BUTTON_CLASS_NAME,
-                'data-disabled:cursor-not-allowed data-disabled:bg-[#bbbbbb] data-disabled:hover:bg-[#bbbbbb]',
-              )}
+              className={FOOTER_BUTTON_CLASS_NAME}
             >
               {text.submit}
             </Button>

@@ -2,14 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import {
-  type ChangeEvent,
-  type SyntheticEvent,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-} from 'react';
+import { type ChangeEvent, useEffect, useId, useRef, useState } from 'react';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 
 import { Button } from '@components/_common/Button/Button';
@@ -37,11 +30,9 @@ import { cn } from '@lib/utilities/cn';
 import { PART_TIME_STAFF_ATTACHMENT_MAX_COUNT } from '@lib/utilities/partTime/partTimeStaffAttachment';
 import {
   PART_TIME_STAFF_NAME_MAX_LENGTH,
-  PART_TIME_STAFF_MEMO_MAX_LENGTH,
   PART_TIME_STAFF_UNSUPPORTED_CLEAR_MESSAGE,
   applyPartTimeStaffInputFormat,
   countPartTimeStaffCharacters,
-  countPartTimeStaffMemoLength,
   createPartTimeStaffFormNewAttachment,
   formatPartTimeStaffBirthDateInput,
   formatPartTimeStaffHourlyWageInput,
@@ -52,9 +43,14 @@ import {
   isPartTimeStaffPhoneValid,
   hasPartTimeStaffUnsupportedClear,
   limitPartTimeStaffName,
-  limitPartTimeStaffMemo,
   toPartTimeStaffFormValues,
 } from '@lib/utilities/partTime/partTimeStaffForm';
+import {
+  PART_TIME_MEMO_MAX_LENGTH,
+  countPartTimeMemoLength,
+  isComposingInput,
+  limitPartTimeMemo,
+} from '@lib/utilities/partTime/partTimeTextInput';
 
 const FORM_TEXT = {
   create: {
@@ -104,9 +100,6 @@ interface FormattedInputField {
   value: string;
   onChange: (value: string) => void;
 }
-
-const isComposingInput = (event: SyntheticEvent) =>
-  'isComposing' in event.nativeEvent && event.nativeEvent.isComposing === true;
 
 const createFormattedInputChangeHandler =
   (field: FormattedInputField, format: (value: string) => string) =>
@@ -185,7 +178,7 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
     countPartTimeStaffCharacters(name),
     PART_TIME_STAFF_NAME_MAX_LENGTH,
   );
-  const memoLength = countPartTimeStaffMemoLength(memo);
+  const memoLength = countPartTimeMemoLength(memo);
   const isSaving =
     saveMutation.isPending || formState.isSubmitting || isNavigating;
   const hasUnsupportedClear =
@@ -289,7 +282,7 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
               size="small"
               disabled={isSubmitDisabled}
               focusableWhenDisabled
-              className="h-10 w-26.5 max-tablet:h-auto max-tablet:w-auto max-tablet:bg-transparent max-tablet:px-1.5 max-tablet:py-0.5 max-tablet:text-[#333333] max-tablet:hover:bg-transparent data-disabled:cursor-not-allowed data-disabled:bg-[#bbbbbb] data-disabled:hover:bg-[#bbbbbb] max-tablet:data-disabled:bg-transparent max-tablet:data-disabled:text-[#a4a4a4] max-tablet:data-disabled:hover:bg-transparent"
+              className="h-10 w-26.5 max-tablet:h-auto max-tablet:w-auto max-tablet:bg-transparent max-tablet:px-1.5 max-tablet:py-0.5 max-tablet:text-[#333333] max-tablet:hover:bg-transparent max-tablet:data-disabled:bg-transparent max-tablet:data-disabled:text-[#a4a4a4] max-tablet:data-disabled:hover:bg-transparent"
             >
               <span className="max-tablet:hidden">{text.submit}</span>
               <span className="hidden max-tablet:inline">
@@ -500,12 +493,12 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
                   placeholder="이 곳을 통해 메모를 작성해주세요"
                   className="min-h-50 w-full flex-1 resize-none bg-transparent text-sm leading-5 tracking-[-0.03em] text-[#333333] outline-none placeholder:text-base placeholder:leading-6 placeholder:tracking-[-0.02em] placeholder:text-[#a4a4a4] max-tablet:placeholder:text-sm max-tablet:placeholder:leading-5 max-tablet:placeholder:tracking-[-0.03em]"
                   {...register('memo', {
-                    maxLength: PART_TIME_STAFF_MEMO_MAX_LENGTH,
+                    maxLength: PART_TIME_MEMO_MAX_LENGTH,
                     onChange: (event: ChangeEvent<HTMLTextAreaElement>) => {
                       if (!isComposingInput(event)) {
                         setValue(
                           'memo',
-                          limitPartTimeStaffMemo(event.currentTarget.value),
+                          limitPartTimeMemo(event.currentTarget.value),
                           { shouldValidate: true },
                         );
                       }
@@ -514,7 +507,7 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
                   onCompositionEnd={(event) =>
                     setValue(
                       'memo',
-                      limitPartTimeStaffMemo(event.currentTarget.value),
+                      limitPartTimeMemo(event.currentTarget.value),
                       { shouldValidate: true, shouldDirty: true },
                     )
                   }

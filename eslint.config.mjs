@@ -13,6 +13,8 @@ export default tseslint.config({
     'node_modules/**',
     'dist/**',
     'coverage/**',
+    'playwright-report/**',
+    'test-results/**',
     '*.config.{js,mjs,ts}',
     'src/lib/api/generated/**',
   ],
