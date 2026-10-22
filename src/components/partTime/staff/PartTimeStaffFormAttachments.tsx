@@ -1,9 +1,10 @@
-import { XIcon } from 'lucide-react';
+import { FileUpIcon, XIcon } from 'lucide-react';
 
 import { PartTimeStaffAttachmentBox } from '@components/partTime/staff/PartTimeStaffAttachmentBox';
 import { PartTimeStaffAttachmentFile } from '@components/partTime/staff/PartTimeStaffAttachmentFile';
 
 import type { PartTimeStaffFormAttachment } from '@lib/types/partTimeStaff';
+import { cn } from '@lib/utilities/cn';
 import { PART_TIME_STAFF_ATTACHMENT_MAX_COUNT } from '@lib/utilities/partTime/partTimeStaffAttachment';
 
 const ROW_BUTTON_CLASS_NAME =
@@ -26,7 +27,12 @@ function PartTimeStaffFormAttachments({
 }: PartTimeStaffFormAttachmentsProps) {
   return (
     <PartTimeStaffAttachmentBox>
-      <li className="flex">
+      <li
+        className={cn(
+          'flex',
+          attachments.length > 0 && 'border-b border-[#e2e8f0] pb-2.5',
+        )}
+      >
         <button
           type="button"
           aria-label="첨부파일 업로드"
@@ -36,12 +42,13 @@ function PartTimeStaffFormAttachments({
             attachments.length >= PART_TIME_STAFF_ATTACHMENT_MAX_COUNT
           }
           onClick={onUploadClick}
-          className={ROW_BUTTON_CLASS_NAME}
+          className={cn(ROW_BUTTON_CLASS_NAME, 'items-center gap-1')}
         >
-          <PartTimeStaffAttachmentFile
-            name="첨부파일"
-            nameClassName="text-white-950"
-          />
+          <FileUpIcon size={24} className="shrink-0 text-slate-400" />
+          <span className="text-sm leading-5 font-semibold tracking-[-0.03em] text-white-950">
+            첨부파일 ({attachments.length}/
+            {PART_TIME_STAFF_ATTACHMENT_MAX_COUNT})
+          </span>
         </button>
       </li>
       {attachments.map((attachment) => (
