@@ -1,6 +1,7 @@
 import { Card } from '@components/_common/Card/Card';
 
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 interface SalesSummaryCardProps {
   title: string;
@@ -26,18 +27,28 @@ function SalesSummaryCard({
         className,
       )}
     >
-      <h2 className="text-2xl font-semibold text-slate-800 max-tablet:text-base">
+      <h2
+        className={cn(
+          typographyVariants({ role: 'sectionTitle' }),
+          'text-slate-800',
+        )}
+      >
         {title}
       </h2>
       <p
         className={cn(
-          'text-3xl font-bold max-tablet:text-xl',
+          typographyVariants({ role: 'metric' }),
           isAccent ? 'text-primary-700' : 'text-slate-900',
         )}
       >
         {value}
       </p>
-      <p className="text-sm font-medium text-slate-500 max-tablet:text-xs">
+      <p
+        className={cn(
+          typographyVariants({ role: 'supporting' }),
+          'text-slate-500',
+        )}
+      >
         {caption}
       </p>
     </Card>

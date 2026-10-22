@@ -32,8 +32,10 @@ import { useDatePickerLayout } from '@hooks/datePicker/useDatePickerLayout';
 import { usePageSearchParam } from '@hooks/pagination/usePageSearchParam';
 
 import type { Sale } from '@lib/api/entities/sales/toSale';
+import { cn } from '@lib/utilities/cn';
 import { formatSalesError } from '@lib/utilities/sales/formatSalesError';
 import { isSalesMonth } from '@lib/utilities/sales/salesMonth';
+import { typographyVariants } from '@lib/utilities/typography';
 
 const NUMBER_FORMAT = new Intl.NumberFormat('ko-KR');
 const PAGE_SIZE = 10;
@@ -211,20 +213,36 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
               value={Number(month.slice(5, 7))}
               onChange={handleMonthChange}
               size="small"
-              className="border-slate-100 px-3 py-1 text-sm font-semibold text-slate-800 max-tablet:text-xs"
+              className={cn(
+                typographyVariants({ role: 'label' }),
+                'border-slate-100 px-3 py-1 text-slate-800',
+              )}
             />
             <h2
               id="sales-month-title"
-              className="text-xl leading-[29px] font-bold text-slate-950 max-desktop:text-lg max-desktop:leading-7"
+              className={cn(
+                typographyVariants({ role: 'sectionTitle' }),
+                'text-slate-950',
+              )}
             >
               매출
             </h2>
           </div>
-          <span className="text-sm font-medium text-slate-500">
+          <span
+            className={cn(
+              typographyVariants({ role: 'supporting' }),
+              'text-slate-500',
+            )}
+          >
             월 전체 합계
           </span>
         </div>
-        <p className="text-right text-base font-bold text-slate-800">
+        <p
+          className={cn(
+            typographyVariants({ role: 'metric' }),
+            'text-right text-slate-800',
+          )}
+        >
           합계{' '}
           {monthTotal === undefined
             ? '-'
@@ -234,7 +252,12 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
 
       <div className="border-b border-slate-500 pb-2">
         {isError ? (
-          <div className="py-8 text-center text-sm text-slate-500">
+          <div
+            className={cn(
+              typographyVariants({ role: 'supporting' }),
+              'py-8 text-center text-slate-500',
+            )}
+          >
             <p>{formatSalesError(error)}</p>
             <button
               type="button"
@@ -249,23 +272,36 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
             </button>
           </div>
         ) : isLoading ? (
-          <p className="py-8 text-center text-sm text-slate-500">
+          <p
+            className={cn(
+              typographyVariants({ role: 'supporting' }),
+              'py-8 text-center text-slate-500',
+            )}
+          >
             매출 내역을 불러오는 중입니다.
           </p>
         ) : salesList && salesList.items.length === 0 ? (
-          <p className="py-8 text-center text-sm text-slate-500">
+          <p
+            className={cn(
+              typographyVariants({ role: 'supporting' }),
+              'py-8 text-center text-slate-500',
+            )}
+          >
             등록된 매출 내역이 없습니다.
           </p>
         ) : (
           <Table
             aria-label="날짜별 매출 내역"
-            className="table-fixed text-base"
+            className={cn(typographyVariants({ role: 'body' }), 'table-fixed')}
           >
             <Table.Header>
               <Table.Row className="border-slate-200 hover:bg-transparent">
                 <Table.Head
                   scope="col"
-                  className="h-auto w-[118px] px-0 pb-1 text-center text-sm text-slate-500 max-desktop:w-[100px]"
+                  className={cn(
+                    typographyVariants({ role: 'label' }),
+                    'h-auto w-[118px] px-0 pb-1 text-center text-slate-500 max-desktop:w-[100px]',
+                  )}
                 >
                   날짜
                 </Table.Head>
@@ -273,14 +309,20 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
                   <Table.Head
                     key={category.id}
                     scope="col"
-                    className="h-auto px-1 pb-1 text-center text-sm text-slate-500 max-tablet:hidden"
+                    className={cn(
+                      typographyVariants({ role: 'label' }),
+                      'h-auto px-1 pb-1 text-center wrap-anywhere whitespace-normal text-slate-500 max-tablet:hidden',
+                    )}
                   >
                     {category.name}
                   </Table.Head>
                 ))}
                 <Table.Head
                   scope="col"
-                  className="h-auto w-[118px] px-0 pb-1 text-center text-sm text-slate-500 max-desktop:w-[100px] max-tablet:w-auto"
+                  className={cn(
+                    typographyVariants({ role: 'label' }),
+                    'h-auto w-[118px] px-0 pb-1 text-center text-slate-500 max-desktop:w-[100px] max-tablet:w-auto',
+                  )}
                 >
                   합계
                 </Table.Head>
@@ -302,12 +344,20 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
                     <Table.Row className="h-[59px] border-slate-50 hover:bg-transparent max-desktop:h-[55px]">
                       <Table.Head
                         scope="row"
-                        className="h-auto px-0 py-3.5 text-base font-semibold text-slate-950"
+                        className={cn(
+                          typographyVariants({ role: 'subtitle' }),
+                          'h-auto px-0 py-3.5 text-slate-950',
+                        )}
                       >
                         <time dateTime={sale.date}>
                           {format(saleDate, 'M월 d일', { locale: ko })}
                         </time>
-                        <span className="ml-2 text-xs font-medium text-slate-300 max-desktop:ml-1">
+                        <span
+                          className={cn(
+                            typographyVariants({ role: 'caption' }),
+                            'ml-2 text-slate-400 max-desktop:ml-1',
+                          )}
+                        >
                           {format(saleDate, 'EEEEE', { locale: ko })}
                         </span>
                       </Table.Head>
@@ -319,13 +369,21 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
                         return (
                           <Table.Cell
                             key={category.id}
-                            className="px-1 py-3.5 text-right font-medium text-slate-600 max-tablet:hidden"
+                            className={cn(
+                              typographyVariants({ role: 'data' }),
+                              'px-1 py-3.5 text-right text-slate-600 max-tablet:hidden',
+                            )}
                           >
                             {NUMBER_FORMAT.format(amount)}
                           </Table.Cell>
                         );
                       })}
-                      <Table.Cell className="px-0 py-3.5 text-right font-medium text-slate-950 max-tablet:pr-1">
+                      <Table.Cell
+                        className={cn(
+                          typographyVariants({ role: 'data' }),
+                          'px-0 py-3.5 text-right font-semibold text-slate-950 max-tablet:pr-1',
+                        )}
+                      >
                         ₩{NUMBER_FORMAT.format(sale.totalAmount)}
                       </Table.Cell>
                       <Table.Cell className="px-0 py-2 text-right">
@@ -368,7 +426,12 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
                             aria-label={`${dateLabel} 매출 수정`}
                             className="flex flex-wrap items-center gap-3"
                           >
-                            <span className="text-base font-semibold text-slate-950">
+                            <span
+                              className={cn(
+                                typographyVariants({ role: 'subtitle' }),
+                                'text-slate-950',
+                              )}
+                            >
                               {dateLabel}
                             </span>
                             {categories?.map((category) => {
@@ -398,11 +461,19 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
                                       Number(event.target.value),
                                     )
                                   }
-                                  className="h-9 min-w-24 flex-1 border-slate-200 px-2 text-base [&_input]:text-right"
+                                  className={cn(
+                                    typographyVariants({ role: 'data' }),
+                                    'h-9 min-w-24 flex-1 border-slate-200 px-2 py-1 [&_input]:text-right',
+                                  )}
                                 />
                               );
                             })}
-                            <span className="ml-auto font-medium text-slate-950">
+                            <span
+                              className={cn(
+                                typographyVariants({ role: 'data' }),
+                                'ml-auto font-semibold text-slate-950',
+                              )}
+                            >
                               ₩
                               {NUMBER_FORMAT.format(
                                 draftSales.reduce(
@@ -460,12 +531,24 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
         />
       )}
       {!isSheetOpen && editingDay !== null && hasAmountError && (
-        <p role="alert" className="mt-2 text-sm text-warning-500">
+        <p
+          role="alert"
+          className={cn(
+            typographyVariants({ role: 'supporting' }),
+            'mt-2 text-warning-700',
+          )}
+        >
           0 이상의 정수로 입력해 주세요.
         </p>
       )}
       {!isSheetOpen && mutationError !== null && (
-        <p role="alert" className="mt-2 text-sm text-warning-500">
+        <p
+          role="alert"
+          className={cn(
+            typographyVariants({ role: 'supporting' }),
+            'mt-2 text-warning-700',
+          )}
+        >
           {formatSalesError(mutationError)}
         </p>
       )}
@@ -476,7 +559,10 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
               aria-label="이전 페이지"
               disabled={page <= 1}
               onClick={() => setCurrentPage(page - 1)}
-              className="max-desktop:size-8 max-desktop:rounded-md max-desktop:text-sm"
+              className={cn(
+                typographyVariants({ role: 'label' }),
+                'max-desktop:size-8 max-desktop:rounded-md',
+              )}
             >
               <ChevronLeftIcon aria-hidden="true" />
             </PaginationButton>
@@ -488,7 +574,10 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
                   isActive={pageNumber === page}
                   aria-label={`${pageNumber}페이지`}
                   onClick={() => setCurrentPage(pageNumber)}
-                  className="max-desktop:size-8 max-desktop:rounded-md max-desktop:text-sm"
+                  className={cn(
+                    typographyVariants({ role: 'label' }),
+                    'max-desktop:size-8 max-desktop:rounded-md',
+                  )}
                 >
                   {pageNumber}
                 </PaginationButton>
@@ -500,7 +589,10 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
               aria-label="다음 페이지"
               disabled={page >= totalPages}
               onClick={() => setCurrentPage(page + 1)}
-              className="max-desktop:size-8 max-desktop:rounded-md max-desktop:text-sm"
+              className={cn(
+                typographyVariants({ role: 'label' }),
+                'max-desktop:size-8 max-desktop:rounded-md',
+              )}
             >
               <ChevronRightIcon aria-hidden="true" />
             </PaginationButton>

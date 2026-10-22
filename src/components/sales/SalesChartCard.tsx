@@ -10,6 +10,7 @@ import { useSalesChart } from '@hooks/api/sales/useSalesChart';
 
 import { cn } from '@lib/utilities/cn';
 import { formatSalesError } from '@lib/utilities/sales/formatSalesError';
+import { typographyVariants } from '@lib/utilities/typography';
 
 import { SalesWeeklyChart } from './SalesWeeklyChart';
 
@@ -46,17 +47,30 @@ function SalesChartCard({ month, date }: SalesChartCardProps) {
     >
       <Card.Header className="items-center max-tablet:items-start">
         <div className="flex items-center gap-3">
-          <Card.Title className="text-2xl font-semibold text-slate-950 max-tablet:text-lg">
+          <Card.Title
+            className={cn(
+              typographyVariants({ role: 'sectionTitle' }),
+              'text-slate-950',
+            )}
+          >
             매출 차트
           </Card.Title>
           <MonthSelectDropdown
             value={Number(selectedMonth.slice(5))}
             onChange={handleMonthChange}
             size="small"
-            className="border-slate-100 px-3 py-1 text-sm font-semibold text-slate-800 max-tablet:text-xs"
+            className={cn(
+              typographyVariants({ role: 'label' }),
+              'border-slate-100 px-3 py-1 text-slate-800',
+            )}
           />
         </div>
-        <div className="flex items-center rounded-lg bg-slate-50 p-[3px] text-xs font-medium max-tablet:hidden">
+        <div
+          className={cn(
+            typographyVariants({ role: 'label' }),
+            'flex items-center rounded-lg bg-slate-50 p-[3px] max-tablet:hidden',
+          )}
+        >
           {CHART_TABS.map((tab) => (
             <button
               key={tab.unit}
@@ -74,7 +88,12 @@ function SalesChartCard({ month, date }: SalesChartCardProps) {
         </div>
       </Card.Header>
 
-      <div className="hidden self-end rounded-lg bg-slate-50 p-[3px] text-xs font-medium max-tablet:flex">
+      <div
+        className={cn(
+          typographyVariants({ role: 'label' }),
+          'hidden self-end rounded-lg bg-slate-50 p-[3px] max-tablet:flex',
+        )}
+      >
         {CHART_TABS.map((tab) => (
           <button
             key={tab.unit}
@@ -101,7 +120,12 @@ function SalesChartCard({ month, date }: SalesChartCardProps) {
       {data ? (
         <SalesWeeklyChart chart={data} monthLabel={monthLabel} />
       ) : (
-        <p className="flex flex-1 items-center justify-center text-sm text-slate-500">
+        <p
+          className={cn(
+            typographyVariants({ role: 'supporting' }),
+            'flex flex-1 items-center justify-center text-slate-500',
+          )}
+        >
           {error ? formatSalesError(error) : '불러오는 중'}
         </p>
       )}
