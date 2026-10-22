@@ -3,6 +3,7 @@ import { TextButton } from '@components/_common/TextButton/TextButton';
 import { PartTimeScheduleMemo } from '@components/partTime/schedule/PartTimeScheduleMemo';
 
 import type { PartTimeSchedule } from '@lib/types/partTimeSchedule';
+import { CAPTURE_EXCLUDE_PROPS } from '@lib/utilities/capture/captureAttributes';
 import { cn } from '@lib/utilities/cn';
 import { formatPartTimeScheduleSummaryTitle } from '@lib/utilities/partTime/partTimeSchedule';
 
@@ -94,7 +95,10 @@ function PartTimeScheduleDaySummary({
                         {startTime} ~ {endTime} {staff.name}
                       </span>
                     </label>
-                    <div className="flex shrink-0 items-center gap-1">
+                    <div
+                      {...CAPTURE_EXCLUDE_PROPS}
+                      className="flex shrink-0 items-center gap-1"
+                    >
                       <TextButton
                         size="small"
                         aria-label={`${startTime} ~ ${endTime} ${staff.name} 스케줄 수정`}

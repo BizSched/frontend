@@ -1,6 +1,10 @@
 import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
 
+import {
+  CAPTURE_EXCLUDE_PROPS,
+  CAPTURE_EXPAND_PROPS,
+} from '@lib/utilities/capture/captureAttributes';
 import { cn } from '@lib/utilities/cn';
 
 interface PartTimeScheduleMemoProps {
@@ -34,6 +38,7 @@ function PartTimeScheduleMemo({ memo, className }: PartTimeScheduleMemoProps) {
       <p
         ref={memoRef}
         id={memoId}
+        {...CAPTURE_EXPAND_PROPS}
         className={cn(
           'min-w-0 flex-1 text-xs leading-4 tracking-[-0.03em] wrap-break-word whitespace-pre-wrap text-slate-400',
           !isExpanded && 'line-clamp-2',
@@ -44,6 +49,7 @@ function PartTimeScheduleMemo({ memo, className }: PartTimeScheduleMemoProps) {
       {(isOverflowing || isExpanded) && (
         <button
           type="button"
+          {...CAPTURE_EXCLUDE_PROPS}
           aria-label={isExpanded ? '메모 접기' : '메모 펼치기'}
           aria-expanded={isExpanded}
           aria-controls={memoId}
