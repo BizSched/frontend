@@ -219,14 +219,14 @@ Figma dropdown list에는 `state`가 `default`/`hover`뿐이고 **`selected`가 
 | ④ border-b 구분선 `#dddcdc`(slate/100)    | `--color-slate-100`                     |                                   |
 | ③ 트리거 텍스트 `#0f0e0d`(slate/900)      | `--color-slate-900`                     |                                   |
 
-### 불일치 (코드 토큰으로 고정)
+### 불일치 (토큰 기준으로 통일)
 
-| Figma                           | Figma 값  | 코드 토큰           | 코드 값              |
-| ------------------------------- | --------- | ------------------- | -------------------- |
-| 항목 텍스트 slate/700           | `#333333` | `--color-slate-700` | `#161412`(거의 검정) |
-| ③④ 화살표·보조 텍스트 slate/400 | `#A4A4A4` | `--color-slate-400` | `#6B6A68`            |
+| Figma                 | Figma 값  | 코드 토큰           | 코드 값              |
+| --------------------- | --------- | ------------------- | -------------------- |
+| 항목 텍스트           | `#333333` | `--color-slate-500` | `#1C1917`(거의 검정) |
+| ③④ 화살표·보조 텍스트 | `#A4A4A4` | `--color-slate-300` | `#999797`            |
 
-[pagination](../pagination/README.md#디자인-토큰-매핑)이 채택한 "이름이 아니라 값 기준" 원칙을 그대로 따른다. `text-[#333]` 등 Figma 원본 값을 arbitrary value로 인라인 적용하고, 코드의 동명 토큰(slate-700/400)은 참조하지 않는다.
+Figma hex를 arbitrary value로 인라인 적용하지 않고 코드 토큰(`text-slate-500`, `text-slate-300`)으로 통일한다 (2026-10-22 확정). 이전의 "값 기준 arbitrary" 방침은 폐기했다. [pagination](../pagination/README.md#디자인-토큰-매핑)은 별도 정리 전까지 기존 방침을 유지한다.
 
 letter-spacing(`tracking-[-0.03em]`)도 [modal](../modal/README.md#디자인-토큰-매핑)의 선례를 따라 토큰을 신설하지 않고 인라인 arbitrary value로 적용한다.
 
@@ -312,7 +312,7 @@ GitHub [stacked pull requests](https://docs.github.com/en/pull-requests/get-star
 
 ### 3. 색상 불일치 매핑 방침
 
-`slate/700`(#333 vs #161412), `slate/400`(#A4A4A4 vs #6B6A68) — Pagination처럼 "값 기준"으로 arbitrary를 유지하는 것으로 이 문서에서는 우선 정리했다. 다른 컴포넌트에도 같은 색이 반복되면 재검토가 필요하다.
+`#333333`은 `text-slate-500`(`#1C1917`), `#A4A4A4`는 `text-slate-300`(`#999797`) 토큰으로 통일했다 (2026-10-22 확정). Figma와 값이 다르므로 시각 차이는 감수한다.
 
 ### 4. 월 리스트 스크롤
 

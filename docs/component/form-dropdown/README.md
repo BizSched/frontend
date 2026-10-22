@@ -33,7 +33,7 @@ Figma: [BizSched — form dropdown](https://www.figma.com/design/0UAYWaDS9UNjigV
 | 옵션 형태     | `{ value: string; label: string }[]`                                                                                                          | 표시 문자열과 저장 값을 분리한다. 같은 라벨이 여러 개여도 `value`로 구분된다                                                                                          |
 | `medium` size | 공통 `Dropdown`의 `size`에 `medium` 추가                                                                                                      | Dropdown 문서 개요의 "④ `size`에 `medium` 추가"와 일치. 셀은 small과 같고 항목 높이만 44px이라 variant 한 줄로 표현된다                                               |
 | large 구분선  | `Dropdown`에 `hasDivider` 옵션 추가, `FormDropdown`이 `size === 'large'`일 때 기본으로 켠다. 구분선이 없는 화면은 `hasDivider={false}`로 끈다 | 구분선은 ④ large 전용 차이라 Dropdown 기본값으로 일반화하지 않는다(Dropdown 문서 "④ Form 드롭다운 트리거"). 마지막 항목은 제외 — "확정 사항" 3번                      |
-| placeholder   | `placeholder` prop 추가. 값이 없으면 `#a4a4a4`로 표시                                                                                         | Figma에는 값이 선택된 상태만 있다. 폼 초기 상태(미선택)를 표현해야 해서 추가한 **임시 스타일**이며, Figma에 추가되면 그 값으로 교체한다 — "확정 사항" 4번             |
+| placeholder   | `placeholder` prop 추가. 값이 없으면 `text-slate-300`으로 표시                                                                                | Figma에는 값이 선택된 상태만 있다. 폼 초기 상태(미선택)를 표현해야 해서 추가한 **임시 스타일**이며, Figma에 추가되면 그 값으로 교체한다 — "확정 사항" 4번             |
 | 팝업 스타일   | `Dropdown`의 `className`으로 너비·radius·그림자만 덮어쓴다                                                                                    | ③과 같은 방식. 팝업 값만 ①과 달라 `DropdownContent`에 variant를 늘리지 않고 조합 쪽에서 덮어쓴다                                                                      |
 | 그림자        | arbitrary value 유지 (트리거 `0px 2px 4px rgba(0,0,0,0.08)`, 팝업 `0px 6px 8px rgba(0,0,0,0.12)`)                                             | ①②③과 같은 방식. 토큰 신설 여부는 Dropdown 문서 "확인 필요" 2번에서 4종을 한 번에 검토한다                                                                            |
 | 아이콘        | lucide `ChevronDownIcon`, 열림 시 180° 회전                                                                                                   | [MonthDropdownButton](../month-dropdown-button/README.md) 선례. 글리프가 Figma `ic_chevron-down`/`ic_chevron-up`과 1:1 대응해 에셋 커밋이 불필요하다                  |
@@ -139,13 +139,13 @@ Base UI `Button`(`@base-ui/react/button`) 기반. `MonthDropdownButton`과 같�
 |        | `medium` | `h-11 w-37.5 rounded-[14px]` 텍스트 `text-sm font-medium`, 아이콘 `size-5`                           |
 |        | `small`  | `h-9 w-25.5 rounded-[14px]` 텍스트 `text-sm font-medium`, 아이콘 `size-5`                            |
 
-공통: `bg-white-50 px-4 justify-between gap-2`, 텍스트 `#333333`, 아이콘 `#a4a4a4`.
+공통: `bg-white-50 px-4 justify-between gap-2`, 텍스트 `text-slate-500`, 아이콘 `text-slate-300`.
 
 | 상태            | 매핑                                                                            |
 | --------------- | ------------------------------------------------------------------------------- |
 | `default`(닫힘) | 그림자 없음, 화살표 아래                                                        |
 | `spread`(열림)  | `data-[popup-open]:shadow-[0px_2px_4px_rgba(0,0,0,0.08)]`, 화살표 180° 회전(위) |
-| placeholder     | `data-placeholder:text-[#a4a4a4]`                                               |
+| placeholder     | `data-placeholder:text-slate-300`                                               |
 | focus-visible   | `ring-3 ring-ring/50` (Figma에 없음 — `MonthDropdownButton`과 동일한 기본값)    |
 
 열림 상태는 prop 없이 `Menu.Trigger`가 붙여 주는 `data-popup-open`으로 처리한다(MonthDropdownButton과 동일). 라벨은 `truncate`로 트리거 너비를 넘으면 말줄임한다.
@@ -183,12 +183,12 @@ Base UI `Button`(`@base-ui/react/button`) 기반. `MonthDropdownButton`과 같�
 | large 항목 텍스트 `16px/24px`               | `--text-base`       | `DropdownItem` large 그대로 |
 | 구분선 `#dddcdc`(slate/100)                 | `--color-slate-100` |                             |
 
-### 불일치 (값 기준 arbitrary)
+### 불일치 (토큰 기준)
 
-| 항목             | Figma     | 코드 토큰                      | 처리                                                            |
-| ---------------- | --------- | ------------------------------ | --------------------------------------------------------------- |
-| 텍스트 slate/700 | `#333333` | `--color-slate-700`(`#161412`) | `text-[#333333]` — Dropdown 문서 "색상 불일치 매핑 방침"과 동일 |
-| 화살표 slate/400 | `#A4A4A4` | `--color-slate-400`(`#6B6A68`) | `text-[#a4a4a4]`                                                |
+| 항목   | Figma     | 코드 토큰                      | 처리                                                            |
+| ------ | --------- | ------------------------------ | --------------------------------------------------------------- |
+| 텍스트 | `#333333` | `--color-slate-500`(`#1C1917`) | `text-slate-500` — Dropdown 문서 "색상 불일치 매핑 방침"과 동일 |
+| 화살표 | `#A4A4A4` | `--color-slate-300`(`#999797`) | `text-slate-300`                                                |
 
 letter-spacing은 `tracking-[-0.03em]`(large -0.54px)로 인라인 적용한다. medium/small 트리거 텍스트는 Figma `text-sm/medium`(letterSpacing 0)이라 tracking을 두지 않는다.
 
@@ -196,7 +196,7 @@ letter-spacing은 `tracking-[-0.03em]`(large -0.54px)로 인라인 적용한다.
 
 | 항목               | 코드                                    | 비고                                                  |
 | ------------------ | --------------------------------------- | ----------------------------------------------------- |
-| placeholder 텍스트 | `#a4a4a4`                               | 화살표와 같은 보조 색 — "확정 사항" 4번               |
+| placeholder 텍스트 | `text-slate-300`                        | 화살표와 같은 보조 색 — "확정 사항" 4번               |
 | 선택된 항목 셀     | `bg-primary-alpha-30` + `font-semibold` | `DropdownItem`의 `isSelected` 그대로 (③에서 확정)     |
 | medium 항목 hover  | `primary-alpha-20`                      | Figma에 medium hover가 없어 셀이 같은 small 값을 쓴다 |
 
@@ -247,12 +247,12 @@ Dropdown 스택의 4단계다([dropdown "단계별 PR 계획"](../dropdown/READM
 
 ## 확정 사항
 
-| #   | 항목         | 결정                                                                                                                          |
-| --- | ------------ | ----------------------------------------------------------------------------------------------------------------------------- |
-| 1   | 결합 방식    | 트리거 `FormDropdownButton` + 조합 `FormDropdown` 분리, `value`/`onChange` controlled, 옵션은 `{ value, label }[]`            |
-| 2   | medium size  | 공통 `Dropdown`의 `size`에 `medium` 추가                                                                                      |
-| 3   | large 구분선 | 항목 "사이" 구분선. Figma는 5개 항목 모두에 `border-b`가 있지만 마지막 항목은 제외해 팝업 하단 모서리에 선이 겹치지 않게 한다 |
-| 4   | placeholder  | `placeholder` prop 추가, `#a4a4a4`로 표시. Figma에 placeholder 상태가 없어 정한 임시 스타일이며, 추가되면 그 값으로 교체한다  |
+| #   | 항목         | 결정                                                                                                                                  |
+| --- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | 결합 방식    | 트리거 `FormDropdownButton` + 조합 `FormDropdown` 분리, `value`/`onChange` controlled, 옵션은 `{ value, label }[]`                    |
+| 2   | medium size  | 공통 `Dropdown`의 `size`에 `medium` 추가                                                                                              |
+| 3   | large 구분선 | 항목 "사이" 구분선. Figma는 5개 항목 모두에 `border-b`가 있지만 마지막 항목은 제외해 팝업 하단 모서리에 선이 겹치지 않게 한다         |
+| 4   | placeholder  | `placeholder` prop 추가, `text-slate-300`으로 표시. Figma에 placeholder 상태가 없어 정한 임시 스타일이며, 추가되면 그 값으로 교체한다 |
 
 ## 확인 필요
 

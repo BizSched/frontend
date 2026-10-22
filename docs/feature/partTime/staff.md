@@ -96,7 +96,7 @@ Figma의 상세 노드는 **패널 껍데기 + 내용**으로 나뉜다. 데스�
 - **레이아웃과 표시 부품만 공유하고, 상세와 폼은 별도 컴포넌트로 둔다.** `mode="view" | "edit"` 하나로 합치면 폼 쪽의 React Hook Form 의존과 입력 검증이 상세에도 섞이고, 영역마다 분기가 생긴다
 - 공유 부품 (`src/components/partTime/staff/`):
   - `PartTimeStaffProfileLayout` — 헤더·인적 사항·구분선·(선택)중간 영역·첨부파일·본문 순서와 간격을 잡는 레이아웃. 각 영역은 slot prop(`title`, `fields`, `extra`, `attachments`, `body`)으로 받는다. 상세는 `extra`에 주간 스케줄을 넣고, 폼은 비운다
-  - `PartTimeStaffFieldRow` — 라벨(40px, `#a4a4a4`) + 값 한 줄. 값은 `ReactNode`라 상세는 텍스트, 폼은 입력 요소를 넣는다
+  - `PartTimeStaffFieldRow` — 라벨(40px, `text-slate-300`) + 값 한 줄. 값은 `ReactNode`라 상세는 텍스트, 폼은 입력 요소를 넣는다
   - `PartTimeStaffAttachmentBox` — `#fafafa` 박스. 행 목록은 children으로 받아 상세는 "열기" 버튼 행, 폼은 업로드·삭제 행을 넣는다
   - `PartTimeStaffAttachmentFile` — 파일 아이콘 + 이름. 행을 감싸는 요소(버튼, 업로드·삭제 행)는 상세와 폼이 다르고 안쪽 모양만 같아서, 박스와 나눠 모양만 공유한다
   - `PartTimeStaffNoteIcon` — `img_note` 배경 상자 + 노트 SVG. 카드·상세·폼이 함께 쓴다. Figma는 large(40px, 사각형 조합)와 small(32px, SVG 하나) 두 벌이지만, 안쪽 노트 그림은 같으므로 small의 SVG 하나(`ic_note.svg`)를 쓰고 배경 상자 크기·radius만 반응형으로 바꾼다. 세 곳이 같은 크기 전환을 써서 자산이 아니라 컴포넌트로 둔다

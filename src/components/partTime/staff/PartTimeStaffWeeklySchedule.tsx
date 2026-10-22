@@ -136,7 +136,7 @@ function PartTimeStaffWeeklySchedule({
                                 <CheckIcon
                                   aria-label="완료"
                                   size={16}
-                                  className="text-[#A4A4A4]"
+                                  className="text-slate-300"
                                 />
                               )}
                               {status === 'missed' && (

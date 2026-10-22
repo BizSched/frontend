@@ -28,7 +28,7 @@ const dropdownItemVariants = cva(
 );
 
 const dropdownItemCellVariants = cva(
-  'block tracking-[-0.03em] text-[#333333] transition-colors',
+  'block tracking-[-0.03em] text-slate-500 transition-colors',
   {
     variants: {
       size: {

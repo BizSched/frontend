@@ -240,7 +240,7 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
         unoptimized
         className="max-tablet:h-21.25 max-tablet:w-19.75"
       />
-      <p className="text-base leading-6 font-medium tracking-[-0.03em] text-[#737373] max-tablet:text-sm max-tablet:leading-5">
+      <p className="text-base leading-6 font-medium tracking-[-0.03em] text-white-950 max-tablet:text-sm max-tablet:leading-5">
         등록된 아르바이트생이 없어요.
       </p>
     </div>

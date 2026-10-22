@@ -36,7 +36,7 @@ function SidebarTrigger({
         if (!event.defaultPrevented) toggleSidebar();
       }}
     >
-      {children ?? <Icon size={32} className="text-[#A4A4A4]" />}
+      {children ?? <Icon size={32} className="text-slate-300" />}
     </Button>
   );
 }

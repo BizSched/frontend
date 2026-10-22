@@ -13,10 +13,10 @@ function PartTimeStaffAttachmentFile({
 }: PartTimeStaffAttachmentFileProps) {
   return (
     <span className="flex min-w-0 items-center gap-1">
-      <FileUpIcon size={24} className="shrink-0 text-[#6B6A68]" />
+      <FileUpIcon size={24} className="shrink-0 text-slate-400" />
       <span
         className={cn(
-          'truncate text-sm leading-5 font-medium tracking-[-0.03em] text-[#333333]',
+          'truncate text-sm leading-5 font-medium tracking-[-0.03em] text-slate-500',
           nameClassName,
         )}
       >

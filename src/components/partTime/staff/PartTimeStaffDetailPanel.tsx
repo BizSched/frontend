@@ -165,7 +165,7 @@ function PartTimeStaffDetailPanel({
       aria-label="닫기"
       className="flex size-6 cursor-pointer items-center justify-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-      <XIcon size={24} strokeWidth={1.8} className="text-[#A4A4A4]" />
+      <XIcon size={24} strokeWidth={1.8} className="text-slate-300" />
     </Dialog.Close>
   );
 

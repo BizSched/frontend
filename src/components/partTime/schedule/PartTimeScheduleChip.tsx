@@ -17,7 +17,7 @@ function PartTimeScheduleChip({ schedule }: PartTimeScheduleChipProps) {
       tone={isCheckedIn ? 'muted' : 'accent'}
       leadingSlot={
         isCheckedIn && (
-          <CheckIcon aria-label="완료" size={16} className="text-[#A4A4A4]" />
+          <CheckIcon aria-label="완료" size={16} className="text-slate-300" />
         )
       }
     />

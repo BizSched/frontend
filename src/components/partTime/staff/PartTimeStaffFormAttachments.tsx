@@ -40,7 +40,7 @@ function PartTimeStaffFormAttachments({
         >
           <PartTimeStaffAttachmentFile
             name="첨부파일"
-            nameClassName="text-[#737373]"
+            nameClassName="text-white-950"
           />
         </button>
       </li>
@@ -64,7 +64,7 @@ function PartTimeStaffFormAttachments({
             onClick={() => onAttachmentRemove(attachment)}
             className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <XIcon size={24} strokeWidth={1.8} className="text-[#A4A4A4]" />
+            <XIcon size={24} strokeWidth={1.8} className="text-slate-300" />
           </button>
         </li>
       ))}

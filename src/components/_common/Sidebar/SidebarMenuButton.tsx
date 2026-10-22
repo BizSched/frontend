@@ -4,7 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@lib/utilities/cn';
 
 const sidebarMenuButtonVariants = cva(
-  'flex w-full items-center gap-2 text-left tracking-[-0.03em] outline-none hover:bg-primary-100 focus-visible:ring-2 focus-visible:ring-primary-500 disabled:cursor-not-allowed',
+  'flex w-full items-center gap-2 text-left tracking-[-0.03em] outline-none not-disabled:hover:bg-primary-100 focus-visible:ring-2 focus-visible:ring-primary-500 disabled:cursor-not-allowed [&_svg]:text-slate-300 disabled:[&_svg]:text-slate-200 data-[active]:[&_svg]:text-primary-700',
   {
     variants: {
       size: {
@@ -13,7 +13,7 @@ const sidebarMenuButtonVariants = cva(
       },
       isActive: {
         true: 'text-primary-700',
-        false: 'text-[#333] disabled:text-[#a0a0a0]',
+        false: 'text-slate-500 disabled:text-slate-200',
       },
     },
     compoundVariants: [

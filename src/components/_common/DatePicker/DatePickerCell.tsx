@@ -9,7 +9,7 @@ import { cn } from '@lib/utilities/cn';
 type DatePickerCellType = 'default' | 'today' | 'selected';
 
 const datePickerCellVariants = cva(
-  'flex size-10 cursor-pointer items-center justify-center rounded-full text-sm leading-5 tracking-[-0.03em] text-[#333333] transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:font-normal disabled:text-[#a4a4a4] motion-reduce:transition-none',
+  'flex size-10 cursor-pointer items-center justify-center rounded-full text-sm leading-5 tracking-[-0.03em] text-slate-500 transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:font-normal disabled:text-slate-300 motion-reduce:transition-none',
   {
     variants: {
       type: {
@@ -46,7 +46,7 @@ function DatePickerCell({ className, modifiers, ...props }: DayButtonProps) {
       data-type={type}
       className={cn(
         datePickerCellVariants({ type }),
-        modifiers.outside && type === 'default' && 'text-[#a4a4a4]',
+        modifiers.outside && type === 'default' && 'text-slate-300',
         className,
       )}
       modifiers={modifiers}

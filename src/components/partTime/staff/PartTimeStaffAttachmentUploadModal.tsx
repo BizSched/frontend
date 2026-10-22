@@ -90,7 +90,7 @@ function PartTimeStaffAttachmentUploadModal({
       >
         <div className="flex flex-col gap-8 max-tablet:gap-6">
           <Modal.Header align="start">
-            <Modal.Title className="leading-7.5 text-[#262626] max-tablet:text-base max-tablet:leading-6">
+            <Modal.Title className="leading-7.5 text-slate-500 max-tablet:text-base max-tablet:leading-6">
               첨부파일 업로드
             </Modal.Title>
             <Modal.CloseButton />
@@ -106,9 +106,9 @@ function PartTimeStaffAttachmentUploadModal({
             <div className={FILE_FIELD_CLASS_NAME}>
               <FileUpIcon
                 size={24}
-                className="shrink-0 text-[#6B6A68] max-tablet:size-5"
+                className="shrink-0 text-slate-400 max-tablet:size-5"
               />
-              <span className="min-w-0 flex-1 truncate text-[#0d0b0a]">
+              <span className="min-w-0 flex-1 truncate text-slate-950">
                 {file.name}
               </span>
               <button
@@ -121,7 +121,7 @@ function PartTimeStaffAttachmentUploadModal({
                 }}
                 className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring max-tablet:size-5"
               >
-                <XIcon size={16} strokeWidth={1.8} className="text-[#A4A4A4]" />
+                <XIcon size={16} strokeWidth={1.8} className="text-slate-300" />
               </button>
             </div>
           ) : (
@@ -130,7 +130,7 @@ function PartTimeStaffAttachmentUploadModal({
               onClick={() => inputRef.current?.click()}
               className={cn(
                 FILE_FIELD_CLASS_NAME,
-                'cursor-pointer text-[#737373] outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                'cursor-pointer text-white-950 outline-none focus-visible:ring-2 focus-visible:ring-ring',
               )}
             >
               <FileUpIcon size={24} className="shrink-0 max-tablet:size-5" />
@@ -152,7 +152,7 @@ function PartTimeStaffAttachmentUploadModal({
               onUpload(file);
             }
           }}
-          className="w-full max-tablet:h-10 max-tablet:py-2.5 max-tablet:text-sm max-tablet:leading-5 data-disabled:cursor-not-allowed data-disabled:bg-[#bbbbbb] data-disabled:hover:bg-[#bbbbbb]"
+          className="w-full max-tablet:h-10 max-tablet:py-2.5 max-tablet:text-sm max-tablet:leading-5 data-disabled:cursor-not-allowed data-disabled:bg-slate-200 data-disabled:hover:bg-slate-200"
         >
           업로드
         </Button>

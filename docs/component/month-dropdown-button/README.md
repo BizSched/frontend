@@ -86,7 +86,7 @@ inline-flex shrink-0 cursor-pointer items-center rounded-full border border-slat
 font-bold text-slate-900 whitespace-nowrap outline-none transition-colors
 focus-visible:ring-3 focus-visible:ring-ring/50
 disabled:pointer-events-none disabled:cursor-not-allowed
-[&_svg]:pointer-events-none [&_svg]:size-6 [&_svg]:shrink-0 [&_svg]:text-[#a4a4a4] [&_svg]:transition-transform
+[&_svg]:pointer-events-none [&_svg]:size-6 [&_svg]:shrink-0 [&_svg]:text-slate-300 [&_svg]:transition-transform
 data-[popup-open]:[&_svg]:rotate-180
 ```
 
@@ -107,10 +107,10 @@ data-[popup-open]:[&_svg]:rotate-180
 
 ### 불일치
 
-| 항목            | Figma                                    | 코드                                       | 처리                                                                                                                                                                                                            |
-| --------------- | ---------------------------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 아이콘 색       | `slate/400` `#A4A4A4`                    | `--color-slate-400` `#6B6A68`              | [dropdown](https://github.com/BizSched/Frontend/blob/design/common-dropdown/docs/component/dropdown/README.md)·[pagination](../pagination/README.md)의 "이름이 아니라 값 기준" 원칙대로 `text-[#a4a4a4]` 인라인 |
-| large 라벨 폰트 | **Inter** Bold 20px / 29px (변수 미연결) | `--font-sans`(Pretendard), `text-xl` 20/30 | 프로젝트 폰트는 Pretendard 단일이고 Figma의 small 인스턴스도 Pretendard다. large만 Inter로 남은 것은 디자인 누락으로 보고 `text-xl font-bold`로 맞춘다(높이 31 → 32px 허용) — "확정 사항" 2번                   |
+| 항목            | Figma                                    | 코드                                       | 처리                                                                                                                                                                                                                                      |
+| --------------- | ---------------------------------------- | ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 아이콘 색       | `slate/400` `#A4A4A4`                    | `--color-slate-300` `#999797`              | [dropdown](https://github.com/BizSched/Frontend/blob/design/common-dropdown/docs/component/dropdown/README.md)·[pagination](../pagination/README.md)의 "이름이 아니라 값 기준" 원칙 대신 토큰 `text-slate-300`으로 통일 (2026-10-22 확정) |
+| large 라벨 폰트 | **Inter** Bold 20px / 29px (변수 미연결) | `--font-sans`(Pretendard), `text-xl` 20/30 | 프로젝트 폰트는 Pretendard 단일이고 Figma의 small 인스턴스도 Pretendard다. large만 Inter로 남은 것은 디자인 누락으로 보고 `text-xl font-bold`로 맞춘다(높이 31 → 32px 허용) — "확정 사항" 2번                                             |
 
 letter-spacing은 Figma 값이 `0`이라 `tracking-*`를 두지 않는다(`Button`의 `-0.03em`과 다름).
 

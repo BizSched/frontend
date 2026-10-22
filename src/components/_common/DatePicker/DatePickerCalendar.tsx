@@ -32,7 +32,7 @@ interface DatePickerCalendarProps {
 function DatePickerChevron({ orientation }: ChevronProps) {
   const Icon = orientation === 'right' ? ChevronRightIcon : ChevronLeftIcon;
 
-  return <Icon size={24} className="text-[#A4A4A4]" />;
+  return <Icon size={24} className="text-slate-300" />;
 }
 
 const DATE_PICKER_COMPONENTS = {
@@ -53,11 +53,11 @@ const DATE_PICKER_CLASS_NAMES = {
   button_next: NAVIGATION_BUTTON_CLASS_NAME,
   month_caption: 'flex h-8 items-center justify-center',
   caption_label:
-    'text-sm leading-5 font-semibold tracking-[-0.03em] text-[#414651]',
+    'text-sm leading-5 font-semibold tracking-[-0.03em] text-slate-400',
   month_grid: 'w-full border-collapse',
   weekdays: 'flex',
   weekday:
-    'flex size-10 items-center justify-center text-sm leading-5 font-medium tracking-[-0.03em] text-[#333333]',
+    'flex size-10 items-center justify-center text-sm leading-5 font-medium tracking-[-0.03em] text-slate-500',
   week: 'mt-1 flex',
   day: 'size-10 p-0 text-center',
 } satisfies Partial<ClassNames>;

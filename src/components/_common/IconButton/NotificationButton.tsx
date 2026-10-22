@@ -29,7 +29,7 @@ function NotificationButton({
       )}
       {...props}
     >
-      <BellIcon size={24} className="text-[#737373]" />
+      <BellIcon size={24} className="text-white-950" />
       {unread && (
         <span
           aria-hidden

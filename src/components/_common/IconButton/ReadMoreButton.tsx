@@ -31,7 +31,7 @@ function ReadMoreButton({
       )}
       {...props}
     >
-      <Icon size={24} className="text-[#A4A4A4]" />
+      <Icon size={24} className="text-slate-300" />
     </ButtonPrimitive>
   );
 }

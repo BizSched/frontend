@@ -56,13 +56,13 @@ function PartTimeScheduleStaffFilter({
           <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#ffe5b7]">
             <Image src={ImgGoal} alt="" width={18} height={17.78} unoptimized />
           </span>
-          <span className="truncate text-sm font-semibold tracking-[-0.03em] text-[#333333]">
+          <span className="truncate text-sm font-semibold tracking-[-0.03em] text-slate-500">
             {selectedStaff?.name ?? ALL_STAFF_LABEL}
           </span>
         </span>
         <ChevronDownIcon
           size={24}
-          className="text-[#A4A4A4] transition-transform group-data-popup-open:rotate-180"
+          className="text-slate-300 transition-transform group-data-popup-open:rotate-180"
         />
       </button>
     </Dropdown>

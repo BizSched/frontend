@@ -41,7 +41,7 @@ function DeleteButton({
       )}
       {...props}
     >
-      <XIcon size={iconSize} strokeWidth={1.8} className="text-[#A4A4A4]" />
+      <XIcon size={iconSize} strokeWidth={1.8} className="text-slate-300" />
     </ButtonPrimitive>
   );
 }
