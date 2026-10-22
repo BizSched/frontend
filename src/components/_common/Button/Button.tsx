@@ -4,16 +4,16 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@lib/utilities/cn';
 
 const buttonVariants = cva(
-  'inline-flex shrink-0 cursor-pointer items-center justify-center gap-1 overflow-hidden rounded-full px-[18px] font-semibold whitespace-nowrap transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-6 [&_svg]:shrink-0',
+  'inline-flex shrink-0 cursor-pointer items-center justify-center gap-1 overflow-hidden rounded-full px-[18px] font-semibold whitespace-nowrap transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 data-disabled:pointer-events-none data-disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-6 [&_svg]:shrink-0',
   {
     variants: {
       hierarchy: {
         primary:
-          'border border-transparent bg-primary-500 text-accent-500 hover:bg-secondary-600 hover:text-accent-500 disabled:bg-slate-100 disabled:text-slate-300',
+          'border border-transparent bg-primary-500 text-accent-500 hover:bg-secondary-600 hover:text-accent-500 data-disabled:bg-slate-100 data-disabled:text-slate-300',
         secondary:
-          'border border-primary-700 bg-transparent text-accent-500 hover:border-primary-700 hover:bg-primary-100 hover:text-accent-500 disabled:border-slate-100 disabled:bg-transparent disabled:text-slate-300',
+          'border border-primary-700 bg-transparent text-accent-500 hover:border-primary-700 hover:bg-primary-100 hover:text-accent-500 data-disabled:border-slate-100 data-disabled:bg-transparent data-disabled:text-slate-300',
         tertiary:
-          'border border-slate-200 bg-transparent text-slate-400 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-500 disabled:border-slate-100 disabled:bg-transparent disabled:text-slate-300',
+          'border border-slate-200 bg-transparent text-slate-400 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-500 data-disabled:border-slate-100 data-disabled:bg-transparent data-disabled:text-slate-300',
       },
       size: {
         large: 'h-14 py-3.5 text-lg leading-7 tracking-[-0.03em]',
