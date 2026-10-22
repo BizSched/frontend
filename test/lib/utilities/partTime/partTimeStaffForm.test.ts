@@ -88,6 +88,20 @@ describe('선택값 삭제 보류', () => {
     ).toBe(false);
     expect(hasPartTimeStaffUnsupportedClear(initial, initial)).toBe(false);
   });
+
+  it('기존 번호 삭제도 막는다', () => {
+    const initial = toPartTimeStaffFormValues({
+      id: 42,
+      name: '김알바',
+      phone: '010-1234-5678',
+      attachments: [],
+      createdAt: '2026-10-16',
+      employmentStatus: 'employed',
+    });
+    expect(
+      hasPartTimeStaffUnsupportedClear({ ...initial, phone: '' }, initial),
+    ).toBe(true);
+  });
 });
 
 describe('limitPartTimeStaffName', () => {
@@ -173,8 +187,11 @@ describe('formatPartTimeStaffPhoneInput', () => {
 });
 
 describe('isPartTimeStaffPhoneValid', () => {
+  it('선택 입력이라 빈 값은 유효하다', () => {
+    expect(isPartTimeStaffPhoneValid('')).toBe(true);
+  });
+
   it('숫자 10~11자리만 유효하다', () => {
-    expect(isPartTimeStaffPhoneValid('')).toBe(false);
     expect(isPartTimeStaffPhoneValid('010-1234-56')).toBe(false);
     expect(isPartTimeStaffPhoneValid('011-123-4567')).toBe(true);
     expect(isPartTimeStaffPhoneValid('010-1234-5678')).toBe(true);
@@ -269,7 +286,7 @@ describe('toPartTimeStaffFormPayload', () => {
       name: '정예은',
       birthDate: '',
       gender: '',
-      phone: '010-3456-7890',
+      phone: '',
       hourlyWage: '',
       attachments: [],
       memo: '',
@@ -278,6 +295,7 @@ describe('toPartTimeStaffFormPayload', () => {
     expect(toPartTimeStaffFormPayload(values)).toMatchObject({
       birthDate: null,
       gender: null,
+      phone: null,
       hourlyWage: null,
     });
   });

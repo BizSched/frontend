@@ -325,6 +325,12 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
               title={
                 <div className="flex items-center gap-3">
                   <PartTimeStaffNoteIcon />
+                  <span
+                    aria-hidden="true"
+                    className="-mr-2 shrink-0 text-2xl leading-8 font-semibold text-primary-500 max-tablet:text-base max-tablet:leading-6"
+                  >
+                    *
+                  </span>
                   <Controller
                     control={control}
                     name="name"
@@ -425,7 +431,6 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
                           {...field}
                           type="tel"
                           aria-label="번호"
-                          aria-required
                           inputMode="numeric"
                           autoComplete="tel"
                           placeholder="010-XXXX-XXXX"
