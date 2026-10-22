@@ -384,21 +384,46 @@ describe('PartTimeScheduleFormModal 수정 모드', () => {
     );
   });
 
-  it('메모는 500자까지 허용하며 초과 입력은 제출하지 않는다', async () => {
+  it('메모를 UTF-16 500자에서 자르고 한글 조합이 끝난 뒤 자른다', async () => {
+    renderForm();
+    const memo = screen.getByPlaceholderText(
+      '간단한 메모를 작성해주세요',
+    ) as HTMLTextAreaElement;
+    fireEvent.change(memo, { target: { value: '😀'.repeat(251) } });
+    await waitFor(() => expect(memo.value).toBe('😀'.repeat(250)));
+    expect(screen.getByText('공백포함 500자 | 공백제외 500자')).toBeTruthy();
+    fireEvent.compositionStart(memo);
+    fireEvent.input(memo, {
+      target: { value: '가'.repeat(501) },
+      isComposing: true,
+    });
+    expect(memo.value).toBe('가'.repeat(501));
+    fireEvent.compositionEnd(memo);
+    await waitFor(() => expect(memo.value).toBe('가'.repeat(500)));
+    expect(
+      screen
+        .getByRole('button', { name: '수정 완료' })
+        .getAttribute('aria-disabled'),
+    ).not.toBe('true');
+  });
+
+  it('줄바꿈을 유지해 제출하고 공백 포함·제외 글자 수를 보인다', async () => {
     const { onSubmit } = renderForm();
     const memo = screen.getByPlaceholderText('간단한 메모를 작성해주세요');
-    expect(memo.getAttribute('maxlength')).toBe('500');
+    expect(memo.tagName).toBe('TEXTAREA');
+    expect(screen.getByText('공백포함 0자 | 공백제외 0자')).toBeTruthy();
+    fireEvent.change(memo, { target: { value: '오픈 준비\n재고 확인' } });
+    expect(screen.getByText('공백포함 11자 | 공백제외 8자')).toBeTruthy();
     const button = screen.getByRole('button', { name: '수정 완료' });
-    fireEvent.change(memo, { target: { value: '😀'.repeat(250) } });
     await waitFor(() =>
       expect(button.getAttribute('aria-disabled')).not.toBe('true'),
     );
-    fireEvent.change(memo, { target: { value: '😀'.repeat(251) } });
+    fireEvent.click(button);
     await waitFor(() =>
-      expect(button.getAttribute('aria-disabled')).toBe('true'),
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({ memo: '오픈 준비\n재고 확인' }),
+      ),
     );
-    fireEvent.submit(button.closest('form')!);
-    expect(onSubmit).not.toHaveBeenCalled();
   });
 
   it('요청 중에는 수정 사항이 있어도 제출하지 않는다', async () => {
