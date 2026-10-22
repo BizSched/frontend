@@ -365,32 +365,3 @@ release 브랜치가 없는 Git Flow를 씁니다.
 | 푸시 전 (pre-push)       | type-check, lint, `origin/dev` 대비 변경된 테스트 |
 | PR (GitHub Actions)      | lint, test, build. Chromatic 시각 테스트          |
 | 알림 (Discord)           | CI 실패, Vercel 배포 실패, PR 생성·병합           |
-
-<br />
-
-## 트러블슈팅
-
-### 1. 첨부파일 업로드가 Vercel 요청 크기 한도에 걸림
-
-- **문제**: 백엔드는 첨부파일을 파일당 10MB까지 받지만, BFF를 거치는 요청 body는 4MB를 넘을 수 없습니다. Vercel Functions는 4.5MB, `proxy.ts`는 4MB가 한도입니다.
-- **해결**: 업로드 전에 프론트엔드에서 파일 크기를 줄여 한도 안에서 BFF로 보냅니다. 다운로드는 응답을 버퍼링하지 않고 스트림으로 전달해 응답 크기 한도를 피합니다.
-
-### 2. 동시 refresh 요청이 서로를 무효화함
-
-- **문제**: 백엔드의 refresh token rotation은 유예 시간이 없습니다. 여러 요청이 동시에 401을 받고 각각 refresh하면, 같은 refresh 토큰을 두 번 보내 한쪽이 실패합니다. 실패를 바로 로그아웃으로 처리하면, 다른 탭이 이미 refresh에 성공했는데도 세션이 끊깁니다.
-- **해결**: 한 탭 안의 refresh를 Promise 하나로 묶었습니다(single-flight). 동시에 실패한 요청은 그 결과를 함께 기다립니다. refresh가 실패해도 쿠키를 바로 지우지 않고 원래 요청을 1번 다시 보내 확인한 뒤, 그래도 401이면 세션을 정리합니다.
-
-### 3. BFF를 거친 응답 본문이 깨지거나 잘림
-
-- **문제**: Node `fetch`는 기본으로 `Accept-Encoding: gzip`을 보내고, 압축 응답을 자동으로 풀면서 `Content-Encoding`·`Content-Length` 헤더는 그대로 남깁니다. 이 헤더를 그대로 넘기면 브라우저가 이미 풀린 본문을 다시 풀려다 실패하거나, 본문이 압축 크기에서 잘립니다.
-- **해결**: BFF가 백엔드에 `Accept-Encoding: identity`를 보내 압축하지 않은 응답을 받습니다. 그래도 압축 응답이 오면 두 헤더를 지우고 전달합니다.
-
-### 4. Chromatic이 PR마다 baseline을 찾지 못함
-
-- **문제**: `actions/checkout`은 기본으로 가상의 merge 커밋(`refs/pull/N/merge`)을 checkout합니다. 이 커밋은 push할 때마다 새로 생겨 서로 조상 관계가 없어서, Chromatic이 비교 기준(baseline)을 찾지 못합니다.
-- **해결**: `ref: ${{ github.event.pull_request.head.ref }}`로 PR head 브랜치를 checkout해, 이 PR이 바꾼 화면만 비교합니다.
-
-### 5. 소셜 로그인이 `INVALID_AUTHORIZATION_CODE`로 실패함
-
-- **문제**: 소셜 로그인 `redirect_uri`는 백엔드 서버의 환경 변수입니다. 백엔드 서버 하나는 제공자마다 값 하나만 쓰기 때문에, 프론트엔드 콜백 주소와 다르면 인가 코드 교환이 실패합니다.
-- **해결**: 로컬 프론트엔드(`http://localhost:3000`)는 로컬 값을 쓰는 백엔드와, 운영 프론트엔드는 운영 값을 쓰는 백엔드와 짝지어 실행합니다. `OAUTH_REDIRECT_ORIGIN`도 같은 origin으로 맞춥니다. Vercel preview 배포에서는 소셜 로그인을 지원하지 않습니다.
