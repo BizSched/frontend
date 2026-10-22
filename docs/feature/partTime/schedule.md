@@ -160,14 +160,13 @@ API 명세와 DTO → FE 타입 변환은 [도메인 문서](./README.md#api-명
 | `startTime` | 근무 시작 시간    | ○    | `FormDropdown` large | 근무 시작 시간을 선택해주세요 | 옵션은 `00:00` ~ `23:00` 1시간 단위 24개 (`HH:mm`, 2026-10-02 확정)                                                                                                                                                                                                                      |
 | `endTime`   | 근무 마감 시간    | ○    | `FormDropdown` large | 근무 마감 시간을 선택해주세요 | 위와 같음                                                                                                                                                                                                                                                                                |
 | —           | 빠른 선택         | —    | 칩 버튼 3개          | —                             | 누르면 시작·마감 시간을 한 번에 채운다. 폼 값이 아니다 ("빠른 선택" 참고)                                                                                                                                                                                                                |
-| `memo`      | 메모              | —    | `Input`              | 간단한 메모를 작성해주세요    | 한 줄 입력                                                                                                                                                                                                                                                                               |
+| `memo`      | 메모              | —    | `textarea`           | 간단한 메모를 작성해주세요    | 여러 줄 입력, 아래에 "공백포함 N자 \| 공백제외 N자" ("메모 입력" 참고)                                                                                                                                                                                                                   |
 
 - **폼 값 타입** — `staffId`·`startTime`·`endTime`은 `FormDropdown`의 `value`가 string이라 string으로, `date`는 `DatePicker`의 `value`가 `Date`라 `Date | undefined`로 둔다. `PartTimeSchedule`(`date: string`)로의 변환은 제출 시점에 한다. 폼 값 타입은 모달 파일 안에 둔다
-- **RHF 연결** — `FormDropdown`·`DatePicker`는 controlled(`value` + `onChange`)라 `Controller`로, `Input`은 `forwardRef`라 `register`로 연결한다
+- **RHF 연결** — `FormDropdown`·`DatePicker`는 controlled(`value` + `onChange`)라 `Controller`로, 메모 `textarea`는 네이티브 요소라 `register`로 연결한다
 - **라벨** — 공통 `InputField`는 `Input` 전용이고 필수 표시(`*`)가 없다. 필드 6개가 같은 라벨 행(라벨 + `*` `primary-500`)을 쓰므로 도메인에 라벨 컴포넌트(`PartTimeScheduleFormField`)를 둔다. 공통 컴포넌트는 수정하지 않는다. `FormDropdown`·`DatePicker`는 `id`를 받지 않아 `<label htmlFor>`로 묶을 수 없으므로, 라벨 행과 입력을 `role="group"` + `aria-labelledby`로 묶는다
-- **크기** — large 기준 라벨 16px / 입력 56px / 필드 간격 16px, 모바일(`max-tablet:`) 라벨 14px / 입력 44px / 필드 간격 12px. `FormDropdown`·`DatePicker`·`Input`의 반응형 지원 여부에 맞춰 호출부 `className`으로 맞춘다
-- **메모 placeholder 색은 호출부에서 덮어쓴다** (2026-10-02 확정) — 공통 `Input`의 `placeholder:text-slate-500`은 코드 토큰 기준 `#1C1917`이라 입력값처럼 진하게 보인다. 메모 `Input`의 `className`에 `[&_input]:placeholder:text-muted-foreground`(`#6B6A68`, DatePicker placeholder와 같은 색)를 준다. 공통 `Input`은 수정하지 않고 담당자에게 전달한다. Input이 고쳐지면 이 덮어쓰기를 제거한다
-- **포커스 링 여백** — 입력의 좌·우·아래 끝이 스크롤 영역(`Modal.Body`, `overflow-y: auto`)과 맞닿아 Input의 바깥 포커스 링(`ring-2`)이 잘린다. `Modal.Body`에 `-m-1 p-1`을 줘 링이 그려질 4px만 확보하고 레이아웃은 유지한다
+- **크기** — large 기준 라벨 16px / 입력 56px / 필드 간격 16px, 모바일(`max-tablet:`) 라벨 14px / 입력 44px / 필드 간격 12px. `FormDropdown`·`DatePicker`의 반응형 지원 여부에 맞춰 호출부 `className`으로 맞춘다. 메모 높이는 "메모 입력"을 따른다
+- **포커스 링 여백** — 입력의 좌·우·아래 끝이 스크롤 영역(`Modal.Body`, `overflow-y: auto`)과 맞닿아 입력의 바깥 포커스 링(`ring-2`)이 잘린다. `Modal.Body`에 `-m-1 p-1`을 줘 링이 그려질 4px만 확보하고 레이아웃은 유지한다
 
 ### 검증
 
@@ -178,9 +177,17 @@ RHF 기본 `rules`로 처리한다. 폼 검증은 zod 스키마로 바뀔 수 �
 | 수정 모드 변경 없음 | 실제 요청값에 변경이 없으면 제출 버튼이 `disabled`다. 메모의 앞뒤 공백만 바꾼 경우도 포함한다. 버튼과 PATCH 요청은 같은 비교 유틸을 사용한다 (2026-10-16 보완)                                                                                                                                               |
 | 필수 4개 필드       | 모두 채워지기 전에는 제출 버튼이 `disabled`다 (Figma 추가 화면의 회색 `생성`)                                                                                                                                                                                                                                |
 | 마감 시각           | 마감이 시작보다 늦어야 한다. 자정을 넘는 근무(`22:00` ~ `02:00`)와 시작 = 마감은 받지 않는다 (BE 규칙). 시작·마감이 모두 선택된 상태에서 마감이 늦지 않으면 마감 시간 필드 아래에 `마감 시간은 시작 시간보다 늦게 선택해주세요.`를 `role="alert"`로 표시하고 제출 버튼을 `disabled`로 둔다 (2026-10-20 확정) |
-| 메모 길이           | 500자에서 입력을 막는다 (BE 최대 500자)                                                                                                                                                                                                                                                                      |
+| 메모 길이           | UTF-16 500자에서 입력을 막는다 (BE 최대 500자). 한글 조합 중에는 자르지 않고 조합이 끝난 뒤 자르며, 이모지를 반으로 나누지 않는다. 아르바이트생 등록/수정 폼과 같은 유틸(`partTimeTextInput.ts`)을 쓴다                                                                                                      |
 
 - **필수 표시와 비활성 제출 버튼의 접근성** — 라벨의 `*`는 `aria-hidden`이고 `sr-only` "(필수)" 텍스트로 보조기술에 전달한다. 제출 버튼은 `focusableWhenDisabled`로 비활성일 때도 Tab으로 닿고 `aria-disabled`로 읽히게 한다. 이때 HTML `disabled` 속성이 없어 공통 Button의 `disabled:` 스타일이 적용되지 않으므로, 호출부에서 `data-disabled:`로 같은 회색(`#bbbbbb`)·`cursor-not-allowed`를 준다
+
+### 메모 입력
+
+- **여러 줄 `textarea`** — 메모는 최대 500자라 한 줄 입력에서는 가로로 스크롤돼 작성 중 전체 내용을 보기 어렵다. 공통 컴포넌트에 Textarea가 없어 아르바이트생 등록/수정 폼처럼 네이티브 `textarea`를 쓴다
+- **스타일은 다른 필드와 맞춘다** — 테두리 `slate-300`, 모서리 16px(모바일 12px), 안쪽 여백 16px(모바일 12px), 포커스 링 `ring-2 primary-500`, placeholder `text-muted-foreground`(DatePicker placeholder와 같은 색), 비활성 `slate-50` 배경. 공통 `Input`처럼 테두리·모서리·여백·포커스 링은 바깥 래퍼에 두고 `textarea`는 투명하게 둔다. `textarea`에 직접 주면 스크롤바가 둥근 모서리 밖으로 튀어나온다
+- **높이는 내용에 맞춰 늘어난다** — 최소 높이는 데스크톱 120px, 모바일 96px이고, 그보다 길어지면 `field-sizing: content`로 입력란이 늘어난다. 입력란 안 스크롤과 모달 본문 스크롤이 겹치지 않게, 넘치는 내용은 모달 본문(`Modal.Body`)이 스크롤한다. 공통 Modal은 패널 최대 높이와 본문 스크롤을 이미 지원해 수정하지 않는다. `field-sizing`을 지원하지 않는 브라우저에서는 최소 높이에 고정되고 입력란 안에서 스크롤한다. 크기 조절 핸들은 막는다(`resize-none`)
+- **글자 수 표시** — 입력란 아래 오른쪽에 "공백포함 N자 \| 공백제외 N자"를 둔다. 아르바이트생 등록/수정 폼과 같은 형식·색(`#a4a4a4`)이다. 입력란의 `aria-describedby`로 연결한다
+- **Enter는 줄바꿈** — 메모 입력 중 Enter로 제출하지 않는다. 제출은 버튼으로만 한다
 
 ### 빠른 선택
 
@@ -256,4 +263,6 @@ RHF 기본 `rules`로 처리한다. 폼 검증은 zod 스키마로 바뀔 수 �
 
 ## 확인 필요
 
-없음. 남은 항목은 [도메인 문서](./README.md#확인-필요)에서 다룬다.
+- **메모 입력 높이·글자 수 표시** — "메모 입력"의 최소 높이(120px / 모바일 96px), 내용에 맞춰 늘어나는 동작, 글자 수 표시는 Figma 확인 전 값이다. Figma가 확정되면 맞춘다
+
+나머지 항목은 [도메인 문서](./README.md#확인-필요)에서 다룬다.
