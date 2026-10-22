@@ -8,9 +8,9 @@ import type {
   PartTimeStaffFormPayload,
   PartTimeStaffFormSavedAttachment,
   PartTimeStaffFormValues,
-  PartTimeStaffMemoLength,
 } from '@lib/types/partTimeStaff';
 import { getPartTimeStaffAttachmentType } from '@lib/utilities/partTime/partTimeStaffAttachment';
+import { limitPartTimeText } from '@lib/utilities/partTime/partTimeTextInput';
 
 const PART_TIME_STAFF_NAME_MAX_LENGTH = 30;
 
@@ -95,25 +95,8 @@ const applyPartTimeStaffInputFormat = (
 
 const countPartTimeStaffCharacters = (value: string) => value.length;
 
-const countPartTimeStaffMemoLength = (
-  memo: string,
-): PartTimeStaffMemoLength => ({
-  withSpaces: countPartTimeStaffCharacters(memo),
-  withoutSpaces: countPartTimeStaffCharacters(memo.replace(/\s/g, '')),
-});
-
-const PART_TIME_STAFF_MEMO_MAX_LENGTH = 500;
-
-const limitPartTimeStaffCharacters = (value: string, maxLength: number) => {
-  const limited = value.slice(0, maxLength);
-  return /[\uD800-\uDBFF]$/.test(limited) ? limited.slice(0, -1) : limited;
-};
-
 const limitPartTimeStaffName = (value: string) =>
-  limitPartTimeStaffCharacters(value, PART_TIME_STAFF_NAME_MAX_LENGTH);
-
-const limitPartTimeStaffMemo = (value: string) =>
-  limitPartTimeStaffCharacters(value, PART_TIME_STAFF_MEMO_MAX_LENGTH);
+  limitPartTimeText(value, PART_TIME_STAFF_NAME_MAX_LENGTH);
 
 const isPartTimeStaffNameValid = (value: string) => {
   const trimmedLength = countPartTimeStaffCharacters(value.trim());
@@ -291,12 +274,10 @@ const isPartTimeStaffFormChanged = (
 };
 
 export {
-  PART_TIME_STAFF_MEMO_MAX_LENGTH,
   PART_TIME_STAFF_NAME_MAX_LENGTH,
   PART_TIME_STAFF_UNSUPPORTED_CLEAR_MESSAGE,
   applyPartTimeStaffInputFormat,
   countPartTimeStaffCharacters,
-  countPartTimeStaffMemoLength,
   createPartTimeStaffFormNewAttachment,
   formatPartTimeStaffBirthDateInput,
   formatPartTimeStaffHourlyWageInput,
@@ -307,7 +288,6 @@ export {
   isPartTimeStaffNameValid,
   isPartTimeStaffPhoneValid,
   limitPartTimeStaffName,
-  limitPartTimeStaffMemo,
   toPartTimeStaffFormPayload,
   toPartTimeStaffFormValues,
 };
