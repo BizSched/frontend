@@ -21,11 +21,13 @@ import { useStaffOptions } from '@hooks/api/staff/useStaffOptions';
 
 import { formatCommonError } from '@lib/api/formatCommonError';
 import type { PartTimeSchedule } from '@lib/types/partTimeSchedule';
+import { cn } from '@lib/utilities/cn';
 import {
   comparePartTimeScheduleTime,
   getPartTimeScheduleRange,
   groupPartTimeSchedulesByDate,
 } from '@lib/utilities/partTime/partTimeSchedule';
+import { typographyVariants } from '@lib/utilities/typography';
 
 const MAX_VISIBLE_SCHEDULE_COUNT = 3;
 const EMPTY_SCHEDULES: PartTimeSchedule[] = [];
@@ -188,7 +190,10 @@ function PartTimeScheduleCalendar({
       {failedQueries.length > 0 && (
         <div
           role="alert"
-          className="flex items-center justify-center gap-2 text-xs text-slate-500 max-mobile:px-4"
+          className={cn(
+            typographyVariants({ role: 'supporting' }),
+            'flex items-center justify-center gap-2 text-slate-500 max-mobile:px-4',
+          )}
         >
           <p className="min-w-0 truncate">
             {formatCommonError(failedQueries[0].error)}
@@ -198,7 +203,10 @@ function PartTimeScheduleCalendar({
             onClick={() => {
               failedQueries.forEach(({ refetch }) => void refetch());
             }}
-            className="shrink-0 cursor-pointer underline"
+            className={cn(
+              typographyVariants({ role: 'label' }),
+              'shrink-0 cursor-pointer underline',
+            )}
           >
             다시 시도
           </button>

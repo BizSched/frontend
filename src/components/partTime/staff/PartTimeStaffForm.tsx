@@ -51,6 +51,7 @@ import {
   isComposingInput,
   limitPartTimeMemo,
 } from '@lib/utilities/partTime/partTimeTextInput';
+import { typographyVariants } from '@lib/utilities/typography';
 
 const FORM_TEXT = {
   create: {
@@ -76,8 +77,10 @@ const SAVE_ERROR_TOAST_ID = 'staff-save-error';
 const VIEWER_SPACE_CLASS_NAME =
   'max-laptop:pb-[calc(417px+2.375rem+1.5rem)] max-tablet:pb-[calc(14.375rem+1.75rem+1rem)]';
 
-const FIELD_INPUT_CLASS_NAME =
-  'w-full min-w-0 bg-transparent outline-none placeholder:text-slate-200';
+const FIELD_INPUT_CLASS_NAME = cn(
+  typographyVariants({ role: 'body' }),
+  'w-full min-w-0 bg-transparent outline-none placeholder:text-slate-200',
+);
 
 const FORM_FIELD_NAMES = [
   'name',
@@ -274,7 +277,12 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
           className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 max-tablet:gap-3"
         >
           <div className="flex items-center justify-between gap-2.5 px-2 max-tablet:px-1">
-            <h1 className="min-w-0 text-2xl leading-8 font-semibold tracking-[-0.03em] break-keep text-black max-laptop:text-xl max-laptop:leading-7.5 max-tablet:text-base max-tablet:leading-6 max-tablet:text-slate-500">
+            <h1
+              className={cn(
+                typographyVariants({ role: 'pageTitle' }),
+                'min-w-0 break-keep text-black max-tablet:text-slate-500',
+              )}
+            >
               {text.title}
             </h1>
             <Button
@@ -291,12 +299,24 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
             </Button>
           </div>
           {isSaving && (
-            <p role="status" className="px-2 text-sm text-slate-500">
+            <p
+              role="status"
+              className={cn(
+                typographyVariants({ role: 'supporting' }),
+                'px-2 text-slate-500',
+              )}
+            >
               정보와 첨부파일을 저장하고 있어요.
             </p>
           )}
           {saveMutation.requiresReview && (
-            <p role="alert" className="px-2 text-sm text-slate-500">
+            <p
+              role="alert"
+              className={cn(
+                typographyVariants({ role: 'supporting' }),
+                'px-2 text-slate-500',
+              )}
+            >
               저장 결과를 확인할 수 없어 중복 등록을 막기 위해 재제출을
               중단했어요.{' '}
               <Link
@@ -312,7 +332,13 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
             </p>
           )}
           {hasUnsupportedClear && (
-            <p role="alert" className="px-2 text-sm text-slate-500">
+            <p
+              role="alert"
+              className={cn(
+                typographyVariants({ role: 'supporting' }),
+                'px-2 text-slate-500',
+              )}
+            >
               {PART_TIME_STAFF_UNSUPPORTED_CLEAR_MESSAGE}
             </p>
           )}
@@ -336,7 +362,10 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
                         aria-required
                         autoComplete="off"
                         placeholder="아르바이트생 이름을 입력해주세요"
-                        className="min-w-0 flex-1 bg-transparent text-2xl leading-8 font-semibold tracking-[-0.03em] text-slate-500 outline-none placeholder:text-slate-200 max-tablet:text-base max-tablet:leading-6"
+                        className={cn(
+                          typographyVariants({ role: 'body' }),
+                          'min-w-0 flex-1 bg-transparent text-slate-500 outline-none placeholder:text-slate-200',
+                        )}
                         onChange={(event) => {
                           const { value } = event.currentTarget;
 
@@ -354,7 +383,12 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
                       />
                     )}
                   />
-                  <p className="shrink-0 text-xs leading-4 font-medium text-white-950">
+                  <p
+                    className={cn(
+                      typographyVariants({ role: 'caption' }),
+                      'shrink-0 text-white-950',
+                    )}
+                  >
                     {nameLength}/
                     <span className="text-primary-600">
                       {PART_TIME_STAFF_NAME_MAX_LENGTH}
@@ -443,7 +477,12 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
                       control={control}
                       name="hourlyWage"
                       render={({ field }) => (
-                        <label className="flex cursor-text items-center gap-1">
+                        <label
+                          className={cn(
+                            typographyVariants({ role: 'data' }),
+                            'flex cursor-text items-center gap-1',
+                          )}
+                        >
                           <span className="relative min-w-0">
                             <span
                               aria-hidden
@@ -459,6 +498,7 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
                               placeholder="-"
                               className={cn(
                                 FIELD_INPUT_CLASS_NAME,
+                                typographyVariants({ role: 'data' }),
                                 'absolute inset-0',
                               )}
                               onChange={createFormattedInputChangeHandler(
@@ -491,7 +531,10 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
                 <textarea
                   aria-label="메모"
                   placeholder="이 곳을 통해 메모를 작성해주세요"
-                  className="min-h-50 w-full flex-1 resize-none bg-transparent text-sm leading-5 tracking-[-0.03em] text-slate-500 outline-none placeholder:text-base placeholder:leading-6 placeholder:tracking-[-0.02em] placeholder:text-slate-300 max-tablet:placeholder:text-sm max-tablet:placeholder:leading-5 max-tablet:placeholder:tracking-[-0.03em]"
+                  className={cn(
+                    typographyVariants({ role: 'body' }),
+                    'min-h-50 w-full flex-1 resize-none bg-transparent text-slate-500 outline-none placeholder:text-slate-300',
+                  )}
                   {...register('memo', {
                     maxLength: PART_TIME_MEMO_MAX_LENGTH,
                     onChange: (event: ChangeEvent<HTMLTextAreaElement>) => {
@@ -514,7 +557,12 @@ function PartTimeStaffForm({ staff }: PartTimeStaffFormProps) {
                 />
               }
             />
-            <p className="text-right text-xs leading-4 text-slate-300">
+            <p
+              className={cn(
+                typographyVariants({ role: 'caption' }),
+                'text-right text-slate-300',
+              )}
+            >
               공백포함 {memoLength.withSpaces}자 | 공백제외{' '}
               {memoLength.withoutSpaces}자
             </p>

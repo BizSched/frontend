@@ -2,6 +2,7 @@ import { ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
 
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 interface PartTimeScheduleMemoProps {
   memo: string;
@@ -35,7 +36,8 @@ function PartTimeScheduleMemo({ memo, className }: PartTimeScheduleMemoProps) {
         ref={memoRef}
         id={memoId}
         className={cn(
-          'min-w-0 flex-1 text-xs leading-4 tracking-[-0.03em] wrap-break-word whitespace-pre-wrap text-slate-400',
+          typographyVariants({ role: 'body' }),
+          'min-w-0 flex-1 wrap-break-word whitespace-pre-wrap text-slate-400',
           !isExpanded && 'line-clamp-2',
         )}
       >

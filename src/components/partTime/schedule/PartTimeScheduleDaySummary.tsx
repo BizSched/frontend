@@ -5,6 +5,7 @@ import { PartTimeScheduleMemo } from '@components/partTime/schedule/PartTimeSche
 import type { PartTimeSchedule } from '@lib/types/partTimeSchedule';
 import { cn } from '@lib/utilities/cn';
 import { formatPartTimeScheduleSummaryTitle } from '@lib/utilities/partTime/partTimeSchedule';
+import { typographyVariants } from '@lib/utilities/typography';
 
 interface PartTimeScheduleDaySummaryProps {
   date: string;
@@ -49,16 +50,24 @@ function PartTimeScheduleDaySummary({
     >
       <div
         aria-live="polite"
-        className="flex items-end justify-between gap-2 whitespace-nowrap"
+        className="flex flex-wrap items-end justify-between gap-2"
       >
         <h2
           id={titleId}
-          className="text-xl leading-[1.875rem] font-semibold text-slate-950"
+          className={cn(
+            typographyVariants({ role: 'sectionTitle' }),
+            'text-slate-950',
+          )}
         >
           {formatPartTimeScheduleSummaryTitle(date, today)}
         </h2>
         {hasSchedules && (
-          <p className="text-base font-medium text-slate-600">
+          <p
+            className={cn(
+              typographyVariants({ role: 'data' }),
+              'text-slate-600',
+            )}
+          >
             {checkedInCount}/{schedules.length} 완료
           </p>
         )}
@@ -81,7 +90,7 @@ function PartTimeScheduleDaySummary({
 
               return (
                 <li key={id} className="flex flex-col gap-0.5 px-1 py-1.5">
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
                     <label className="flex min-w-0 flex-1 items-center gap-1">
                       <Checkbox
                         checked={isCheckedIn}
@@ -90,7 +99,12 @@ function PartTimeScheduleDaySummary({
                           onAttendanceChange(schedule, checked)
                         }
                       />
-                      <span className="truncate text-sm font-medium tracking-[-0.03em] text-white-950">
+                      <span
+                        className={cn(
+                          typographyVariants({ role: 'body' }),
+                          'wrap-break-word text-white-950',
+                        )}
+                      >
                         {startTime} ~ {endTime} {staff.name}
                       </span>
                     </label>
@@ -127,7 +141,12 @@ function PartTimeScheduleDaySummary({
           </ul>
         </>
       ) : (
-        <p className="text-sm font-medium tracking-[-0.03em] text-white-950">
+        <p
+          className={cn(
+            typographyVariants({ role: 'supporting' }),
+            'text-white-950',
+          )}
+        >
           등록된 스케줄이 없습니다.
         </p>
       )}

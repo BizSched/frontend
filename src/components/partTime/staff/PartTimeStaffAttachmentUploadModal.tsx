@@ -9,12 +9,15 @@ import { toast } from '@components/_common/Toast/Toaster';
 
 import { cn } from '@lib/utilities/cn';
 import { preparePartTimeStaffAttachment } from '@lib/utilities/partTime/preparePartTimeStaffAttachment';
+import { typographyVariants } from '@lib/utilities/typography';
 
 const ATTACHMENT_ACCEPT = '.jpg,.jpeg,.png,.webp,.pdf';
 const FILE_ERROR_TOAST_ID = 'staff-attachment-file-error';
 
-const FILE_FIELD_CLASS_NAME =
-  'flex w-full items-center gap-2 rounded-[16px] border border-dashed border-[#cccccc] bg-[#fafafa] p-4 text-base leading-6 tracking-[-0.02em] max-tablet:rounded-[12px] max-tablet:p-3 max-tablet:text-sm max-tablet:leading-5 max-tablet:tracking-[-0.03em]';
+const FILE_FIELD_CLASS_NAME = cn(
+  typographyVariants({ role: 'body' }),
+  'flex w-full items-center gap-2 rounded-[16px] border border-dashed border-[#cccccc] bg-[#fafafa] p-4 max-tablet:rounded-[12px] max-tablet:p-3',
+);
 
 interface PartTimeStaffAttachmentUploadModalProps {
   open: boolean;
@@ -90,7 +93,7 @@ function PartTimeStaffAttachmentUploadModal({
       >
         <div className="flex flex-col gap-8 max-tablet:gap-6">
           <Modal.Header align="start">
-            <Modal.Title className="leading-7.5 text-slate-500 max-tablet:text-base max-tablet:leading-6">
+            <Modal.Title className="text-slate-500">
               첨부파일 업로드
             </Modal.Title>
             <Modal.CloseButton />
@@ -130,6 +133,7 @@ function PartTimeStaffAttachmentUploadModal({
               onClick={() => inputRef.current?.click()}
               className={cn(
                 FILE_FIELD_CLASS_NAME,
+                typographyVariants({ role: 'label' }),
                 'cursor-pointer text-white-950 outline-none focus-visible:ring-2 focus-visible:ring-ring',
               )}
             >
@@ -138,7 +142,13 @@ function PartTimeStaffAttachmentUploadModal({
             </button>
           )}
           {isProcessing && (
-            <p role="status" className="text-sm text-slate-500">
+            <p
+              role="status"
+              className={cn(
+                typographyVariants({ role: 'supporting' }),
+                'text-slate-500',
+              )}
+            >
               이미지를 처리하고 있어요.
             </p>
           )}
@@ -152,7 +162,7 @@ function PartTimeStaffAttachmentUploadModal({
               onUpload(file);
             }
           }}
-          className="w-full max-tablet:h-10 max-tablet:py-2.5 max-tablet:text-sm max-tablet:leading-5 data-disabled:cursor-not-allowed data-disabled:bg-slate-200 data-disabled:hover:bg-slate-200"
+          className="w-full max-tablet:h-10 max-tablet:py-2.5 data-disabled:cursor-not-allowed data-disabled:bg-slate-200 data-disabled:hover:bg-slate-200"
         >
           업로드
         </Button>

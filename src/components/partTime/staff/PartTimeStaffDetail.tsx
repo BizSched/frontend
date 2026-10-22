@@ -13,11 +13,13 @@ import type {
   PartTimeStaffListItem,
   PartTimeStaffShift,
 } from '@lib/types/partTimeStaff';
+import { cn } from '@lib/utilities/cn';
 import {
   formatPartTimeStaffBirthDate,
   formatPartTimeStaffGender,
   formatPartTimeStaffHourlyWage,
 } from '@lib/utilities/partTime/partTimeStaff';
+import { typographyVariants } from '@lib/utilities/typography';
 
 interface PartTimeStaffDetailProps {
   staff: PartTimeStaffListItem;
@@ -77,7 +79,10 @@ function PartTimeStaffDetail({
               <PartTimeStaffNoteIcon />
               <h2
                 id={titleId}
-                className="min-w-0 text-2xl leading-8 font-semibold tracking-[-0.03em] wrap-break-word text-slate-800 max-tablet:text-lg max-tablet:leading-7"
+                className={cn(
+                  typographyVariants({ role: 'sectionTitle' }),
+                  'min-w-0 wrap-break-word text-slate-800',
+                )}
               >
                 {name}
               </h2>
@@ -104,7 +109,11 @@ function PartTimeStaffDetail({
             {phone || '-'}
           </PartTimeStaffFieldRow>
           <PartTimeStaffFieldRow label="시급">
-            {detail ? formatPartTimeStaffHourlyWage(hourlyWage) : pendingValue}
+            <span className={typographyVariants({ role: 'data' })}>
+              {detail
+                ? formatPartTimeStaffHourlyWage(hourlyWage)
+                : pendingValue}
+            </span>
           </PartTimeStaffFieldRow>
         </>
       }
@@ -137,7 +146,12 @@ function PartTimeStaffDetail({
       }
       body={
         memo && (
-          <p className="text-sm leading-5 tracking-[-0.03em] wrap-break-word whitespace-pre-wrap text-slate-500">
+          <p
+            className={cn(
+              typographyVariants({ role: 'body' }),
+              'wrap-break-word whitespace-pre-wrap text-slate-500',
+            )}
+          >
             {memo}
           </p>
         )
