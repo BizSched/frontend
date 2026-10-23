@@ -28,7 +28,9 @@ import { SidebarMenuButton } from '@components/_common/Sidebar/SidebarMenuButton
 import { useSidebar } from '@components/_common/Sidebar/SidebarProvider';
 import { SidebarTrigger } from '@components/_common/Sidebar/SidebarTrigger';
 
+import { cn } from '@lib/utilities/cn';
 import { ROUTE_PATHS } from '@lib/utilities/routePaths';
+import { typographyVariants } from '@lib/utilities/typography';
 
 import Avatar from '@assets/icons/sidebar/ic_avatar.svg';
 
@@ -101,11 +103,17 @@ function AppSidebar({
             </Button>
           </aside>
           <header className="fixed inset-x-0 top-0 z-30 hidden h-14 items-center justify-between bg-white-50 px-4 max-tablet:flex">
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 flex-1 items-center gap-2">
               <SidebarTrigger>
                 <MenuIcon size={24} aria-hidden="true" />
               </SidebarTrigger>
-              <span aria-hidden="true" className="text-sm font-semibold">
+              <span
+                aria-hidden="true"
+                className={cn(
+                  typographyVariants({ role: 'appBarTitle' }),
+                  'min-w-0 text-balance',
+                )}
+              >
                 {mobilePageTitle}
               </span>
             </div>
@@ -278,7 +286,12 @@ function AppSidebar({
                 unoptimized
               />
             </span>
-            <span className="min-w-0 text-sm tracking-[-0.03em]">
+            <span
+              className={cn(
+                typographyVariants({ role: 'supporting' }),
+                'min-w-0',
+              )}
+            >
               <span className="flex items-center font-medium text-slate-500">
                 <span className="truncate">{profile?.name ?? '내 프로필'}</span>
                 <ChevronDownIcon size={16} className="text-slate-300" />

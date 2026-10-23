@@ -1,7 +1,9 @@
 import Image from 'next/image';
 
 import type { PartTimeSchedule } from '@lib/types/partTimeSchedule';
+import { cn } from '@lib/utilities/cn';
 import { formatPartTimeScheduleDuration } from '@lib/utilities/partTime/partTimeSchedule';
+import { typographyVariants } from '@lib/utilities/typography';
 
 import IcNote from '@assets/icons/ic_note.svg';
 
@@ -26,10 +28,20 @@ function WorkerCard({ schedule }: WorkerCardProps) {
       </span>
 
       <div className="flex items-center gap-1.5">
-        <span className="text-sm font-semibold text-slate-500">
+        <span
+          className={cn(
+            typographyVariants({ role: 'subtitle' }),
+            'text-slate-500',
+          )}
+        >
           {staff.name}
         </span>
-        <span className="text-xs text-slate-300">
+        <span
+          className={cn(
+            typographyVariants({ role: 'supporting' }),
+            'text-slate-400',
+          )}
+        >
           {startTime} - {endTime} (
           {formatPartTimeScheduleDuration(startTime, endTime)})
         </span>

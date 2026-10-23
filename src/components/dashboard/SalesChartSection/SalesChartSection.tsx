@@ -9,7 +9,9 @@ import { SalesWeeklyChart } from '@components/sales/SalesWeeklyChart';
 
 import { useSalesChart } from '@hooks/api/sales/useSalesChart';
 
+import { cn } from '@lib/utilities/cn';
 import { formatSalesError } from '@lib/utilities/sales/formatSalesError';
+import { typographyVariants } from '@lib/utilities/typography';
 
 import IcEmpty from '@assets/icons/ic_empty.svg';
 
@@ -24,10 +26,15 @@ function SalesChartSection({ date }: SalesChartSectionProps) {
   return (
     <Card padding="lg" className="gap-6" data-testid="sales-chart">
       <Card.Header>
-        <Card.Title>이번 달 매출 차트</Card.Title>
+        <Card.Title className={typographyVariants({ role: 'sectionTitle' })}>
+          이번 달 매출 차트
+        </Card.Title>
         <Link
           href="/sales/dashboard"
-          className="flex items-center gap-1 rounded text-sm font-medium text-primary-700 hover:underline focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none max-tablet:text-xs"
+          className={cn(
+            typographyVariants({ role: 'label' }),
+            'flex items-center gap-1 rounded text-primary-700 hover:underline focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none',
+          )}
         >
           자세히 보기
           <MoveRight aria-hidden="true" size={16} />
@@ -36,13 +43,23 @@ function SalesChartSection({ date }: SalesChartSectionProps) {
 
       <Card.Content className="flex h-[270px] flex-col">
         {!data ? (
-          <p className="flex flex-1 items-center justify-center text-sm text-slate-500">
+          <p
+            className={cn(
+              typographyVariants({ role: 'supporting' }),
+              'flex flex-1 items-center justify-center text-slate-500',
+            )}
+          >
             {error ? formatSalesError(error) : '불러오는 중'}
           </p>
         ) : isEmpty ? (
           <div className="flex flex-1 flex-col items-center justify-center gap-2">
             <Image src={IcEmpty} alt="" width={100} height={128} unoptimized />
-            <span className="text-base font-semibold text-slate-400">
+            <span
+              className={cn(
+                typographyVariants({ role: 'subtitle' }),
+                'text-slate-400',
+              )}
+            >
               매출 데이터가 없습니다
             </span>
           </div>
