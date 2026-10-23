@@ -271,7 +271,6 @@ RHF 기본 `rules`로 처리한다. 폼 검증은 zod 스키마로 바뀔 수 �
 - **화면 밖 복제본을 찍는다** — 영역을 복제해 같은 폭으로 화면 밖에 붙이고, 빼는 요소를 지우고 메모를 펼친 뒤 찍고 지운다. 라이브러리의 복제 훅(`onCloneNode`)은 원본 크기로 캔버스를 잡아 펼친 메모가 잘린다. 화면의 실제 요소는 바꾸지 않아 깜빡임이 없다. 빼는 요소는 `data-capture-exclude`, 펼칠 요소는 `data-capture-expand`로 표시한다. 복제본의 이미지는 `loading="eager"`로 바꾼다. 화면 밖 lazy 이미지는 로드되지 않아 라이브러리가 타임아웃(30초)까지 기다린다
 - **폰트는 쓰인 글자의 subset만 넣는다** — Pretendard dynamic subset은 `@font-face`가 828개(약 12MB)다. 라이브러리 기본 동작은 쓰인 글꼴 패밀리의 `@font-face`를 모두 받는다. 영역 텍스트의 글자(`unicode-range`)·굵기에 해당하는 규칙만 골라 data URL로 넣는다
 - **저장 동작은 Context로 잇는다** — 버튼은 헤더(Server Component 안)와 FAB에 있고, 캡처할 DOM·선택 날짜·필터는 `PartTimeScheduleCalendar` 안에 있다. `PartTimeScheduleImageProvider`가 `page.tsx`에서 셋을 감싼다. 캘린더가 캡처 대상(영역 DOM·파일명)을 등록하고 버튼은 Provider의 저장 함수만 호출한다. DOM id와 `data-*` 속성으로 찾으면 파일명 정보가 문자열로 오가 타입 검사가 끊긴다. 선택 날짜·필터 상태를 Provider로 올리면 캘린더 로컬 상태 결정(2026-10-01)을 뒤집는다
-- **알려진 문제: 캡처의 영문·숫자가 Times로 그려진다** — `theme.css`의 `--font-sans: var(--font-sans)`가 자기 자신을 참조해 전역 글꼴이 무효다. 화면은 `lang="ko"`로 브라우저 한국어 기본 글꼴이 적용되지만, 라이브러리는 계산된 `font-family`("Times New Roman")를 복제본에 그대로 옮긴다. 전역 글꼴이 Pretendard로 고쳐지면 이 기능은 수정 없이 Pretendard로 캡처한다 (Pretendard를 강제 적용해 확인)
 
 ## 단계별 PR 계획
 
