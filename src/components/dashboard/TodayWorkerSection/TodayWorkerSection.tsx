@@ -102,12 +102,13 @@ function TodayWorkerSection({ today }: TodayWorkerSectionProps) {
           </div>
         ) : (
           <p
+            role="status"
             className={cn(
               typographyVariants({ role: 'supporting' }),
-              'py-6 text-center text-slate-500',
+              'flex flex-1 items-center justify-center text-slate-500',
             )}
           >
-            {error ? formatCommonError(error) : '불러오는 중'}
+            불러오는 중
           </p>
         )}
       </Card.Content>
