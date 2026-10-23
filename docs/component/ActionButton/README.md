@@ -82,6 +82,7 @@ interface ActionButtonItem {
   icon: React.ReactNode;
   label: string; // 보조 버튼의 aria-label
   onClick: () => void;
+  isDisabled?: boolean; // 해당 보조 액션만 비활성화
 }
 
 type ActionButtonProps = Omit<Menu.Trigger.Props, 'children'> &
@@ -93,6 +94,7 @@ type ActionButtonProps = Omit<Menu.Trigger.Props, 'children'> &
 
 - `actions` 배열 순서가 곧 화면상 위 → 아래 순서이고, 방향키 탐색 순서다.
 - 보조 버튼을 누르면 해당 `onClick`이 호출되고 목록이 자동으로 닫힌다.
+- `actions[].isDisabled`는 해당 `Menu.Item`의 `disabled`로 전달한다. 다른 액션과 메인 버튼은 계속 사용할 수 있다. 비활성 디자인은 기존 미정 방침을 유지한다.
 - `className`·나머지 Trigger props는 **메인 버튼**에 전달한다.
 
 ## 스타일

@@ -1,5 +1,8 @@
+import { readFileSync } from 'node:fs';
+
 import {
   type APIRequestContext,
+  type Download,
   expect,
   type Page,
   test,
@@ -360,6 +363,52 @@ test.describe('아르바이트생 스케줄 관리', () => {
       await expect
         .poll(async () => (await memo.boundingBox())?.height)
         .toBe(collapsedHeight);
+    });
+  });
+
+  test('사용자는 캘린더와 날짜 상세를 이미지로 저장할 수 있다.', async ({
+    page,
+  }, testInfo) => {
+    const row = getScheduleRow(page, `09:00 ~ 13:00 ${STAFF_A}`);
+    let download: Download;
+
+    await test.step('Given: 로그인한 상태에서 아르바이트생 한 명으로 필터를 건다', async () => {
+      await page.goto('/partTime/schedule');
+      await page
+        .getByRole('button', {
+          name: '스케줄 필터: 아르바이트생 전체 스케줄',
+        })
+        .click();
+      await page.getByRole('menuitem', { name: STAFF_A, exact: true }).click();
+      await expect(
+        row.getByRole('button', { name: '메모 펼치기' }),
+      ).toBeVisible();
+    });
+
+    await test.step('When: 이미지 저장 버튼을 클릭한다', async () => {
+      const downloadPromise = page.waitForEvent('download');
+      await page.getByRole('button', { name: '이미지 저장' }).click();
+      download = await downloadPromise;
+    });
+
+    await test.step('Then: 선택 날짜와 이름이 붙은 PNG가 내려받아지고 화면은 그대로다', async () => {
+      expect(download.suggestedFilename()).toBe(
+        `아르바이트생-스케줄-${dayKey}-${STAFF_A}.png`,
+      );
+      const filePath = testInfo.outputPath(download.suggestedFilename());
+      await download.saveAs(filePath);
+      await testInfo.attach('schedule-image', {
+        path: filePath,
+        contentType: 'image/png',
+      });
+      const signature = readFileSync(filePath).subarray(0, 8);
+      expect(signature.toString('hex')).toBe('89504e470d0a1a0a');
+      await expect(
+        row.getByRole('button', { name: '메모 펼치기' }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole('button', { name: '이미지 저장' }),
+      ).toBeEnabled();
     });
   });
 

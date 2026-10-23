@@ -1,7 +1,5 @@
-import { LinkIcon } from 'lucide-react';
-
-import { Button } from '@components/_common/Button/Button';
 import { PartTimeScheduleAddButton } from '@components/partTime/schedule/PartTimeScheduleAddButton';
+import { PartTimeScheduleImageSaveButton } from '@components/partTime/schedule/PartTimeScheduleImageSaveButton';
 
 function PartTimeScheduleHeader() {
   return (
@@ -10,14 +8,7 @@ function PartTimeScheduleHeader() {
         아르바이트생 스케줄 관리
       </h1>
       <div className="flex shrink-0 items-center gap-2.5 max-mobile:hidden">
-        <Button
-          hierarchy="secondary"
-          size="small"
-          icon={<LinkIcon strokeWidth={1.8} aria-hidden="true" />}
-          className="text-accent-500 [&_svg]:size-5"
-        >
-          스케줄 공유
-        </Button>
+        <PartTimeScheduleImageSaveButton />
         <PartTimeScheduleAddButton />
       </div>
     </header>

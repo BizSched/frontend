@@ -12,6 +12,7 @@ interface ActionButtonItem {
   icon: ReactNode;
   label: string;
   onClick: () => void;
+  isDisabled?: boolean;
 }
 
 type ActionButtonProps = Omit<Menu.Trigger.Props, 'children' | 'className'> &
@@ -54,12 +55,13 @@ function ActionButton({
             data-slot="action-button-popup"
             className="flex flex-col items-center gap-1 transition-[opacity,translate] duration-150 outline-none data-ending-style:translate-y-2 data-ending-style:opacity-0 data-starting-style:translate-y-2 data-starting-style:opacity-0"
           >
-            {actions.map(({ icon, label, onClick }) => (
+            {actions.map(({ icon, label, onClick, isDisabled }) => (
               <Menu.Item
                 key={label}
                 data-slot="action-button-item"
                 aria-label={label}
                 onClick={onClick}
+                disabled={isDisabled}
                 className={cn(
                   ICON_BUTTON_BASE_CLASSNAME,
                   'size-10 bg-slate-50 text-primary-500 [&_svg]:size-6',
