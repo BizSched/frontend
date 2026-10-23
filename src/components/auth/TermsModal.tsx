@@ -5,9 +5,10 @@ import { Modal } from '@components/_common/Modal/Modal';
 
 import type { TermsResponse } from '@lib/api/generated/bizSchedAPI.schemas';
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 const FOOTER_BUTTON_CLASS_NAME =
-  'w-auto min-w-0 max-tablet:h-12 max-tablet:py-3 max-tablet:text-base max-tablet:leading-6';
+  'w-auto min-w-0 max-tablet:h-12 max-tablet:py-3';
 
 interface TermsModalProps {
   open: boolean;
@@ -43,13 +44,16 @@ function TermsModal({
         className="h-[min(720px,calc(100dvh-4rem))] gap-8 max-tablet:h-[85dvh] max-tablet:gap-4"
       >
         <Modal.Header align="start">
-          <Modal.Title className="max-tablet:text-xl">
-            {document.title}
-          </Modal.Title>
+          <Modal.Title>{document.title}</Modal.Title>
           <Modal.CloseButton />
         </Modal.Header>
         <Modal.Body className="flex flex-col gap-4">
-          <p className="text-sm leading-6 tracking-[-0.03em] whitespace-pre-line text-slate-400">
+          <p
+            className={cn(
+              typographyVariants({ role: 'body' }),
+              'whitespace-pre-line text-slate-400',
+            )}
+          >
             {document.content}
           </p>
         </Modal.Body>

@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 export default function LandingPage() {
   return (
-    <main className="flex-1 tracking-[-0.03em]">
+    <main className="flex-1">
       <HeroSection />
       <FeatureSection />
       <StepSection />

@@ -3,6 +3,7 @@ import { cloneElement, type ReactElement } from 'react';
 import { type InputProps } from '@components/_common/Input/Input';
 
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 interface AuthFieldProps {
   id: string;
@@ -40,7 +41,7 @@ function AuthField({
         className={
           isLabelHidden
             ? 'sr-only'
-            : 'pl-1 text-base font-semibold tracking-[-0.03em] text-slate-700'
+            : cn(typographyVariants({ role: 'label' }), 'pl-1 text-slate-700')
         }
       >
         {label}
@@ -50,7 +51,10 @@ function AuthField({
         <p
           id={errorId}
           role="alert"
-          className="pl-1 text-sm tracking-[-0.03em] text-warning-500"
+          className={cn(
+            typographyVariants({ role: 'supporting' }),
+            'pl-1 text-warning-500',
+          )}
         >
           {errorMessage}
         </p>

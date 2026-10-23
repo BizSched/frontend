@@ -7,6 +7,7 @@ import { FormDropdown } from '@components/_common/FormDropdown/FormDropdown';
 import { Input } from '@components/_common/Input/Input';
 
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 const CUSTOM_BUSINESS_TYPE = 'CUSTOM';
 
@@ -20,7 +21,7 @@ const BUSINESS_TYPE_OPTIONS = [
 ];
 
 const DROPDOWN_CLASS_NAME =
-  'h-14 w-full rounded-[16px] border border-slate-200 py-0 text-base font-normal tracking-[-0.02em] text-slate-700 [&_[data-placeholder]]:text-slate-400';
+  'h-14 w-full rounded-[16px] border border-slate-200 py-0 text-slate-700 [&_[data-placeholder]]:text-slate-400';
 
 const DROPDOWN_CONTENT_CLASS_NAME =
   'max-h-72 overflow-y-auto drop-shadow-[0px_4px_8px_rgba(0,0,0,0.1)]';
@@ -59,7 +60,10 @@ function AuthBusinessTypeField({
     >
       <p
         id={labelId}
-        className="pl-1 text-base font-semibold tracking-[-0.03em] text-slate-700"
+        className={cn(
+          typographyVariants({ role: 'label' }),
+          'pl-1 text-slate-700',
+        )}
       >
         업종
       </p>
@@ -73,6 +77,7 @@ function AuthBusinessTypeField({
         placeholder="업종을 선택해주세요"
         hasDivider={false}
         className={cn(
+          typographyVariants({ role: 'body' }),
           DROPDOWN_CLASS_NAME,
           errorMessage && 'border-warning-500',
         )}
@@ -82,7 +87,10 @@ function AuthBusinessTypeField({
         <p
           id={errorId}
           role="alert"
-          className="pl-1 text-sm tracking-[-0.03em] text-warning-500"
+          className={cn(
+            typographyVariants({ role: 'supporting' }),
+            'pl-1 text-warning-500',
+          )}
         >
           {errorMessage}
         </p>
@@ -109,7 +117,10 @@ function AuthBusinessTypeField({
             <p
               id={customErrorId}
               role="alert"
-              className="pl-1 text-sm tracking-[-0.03em] text-warning-500"
+              className={cn(
+                typographyVariants({ role: 'supporting' }),
+                'pl-1 text-warning-500',
+              )}
             >
               {customErrorMessage}
             </p>
