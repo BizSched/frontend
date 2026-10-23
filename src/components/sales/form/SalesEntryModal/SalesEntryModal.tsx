@@ -15,7 +15,9 @@ import { useSalesCategoryList } from '@hooks/api/sales-category/useSalesCategory
 import { useOverlayStackIndex } from '@hooks/overlay/useOverlayStackIndex';
 
 import { formatCalendarDate } from '@lib/utilities/calendar/calendarDate';
+import { cn } from '@lib/utilities/cn';
 import { formatSalesError } from '@lib/utilities/sales/formatSalesError';
+import { typographyVariants } from '@lib/utilities/typography';
 
 const NUMBER_FORMAT = new Intl.NumberFormat('ko-KR');
 
@@ -106,7 +108,12 @@ function SalesEntryModal({
         className="w-[710px] max-w-[calc(100vw-48px)] gap-3.5 rounded-[16px]! border border-slate-200 px-[19px] py-5 max-desktop:w-[505px] max-tablet:w-full max-tablet:max-w-none max-tablet:gap-2.5 max-tablet:rounded-t-[32px]! max-tablet:rounded-b-none! max-tablet:border-0 max-tablet:p-6"
       >
         <Modal.Header>
-          <Modal.Title className="text-xl leading-[30px] font-bold tracking-normal text-slate-950">
+          <Modal.Title
+            className={cn(
+              typographyVariants({ role: 'sectionTitle' }),
+              'text-slate-950',
+            )}
+          >
             하루 매출 입력
           </Modal.Title>
           <Modal.CloseButton className="sr-only focus:not-sr-only" />
@@ -116,7 +123,10 @@ function SalesEntryModal({
             <div className="w-[328px] max-w-full space-y-2">
               <span
                 id="sales-entry-date-label"
-                className="text-base leading-5 font-semibold text-slate-950"
+                className={cn(
+                  typographyVariants({ role: 'label' }),
+                  'text-slate-950',
+                )}
               >
                 날짜
               </span>
@@ -138,7 +148,10 @@ function SalesEntryModal({
                     <DatePicker
                       value={field.value}
                       onChange={field.onChange}
-                      className="h-11 rounded-md border-slate-200 px-3 pr-10 text-sm"
+                      className={cn(
+                        typographyVariants({ role: 'body' }),
+                        'h-11 rounded-md border-slate-200 px-3 pr-10',
+                      )}
                     />
                   )}
                 />
@@ -157,7 +170,10 @@ function SalesEntryModal({
                 >
                   <label
                     htmlFor={`sales-entry-amount-${index}`}
-                    className="shrink-0 text-base font-medium text-slate-950 max-tablet:w-[93px]"
+                    className={cn(
+                      typographyVariants({ role: 'label' }),
+                      'shrink-0 wrap-anywhere text-slate-950 max-tablet:w-[93px]',
+                    )}
                   >
                     {category.name}
                   </label>
@@ -185,9 +201,19 @@ function SalesEntryModal({
                       inputMode="numeric"
                       placeholder="0"
                       rightSlot={
-                        <span className="text-sm text-slate-300">원</span>
+                        <span
+                          className={cn(
+                            typographyVariants({ role: 'supporting' }),
+                            'text-slate-400',
+                          )}
+                        >
+                          원
+                        </span>
                       }
-                      className="h-[42px] w-full min-w-0 rounded-md border-slate-200 text-sm font-medium [&_input]:text-right"
+                      className={cn(
+                        typographyVariants({ role: 'data' }),
+                        'h-[42px] w-full min-w-0 rounded-md border-slate-200 py-2 [&_input]:text-right',
+                      )}
                     />
                     {errors.amounts?.[index]?.value && (
                       <p role="alert">{errors.amounts[index].value.message}</p>
@@ -196,7 +222,12 @@ function SalesEntryModal({
                 </div>
               ))}
             </div>
-            <div className="flex items-center justify-between py-2 text-base leading-5 font-semibold text-slate-950">
+            <div
+              className={cn(
+                typographyVariants({ role: 'subtitle' }),
+                'flex items-center justify-between py-2 text-slate-950',
+              )}
+            >
               <span>합계</span>
               <output aria-live="polite">
                 {isTotalAvailable
@@ -204,12 +235,23 @@ function SalesEntryModal({
                   : '금액을 확인해 주세요'}
               </output>
             </div>
-            <div className="flex items-start gap-2.5 rounded-lg border border-slate-200 bg-slate-50 px-[15px] py-3.5 text-sm leading-5 text-slate-400">
+            <div
+              className={cn(
+                typographyVariants({ role: 'supporting' }),
+                'flex items-start gap-2.5 rounded-lg border border-slate-200 bg-slate-50 px-[15px] py-3.5 text-slate-400',
+              )}
+            >
               <InfoIcon aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
               <p>이미 매출이 있는 날짜는 기존 내역에서 수정해 주세요.</p>
             </div>
             {createSale.isError && (
-              <p role="alert" className="text-sm text-warning-500">
+              <p
+                role="alert"
+                className={cn(
+                  typographyVariants({ role: 'supporting' }),
+                  'text-warning-500',
+                )}
+              >
                 {formatSalesError(createSale.error)}
               </p>
             )}

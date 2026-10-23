@@ -18,7 +18,9 @@ import { useUpdateSalesCategories } from '@hooks/api/sales-category/useUpdateSal
 import { useOverlayStackIndex } from '@hooks/overlay/useOverlayStackIndex';
 
 import type { SalesCategory } from '@lib/api/entities/sales-category/toSalesCategory';
+import { cn } from '@lib/utilities/cn';
 import { formatSalesError } from '@lib/utilities/sales/formatSalesError';
+import { typographyVariants } from '@lib/utilities/typography';
 
 const MAX_CATEGORY_COUNT = 10;
 const MAX_CATEGORY_NAME_LENGTH = 10;
@@ -181,7 +183,12 @@ function SalesCategoryModal({
         className="min-h-[582px] w-[710px] max-w-[calc(100vw-48px)] gap-3.5 rounded-[16px]! border border-slate-200 px-[19px] py-5 max-desktop:w-[550px] max-tablet:min-h-0 max-tablet:w-full max-tablet:max-w-none max-tablet:gap-2.5 max-tablet:rounded-t-[32px]! max-tablet:rounded-b-none! max-tablet:border-0 max-tablet:p-6"
       >
         <Modal.Header>
-          <Modal.Title className="text-xl leading-[30px] font-bold tracking-normal text-slate-950">
+          <Modal.Title
+            className={cn(
+              typographyVariants({ role: 'sectionTitle' }),
+              'text-slate-950',
+            )}
+          >
             카테고리 관리
           </Modal.Title>
           <Modal.CloseButton className="sr-only focus:not-sr-only" />
@@ -193,7 +200,10 @@ function SalesCategoryModal({
           <section aria-labelledby="new-category-heading" className="space-y-2">
             <h3
               id="new-category-heading"
-              className="text-sm font-semibold text-slate-600"
+              className={cn(
+                typographyVariants({ role: 'label' }),
+                'text-slate-600',
+              )}
             >
               새 카테고리
             </h3>
@@ -212,10 +222,18 @@ function SalesCategoryModal({
                     maxLength={MAX_CATEGORY_NAME_LENGTH}
                     value={newCategoryName}
                     onChange={(event) => setNewCategoryName(event.target.value)}
-                    className="max-w-[327px] border-[#ccc] font-medium max-tablet:h-6 max-tablet:px-2 max-tablet:py-1 max-tablet:text-xs"
+                    className={cn(
+                      typographyVariants({ role: 'body' }),
+                      'max-w-[327px] border-[#ccc] max-tablet:h-10 max-tablet:px-2 max-tablet:py-1',
+                    )}
                   />
                   {trimmedNewName !== '' && isNewNameDuplicated && (
-                    <p className="mt-1 text-xs text-warning-500">
+                    <p
+                      className={cn(
+                        typographyVariants({ role: 'supporting' }),
+                        'mt-1 text-warning-500',
+                      )}
+                    >
                       {DUPLICATED_NAME_MESSAGE}
                     </p>
                   )}
@@ -229,7 +247,10 @@ function SalesCategoryModal({
                 icon={
                   <PlusIcon aria-hidden="true" className="max-tablet:hidden" />
                 }
-                className="w-auto max-tablet:h-9 max-tablet:text-xs"
+                className={cn(
+                  typographyVariants({ role: 'label' }),
+                  'w-auto max-tablet:h-9',
+                )}
               >
                 추가
               </Button>
@@ -241,7 +262,10 @@ function SalesCategoryModal({
           >
             <h3
               id="edit-category-heading"
-              className="text-sm font-semibold text-slate-600"
+              className={cn(
+                typographyVariants({ role: 'label' }),
+                'text-slate-600',
+              )}
             >
               이름 수정
             </h3>
@@ -272,22 +296,27 @@ function SalesCategoryModal({
                           aria-invalid={isNameDuplicated(index)}
                           maxLength={MAX_CATEGORY_NAME_LENGTH}
                           {...register(`categories.${index}.name`)}
-                          className="max-w-[327px] border-[#ccc] font-medium text-slate-800 max-tablet:h-7 max-tablet:px-2 max-tablet:py-1"
+                          className="max-w-[327px] border-[#ccc] text-slate-800 max-tablet:h-10 max-tablet:px-2 max-tablet:py-1"
                         />
                         {isNameDuplicated(index) && (
-                          <p className="mt-1 text-xs text-warning-500">
+                          <p
+                            className={cn(
+                              typographyVariants({ role: 'supporting' }),
+                              'mt-1 text-warning-500',
+                            )}
+                          >
                             {DUPLICATED_NAME_MESSAGE}
                           </p>
                         )}
                       </div>
                     </div>
-                    <div className="flex w-[208.5px] shrink-0 justify-end">
+                    <div className="flex w-[208.5px] shrink-0 justify-end max-tablet:w-auto max-tablet:pl-3">
                       <TextButton
                         type="button"
                         aria-label={`${name} 카테고리 삭제`}
                         disabled={isPending}
                         onClick={() => void handleCategoryDelete(categoryId)}
-                        className="max-tablet:text-xs max-tablet:leading-4"
+                        className={typographyVariants({ role: 'label' })}
                       >
                         삭제
                       </TextButton>
@@ -301,7 +330,13 @@ function SalesCategoryModal({
             {statusMessage}
           </p>
           {mutationError !== null && (
-            <p role="alert" className="text-sm text-warning-500">
+            <p
+              role="alert"
+              className={cn(
+                typographyVariants({ role: 'supporting' }),
+                'text-warning-500',
+              )}
+            >
               {formatSalesError(mutationError)}
             </p>
           )}

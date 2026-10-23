@@ -18,10 +18,12 @@ import { salesCategoryListQueryOptions } from '@hooks/api/sales-category/salesCa
 import { getServerQueryClient } from '@providers/query/getServerQueryClient';
 
 import { getAuthHeaders } from '@lib/api/getAuthHeaders';
+import { cn } from '@lib/utilities/cn';
 import {
   getCurrentSalesDate,
   getCurrentSalesMonth,
 } from '@lib/utilities/sales/salesMonth';
+import { typographyVariants } from '@lib/utilities/typography';
 
 export const metadata: Metadata = {
   title: '매출 대시보드',
@@ -50,7 +52,12 @@ async function SalesPage() {
       <main className="flex-1 p-6 pt-25 pb-12 max-desktop:px-8 max-desktop:pt-12 max-tablet:px-3 max-tablet:pt-5">
         <div className="mx-auto w-full max-w-330">
           <div className="mb-6 flex items-center justify-between px-2 max-tablet:hidden">
-            <h1 className="text-2xl font-semibold text-slate-950">
+            <h1
+              className={cn(
+                typographyVariants({ role: 'pageTitle' }),
+                'text-slate-950',
+              )}
+            >
               매출 대시보드
             </h1>
             <SalesEntryButton />
