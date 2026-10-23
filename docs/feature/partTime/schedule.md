@@ -11,13 +11,13 @@
 
 ## 화면 구성
 
-- `PartTimeScheduleHeader` — 제목, 스케줄 공유·추가 버튼
+- `PartTimeScheduleHeader` — 제목, 이미지 저장·스케줄 추가 버튼
 - `PartTimeScheduleCalendar` — 선택 날짜·월·필터 상태를 갖고 하위 컴포넌트를 조합하는 클라이언트 컨테이너
 - `PartTimeScheduleStaffFilter` — 공통 `Dropdown` 기반 아르바이트생 필터, `Calendar`의 `headerSlot`에 주입
 - `PartTimeScheduleChip` — 출근 확인 여부를 `CalendarEventChip`의 `tone`·체크 아이콘으로 변환. 표시 전용이라 클릭 동작이 없다
 - `PartTimeScheduleDaySummary` — 선택 날짜 상세. 진행 바와 스케줄 행 목록(출근 확인 체크박스 · 시간·이름 · `수정 | 삭제` · 메모) (1024px 이상 캘린더 우측, 미만 캘린더 아래)
 - `PartTimeScheduleMemo` — 날짜 상세 행의 메모. 2줄을 넘으면 접고 펼치기·접기 버튼(lucide `ChevronDownIcon`·`ChevronUpIcon`)을 둔다
-- `PartTimeScheduleActionButtons` — 모바일 플로팅 버튼. 공통 [`ActionButton`](../../component/ActionButton/README.md)에 보조 액션 공유(링크 아이콘)·추가(연필 아이콘)를 위 → 아래 순서로 `actions`에 넘긴다 (2026-10-01 확정). 메인 `+`는 목록을 여닫는 토글이라 그 자체로 추가 동작을 하지 않는다
+- `PartTimeScheduleActionButtons` — 모바일 플로팅 버튼. 공통 [`ActionButton`](../../component/ActionButton/README.md)에 보조 액션 이미지 저장(이미지 다운로드 아이콘)·추가(연필 아이콘)를 위 → 아래 순서로 `actions`에 넘긴다 (2026-10-01 확정, 아이콘 2026-10-22 변경). 메인 `+`는 목록을 여닫는 토글이라 그 자체로 추가 동작을 하지 않는다
 - `PartTimeScheduleFormModal` — 스케줄 추가/수정 모달. 공통 `Modal` Form 계열 조합 ("추가/수정 모달" 참고). 컨트롤러·launcher·라벨·빠른 선택 칩과 함께 `schedule/modal/`에 두었다. 기능 단위 하위 폴더는 [folder-structure.md](../../architecture/folder-structure.md#src-상세-구조) 규칙을 따른다 (2026-10-14 확정)
 
 ## 상태·데이터
@@ -27,7 +27,8 @@
 | `today`           | 페이지 → 캘린더             | Server에서 계산한 string prop | 서버·클라이언트의 기준 날짜를 맞추고, `Date` 객체를 클라이언트로 넘기지 않기 위함                                                                                                                   |
 | `selectedDate`    | `PartTimeScheduleCalendar`  | `useState` (초기값 `today`)   | 캘린더와 상세 패널만 쓴다                                                                                                                                                                           |
 | `month`           | `PartTimeScheduleCalendar`  | `useState` (`YYYY-MM`)        | 위와 같음. 조회 범위(`from`·`to`)를 정한다                                                                                                                                                          |
-| `selectedStaffId` | `PartTimeScheduleCalendar`  | `useState` (`null` = 전체)    | 위와 같음. 새로고침 시 유지하지 않고, 공유는 화면 캡처라 URL에 둘 필요가 없다 (2026-10-01 확정)                                                                                                     |
+| `selectedStaffId` | `PartTimeScheduleCalendar`  | `useState` (`null` = 전체)    | 위와 같음. 새로고침 시 유지하지 않고, 이미지 저장은 화면 캡처라 URL에 둘 필요가 없다 (2026-10-01 확정)                                                                                              |
+| 이미지 저장 동작  | 페이지 → 저장 버튼          | Context                       | 저장 버튼(헤더·FAB)과 캡처에 필요한 상태(캘린더 DOM·선택 날짜·필터)가 서로 다른 컴포넌트에 있다. "이미지 저장" 참고                                                                                 |
 | 스케줄 목록       | 서버 데이터                 | TanStack Query                | 출근 확인·추가·수정으로 갱신·무효화가 필요해 RSC 직접 조회 예외에 해당하지 않는다. 핵심 데이터라 403·5xx·네트워크 오류는 경계에 위임하고, 그 외 4xx는 캘린더 위 한 줄 오류와 "다시 시도"로 보여준다 |
 | 추가·수정 폼      | `PartTimeScheduleFormModal` | React Hook Form               | Form 상태. 필드·검증은 "추가/수정 모달" 참고                                                                                                                                                        |
 
@@ -62,7 +63,8 @@ API 명세와 DTO → FE 타입 변환은 [도메인 문서](./README.md#api-명
 
 - `page.tsx`는 Server Component다. `await connection()`으로 요청 시점에 렌더링해 `today`를 매 요청 계산한다
 - `"use client"`는 상태를 가진 `PartTimeScheduleCalendar` 한 곳에만 둔다. Chip·DaySummary·Memo는 지시어 없이 작성했고, Calendar가 import해 클라이언트 번들에 포함된다
-- `PartTimeScheduleHeader`는 Server Component다. 클릭 핸들러가 필요한 "스케줄 추가" 버튼만 `PartTimeScheduleAddButton`(Client)으로 분리했다. "스케줄 공유" 버튼은 7단계에서 같은 방식으로 분리한다
+- `PartTimeScheduleHeader`는 Server Component다. 클릭 핸들러가 필요한 "스케줄 추가"·"이미지 저장" 버튼만 `PartTimeScheduleAddButton`·`PartTimeScheduleImageSaveButton`(Client)으로 분리했다
+- 이미지 저장 Provider(`PartTimeScheduleImageProvider`)는 Client Component다. `page.tsx`에서 헤더·캘린더·FAB를 `children`으로 감싸므로 헤더는 Server Component로 남는다
 - `PartTimeScheduleActionButtons`는 `ActionButton`의 `actions[].onClick`(함수)을 넘겨야 해서 Client Component다. `ActionButton` 자체가 `"use client"`라도 함수 prop은 Server Component에서 넘길 수 없다 ([ActionButton 렌더링 경계](../../component/ActionButton/README.md#렌더링-경계))
 - `PartTimeScheduleFormModal`은 RHF를 쓰므로 Client Component다. 여는 쪽(헤더 "스케줄 추가" 버튼, FAB, 날짜 상세 행 `수정`)도 클릭 핸들러가 필요하다. 헤더는 이 단계에서 "스케줄 추가" 버튼만 클라이언트 파일로 분리한다
 
@@ -89,6 +91,7 @@ API 명세와 DTO → FE 타입 변환은 [도메인 문서](./README.md#api-명
 | 셀 칩 라벨                          | `07:00 ~ 13:00 강성구` (시간 + 이름)                                                                                                           | 이름만. 시간은 날짜 상세에서 표시                                                                                                                                                                              | 우측 패널만큼 셀이 좁아져 시간 + 이름이 잘린다                                                                                                       |
 | 상세 패널 체크박스                  | —                                                                                                                                              | 오늘·과거 근무의 출근 확인을 변경할 수 있다. 미래 근무와 요청 중에는 비활성화한다                                                                                                                              | 5단계 쓰기 API 연동 구현                                                                                                                             |
 | 상세 행 수정·삭제                   | —                                                                                                                                              | 행 끝에 `수정 \| 삭제` 텍스트 버튼(공통 `TextButton`)                                                                                                                                                          | 셀 칩은 3개까지만 보이고 744px 미만은 점만 있어 칩으로는 모든 스케줄에 닿을 수 없다. 개별 스케줄 동작을 날짜 상세 행에 모은다 (2026-10-02 리뷰 확정) |
+| 헤더·FAB 공유 버튼                  | `스케줄 공유` + 링크 아이콘                                                                                                                    | `이미지 저장` + lucide `ImageDownIcon`                                                                                                                                                                         | 링크 공유가 아니라 PNG 다운로드다. 공유 창(Web Share)은 후속 작업에서 다룬다 (2026-10-22 확정)                                                       |
 
 ### 클릭 동작
 
@@ -102,6 +105,7 @@ API 명세와 DTO → FE 타입 변환은 [도메인 문서](./README.md#api-명
 | 날짜 상세 행 `삭제`              | 삭제 확인 모달(`openConfirmModal`)을 연다. 확인하면 삭제를 요청한다                                    |
 | 날짜 상세 행 메모                | 동작 없음. 출근 확인 `label` 밖에 두어 눌러도 출근 상태가 바뀌지 않는다                                |
 | 날짜 상세 행 메모 ▼·▲            | 2줄을 넘는 메모를 펼치거나 접는다. 요청 중에도 비활성화하지 않는다                                     |
+| 헤더·FAB `이미지 저장`           | 캘린더와 날짜 상세를 PNG로 내려받는다 ("이미지 저장" 참고)                                             |
 
 - **칩·점은 표시 전용이다** — `PartTimeScheduleChip`은 `CalendarEventChip`에 `onClick`을 넘기지 않는다. 칩(744px 이상)이나 점(744px 미만) 위를 누르면 선택 날짜가 바뀌지 않는데, 이는 공통 Calendar의 의도된 동작이다. 일정 칩 클릭은 선택 날짜를 바꾸지 않는다는 공통 Calendar 계약을 따른다 ([calendar/README.md](../../component/calendar/README.md) "업무 일정 칩" 항목). 날짜를 바꾸려면 날짜 숫자·빈 영역·`+N`을 누른다 (2026-10-02 실측)
 
@@ -238,6 +242,37 @@ RHF 기본 `rules`로 처리한다. 폼 검증은 zod 스키마로 바뀔 수 �
 | 날짜 필드 아이콘       | 트리거 왼쪽에 캘린더 아이콘                                              | 아이콘 없음                           | 공통 DatePicker 트리거에 아이콘 슬롯이 없다   |
 | 삭제 확인 설명 (6단계) | `삭제된 목표는 복구할 수 없습니다.`                                      | `삭제된 스케줄은 복구할 수 없습니다.` | 다른 도메인 문구가 복사된 것으로 보인다       |
 
+## 이미지 저장
+
+헤더·FAB의 `이미지 저장`을 누르면 캘린더와 날짜 상세를 PNG로 내려받는다 (2026-10-22 확정). 공유 창(Web Share API)은 후속 작업에서 다룬다.
+
+### 캡처 내용
+
+| 항목        | 결정                                                                                                                                                                                        |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 범위        | 캘린더와 날짜 상세를 묶는 영역. 제목·버튼·FAB·조회 오류 문구는 범위 밖이다. 화면에 보이는 반응형 배치를 그대로 찍는다(1024px 이상 좌우, 미만 위아래)                                        |
+| 남기는 요소 | 필터 드롭다운(선택한 아르바이트생), 출근 확인 체크박스 상태                                                                                                                                 |
+| 빼는 요소   | 날짜 상세 행의 `수정 \| 삭제`, 메모 ▼·▲ 버튼                                                                                                                                                |
+| 메모        | 2줄을 넘어 접힌 메모도 펼친 상태로 찍는다                                                                                                                                                   |
+| 배경        | 영역 바깥의 페이지 배경색으로 채운다. 데스크톱의 카드 사이 간격이 투명하게 남지 않게 한다                                                                                                   |
+| 여백        | 상하좌우 48px(`px-12`). 카드 테두리가 이미지 끝에 붙지 않게 하고 읽기 편하게 넉넉히 둔다 (2026-10-22 확정)                                                                                  |
+| 해상도      | 2배(`scale: 2`). 고해상도 화면에서도 흐리지 않게 한다                                                                                                                                       |
+| 파일명      | `아르바이트생-스케줄-{선택 날짜}-{아르바이트생 이름}.png` (예: `아르바이트생-스케줄-2026-10-22-신형만.png`). 필터가 전체면 이름을 붙이지 않는다. 캘린더를 다른 달로 넘겨도 선택 날짜를 쓴다 |
+
+- **날짜 미선택은 다루지 않는다** — 선택 날짜는 `today`로 시작하고, 공통 Calendar는 선택한 날짜를 다시 눌러도 선택을 유지한다. 화면에서 선택이 비는 경로가 없다
+- **저장 중에는 두 버튼을 비활성화한다** — 실패하면 `이미지를 저장하지 못했어요. 다시 시도해주세요.`를 토스트(`schedule-image-error`)로 띄운다. 성공 알림은 브라우저 다운로드 표시로 대신한다
+- **조회가 준비됐을 때만 저장한다** — 현재 월과, 별도로 조회하는 선택 날짜의 월이 모두 성공 상태이고 placeholder 데이터가 아닐 때 허용한다. 최초 조회·필터 전환 대기·조회 실패 중에는 헤더와 FAB의 이미지 저장을 비활성화하고 저장 함수에서도 차단한다. 정상 응답이 빈 목록이면 저장할 수 있다. 같은 조건의 데이터가 있는 백그라운드 재조회는 저장을 막지 않는다
+- **저장 진행 상태를 표시한다** — 헤더 버튼은 `저장 중…`과 `aria-busy`를 표시하고, 비활성화돼도 키보드 포커스를 유지한다. FAB의 이미지 저장 액션도 접근 가능한 이름을 `저장 중…`으로 바꾸고 비활성화한다. 스케줄 추가 액션은 계속 사용할 수 있다
+- **저장 시점의 화면과 파일명을 함께 고정한다** — 파일명을 정한 뒤 첫 비동기 대기 전에 화면 밖 복제본을 만든다. 라이브러리·폰트를 불러오는 동안 날짜나 필터를 바꿔도 저장 내용은 클릭 시점의 화면을 유지한다
+
+### 구현 방식
+
+- **라이브러리는 `modern-screenshot`** — 브라우저가 SVG `foreignObject`로 직접 렌더링해 화면과 결과가 같다. `html2canvas`는 Tailwind v4 기본 색상(`oklch()`)을 해석하지 못하고 2022년 이후 릴리스가 없다. `html2canvas-pro`는 CSS를 직접 다시 그려 결과가 어긋날 수 있고 gzip 63KB다. `html-to-image`는 2025-02 이후 릴리스가 없다. `modern-screenshot`은 `html-to-image`의 포크로 gzip 9.7KB, 의존성이 없다. 클릭할 때 `import()`로 불러와 첫 화면 번들에 넣지 않는다
+- **화면 밖 복제본을 찍는다** — 영역을 복제해 같은 폭으로 화면 밖에 붙이고, 빼는 요소를 지우고 메모를 펼친 뒤 찍고 지운다. 라이브러리의 복제 훅(`onCloneNode`)은 원본 크기로 캔버스를 잡아 펼친 메모가 잘린다. 화면의 실제 요소는 바꾸지 않아 깜빡임이 없다. 빼는 요소는 `data-capture-exclude`, 펼칠 요소는 `data-capture-expand`로 표시한다. 복제본의 이미지는 `loading="eager"`로 바꾼다. 화면 밖 lazy 이미지는 로드되지 않아 라이브러리가 타임아웃(30초)까지 기다린다
+- **폰트는 쓰인 글자의 subset만 넣는다** — Pretendard dynamic subset은 `@font-face`가 828개(약 12MB)다. 라이브러리 기본 동작은 쓰인 글꼴 패밀리의 `@font-face`를 모두 받는다. 영역 텍스트의 글자(`unicode-range`)·굵기에 해당하는 규칙만 골라 data URL로 넣는다
+- **저장 동작은 Context로 잇는다** — 버튼은 헤더(Server Component 안)와 FAB에 있고, 캡처할 DOM·선택 날짜·필터는 `PartTimeScheduleCalendar` 안에 있다. `PartTimeScheduleImageProvider`가 `page.tsx`에서 셋을 감싼다. 캘린더가 캡처 대상(영역 DOM·파일명)을 등록하고 버튼은 Provider의 저장 함수만 호출한다. DOM id와 `data-*` 속성으로 찾으면 파일명 정보가 문자열로 오가 타입 검사가 끊긴다. 선택 날짜·필터 상태를 Provider로 올리면 캘린더 로컬 상태 결정(2026-10-01)을 뒤집는다
+- **알려진 문제: 캡처의 영문·숫자가 Times로 그려진다** — `theme.css`의 `--font-sans: var(--font-sans)`가 자기 자신을 참조해 전역 글꼴이 무효다. 화면은 `lang="ko"`로 브라우저 한국어 기본 글꼴이 적용되지만, 라이브러리는 계산된 `font-family`("Times New Roman")를 복제본에 그대로 옮긴다. 전역 글꼴이 Pretendard로 고쳐지면 이 기능은 수정 없이 Pretendard로 캡처한다 (Pretendard를 강제 적용해 확인)
+
 ## 단계별 PR 계획
 
 | 단계 | 브랜치                              | 범위                                                                                                                                     | 상태                       |
@@ -248,7 +283,7 @@ RHF 기본 `rules`로 처리한다. 폼 검증은 zod 스키마로 바뀔 수 �
 | 4    | `feat/part-time-schedule-read-api`  | 조회 API 연동 — DTO 변환, fetcher, Query Key, prefetch + hydration, 필터·모달 옵션을 아르바이트생 목록 API로 교체, 목업 제거             | 아르바이트생 조회 API 이후 |
 | 5    | `feat/part-time-schedule-write-api` | 출근 확인 토글 — `useMutation`, 날짜 상세 체크박스 활성화                                                                                | 구현 완료 · PR 대기        |
 | 6    | `feat/part-time-schedule-write-api` | 스케줄 추가·수정·삭제 기능 — 3단계 모달에 `useMutation` 연결, 날짜 상세 행 `삭제` 확인에 `useMutation` 연결, 조회 쿼리 무효화            | 구현 완료 · PR 대기        |
-| 7    | 미정                                | 스케줄 공유 — 캘린더 + 날짜 상세 영역을 PNG로 캡처해 다운로드                                                                            | 2단계 이후                 |
+| 7    | `feat/part-time-schedule-share`     | 이미지 저장 — 캘린더 + 날짜 상세 영역을 PNG로 캡처해 다운로드 ("이미지 저장" 참고)                                                       | 구현 완료 · PR 대기        |
 
 1~~3단계는 `dev`에 머지했다. 4~~6단계 API 연동 순서와 브랜치 분기는 [도메인 문서 API 연동 PR 계획](./README.md#api-연동-pr-계획)을 따른다. 5·6단계는 한 PR(`feat/part-time-schedule-write-api`)로 묶는다. 둘 다 같은 조회 쿼리를 무효화하는 mutation이다.
 
@@ -258,7 +293,7 @@ RHF 기본 `rules`로 처리한다. 폼 검증은 zod 스키마로 바뀔 수 �
 - **하드코딩 색상 토큰화** — #51
 - **추가/수정 모달 메모 입력 확대** — 메모는 최대 500자인데 한 줄 `Input`이라 긴 내용을 확인하며 쓰기 어렵다. 아르바이트생 폼처럼 `textarea`·글자 수 표시로 바꿀지 Figma와 함께 확인한다 (#246)
 - **DatePicker 모바일 바텀시트** — 공통 DatePicker에 744px 미만 바텀시트 표시를 추가한다. 추가되면 이 페이지 추가/수정 모달의 근무 날짜 필드를 팝오버에서 바텀시트로 바꾼다 (이슈 번호 미정)
-- **아이콘 lucide 교체** — 2단계에서 추가한 SVG 아이콘(`ic_checkbox`, `ic_plus-white`)을 `lucide-react`로 바꾼다. #102 헤더 "스케줄 공유" 버튼은 처음부터 lucide `LinkIcon`을 쓴다
+- **아이콘 lucide 교체** — 2단계에서 추가한 SVG 아이콘(`ic_checkbox`, `ic_plus-white`)을 `lucide-react`로 바꾼다. 헤더 "이미지 저장" 버튼은 lucide `ImageDownIcon`을 쓴다
   - 모바일 FAB 아이콘(`ic_link`, `ic_pencil`, `ic_plus-large`)은 교체 대상이 아니다. FAB를 공통 `ActionButton`으로 만들면 메인 `+`는 컴포넌트 안의 lucide `PlusIcon`을 쓰고, 보조 아이콘도 lucide로 넘기므로 SVG를 추가하지 않는다 ([ActionButton 레이어 구조](../../component/ActionButton/README.md#레이어-구조))
 
 ## 확인 필요

@@ -76,7 +76,7 @@ interface PartTimeStaffFormPayload {
   name: string;
   birthDate: string | null;
   gender: NonNullable<PartTimeStaffDetailItem['gender']> | null;
-  phone: string;
+  phone: string | null;
   hourlyWage: number | null;
   memo: string;
 }

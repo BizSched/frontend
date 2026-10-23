@@ -25,7 +25,10 @@ interface TodayWorkerSectionProps {
 }
 
 function TodayWorkerSection({ today }: TodayWorkerSectionProps) {
-  const { data, error } = useScheduleList({ from: today, to: today });
+  const { data, error, refetch } = useScheduleList({
+    from: today,
+    to: today,
+  });
   const groups = data && groupPartTimeSchedulesByShift(data);
   const isEmpty =
     groups && SHIFT_PERIODS.every((period) => groups[period].length === 0);
@@ -38,9 +41,9 @@ function TodayWorkerSection({ today }: TodayWorkerSectionProps) {
         </Card.Title>
       </Card.Header>
 
-      <Card.Content>
+      <Card.Content className="min-h-52">
         {isEmpty ? (
-          <div className="flex flex-col items-center justify-center gap-2 py-6">
+          <div className="flex flex-1 flex-col items-center justify-center gap-2">
             <Image src={IcEmpty} alt="" width={100} height={128} unoptimized />
             <span
               className={cn(
@@ -81,6 +84,22 @@ function TodayWorkerSection({ today }: TodayWorkerSectionProps) {
               ))}
             </div>
           </>
+        ) : error ? (
+          <div
+            role="alert"
+            className="flex flex-1 flex-col items-center justify-center gap-2 text-center text-sm text-slate-500"
+          >
+            <p>{formatCommonError(error)}</p>
+            <button
+              type="button"
+              onClick={() => {
+                void refetch();
+              }}
+              className="cursor-pointer font-semibold text-slate-700 underline"
+            >
+              다시 시도
+            </button>
+          </div>
         ) : (
           <p
             className={cn(

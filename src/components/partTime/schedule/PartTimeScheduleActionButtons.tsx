@@ -1,11 +1,19 @@
 'use client';
 
-import { LinkIcon, PencilIcon } from 'lucide-react';
+import { ImageDownIcon, PencilIcon } from 'lucide-react';
 
 import { ActionButton } from '@components/_common/ActionButton/ActionButton';
 import { openPartTimeScheduleFormModal } from '@components/partTime/schedule/modal/openPartTimeScheduleFormModal';
 
+import { usePartTimeScheduleImage } from '@hooks/partTime/usePartTimeScheduleImage';
+
 function PartTimeScheduleActionButtons() {
+  const { isReady, isSaving, saveImage } = usePartTimeScheduleImage();
+
+  const handleImageSave = () => {
+    void saveImage();
+  };
+
   const handleScheduleAdd = () => {
     void openPartTimeScheduleFormModal({ mode: 'create' });
   };
@@ -15,7 +23,12 @@ function PartTimeScheduleActionButtons() {
       <ActionButton
         aria-label="스케줄 액션 열기"
         actions={[
-          { icon: <LinkIcon />, label: '스케줄 공유', onClick: () => {} },
+          {
+            icon: <ImageDownIcon />,
+            label: isSaving ? '저장 중…' : '이미지 저장',
+            onClick: handleImageSave,
+            isDisabled: !isReady || isSaving,
+          },
           {
             icon: <PencilIcon />,
             label: '스케줄 추가',

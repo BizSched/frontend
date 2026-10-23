@@ -97,7 +97,20 @@ describe('TodayWorkerSection', () => {
 
     renderWith(queryClient, <TodayWorkerSection today={TODAY} />);
 
-    expect(screen.getByText('스케줄을 불러오지 못했어요')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      '스케줄을 불러오지 못했어요',
+    );
+    expect(
+      screen.getByRole('button', { name: '다시 시도' }),
+    ).toBeInTheDocument();
+  });
+
+  it('데이터도 오류도 없으면 불러오는 중을 status로 알린다', () => {
+    const queryClient = createQueryClient();
+
+    renderWith(queryClient, <TodayWorkerSection today={TODAY} />);
+
+    expect(screen.getByRole('status')).toHaveTextContent('불러오는 중');
   });
 });
 

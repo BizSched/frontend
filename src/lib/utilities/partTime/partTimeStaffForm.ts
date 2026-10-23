@@ -157,6 +157,10 @@ const formatPartTimeStaffPhoneInput = (value: string) => {
 };
 
 const isPartTimeStaffPhoneValid = (value: string) => {
+  if (!value) {
+    return true;
+  }
+
   const digits = toDigits(value);
   const digitLength = digits.length;
 
@@ -236,13 +240,13 @@ const toPartTimeStaffFormPayload = ({
   name: name.trim(),
   birthDate: birthDate ? toPartTimeStaffBirthDate(birthDate) : null,
   gender: gender || null,
-  phone,
+  phone: phone || null,
   hourlyWage: hourlyWage ? Number(toDigits(hourlyWage)) : null,
   memo,
 });
 
 const PART_TIME_STAFF_UNSUPPORTED_CLEAR_MESSAGE =
-  '기존 생년월일·성별·시급을 비우는 기능은 준비 중이에요. 기존 값을 유지해주세요.';
+  '기존 생년월일·성별·번호·시급을 비우는 기능은 준비 중이에요. 기존 값을 유지해주세요.';
 
 const hasPartTimeStaffUnsupportedClear = (
   values: PartTimeStaffFormValues,
@@ -250,7 +254,7 @@ const hasPartTimeStaffUnsupportedClear = (
 ) => {
   const payload = toPartTimeStaffFormPayload(values);
   const initial = toPartTimeStaffFormPayload(previous);
-  return (['birthDate', 'gender', 'hourlyWage'] as const).some(
+  return (['birthDate', 'gender', 'phone', 'hourlyWage'] as const).some(
     (key) => payload[key] === null && initial[key] !== null,
   );
 };

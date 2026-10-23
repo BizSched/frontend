@@ -6,6 +6,7 @@ import type {
 } from '@lib/types/partTimeSchedule';
 import {
   formatPartTimeScheduleDuration,
+  formatPartTimeScheduleImageFileName,
   getPartTimeScheduleRange,
   getPartTimeScheduleStaffOptions,
   getShiftPeriod,
@@ -131,5 +132,19 @@ describe('formatPartTimeScheduleDuration', () => {
     ['09:00', '09:30', '30분'],
   ])('%s~%s는 %s', (startTime, endTime, text) => {
     expect(formatPartTimeScheduleDuration(startTime, endTime)).toBe(text);
+  });
+});
+
+describe('formatPartTimeScheduleImageFileName', () => {
+  it.each([
+    { staffName: undefined, fileName: '아르바이트생-스케줄-2026-10-22.png' },
+    {
+      staffName: '신형만',
+      fileName: '아르바이트생-스케줄-2026-10-22-신형만.png',
+    },
+  ])('이름이 $staffName이면 $fileName이다', ({ staffName, fileName }) => {
+    expect(formatPartTimeScheduleImageFileName('2026-10-22', staffName)).toBe(
+      fileName,
+    );
   });
 });
