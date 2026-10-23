@@ -14,6 +14,7 @@ import {
 import { DeleteButton } from '@components/_common/IconButton/DeleteButton';
 
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 interface ImageInputProps {
   'aria-label': string;
@@ -132,7 +133,10 @@ function ImageInput({
           disabled={inputProps?.disabled}
           onClick={handleClick}
           className={cn(
-            'flex h-[101px] w-full flex-col items-center justify-center gap-0.5 overflow-hidden rounded-[16px] border border-dashed border-slate-300 bg-slate-50 p-3 text-base leading-6 font-medium tracking-[-0.03em] text-slate-400 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none disabled:cursor-not-allowed',
+            cn(
+              typographyVariants({ role: 'label' }),
+              'flex h-[101px] w-full flex-col items-center justify-center gap-0.5 overflow-hidden rounded-[16px] border border-dashed border-slate-300 bg-slate-50 p-3 text-slate-400 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none disabled:cursor-not-allowed',
+            ),
             className,
           )}
         >

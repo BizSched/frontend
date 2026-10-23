@@ -1,4 +1,5 @@
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 interface TableRootProps extends Omit<
   React.ComponentPropsWithRef<'table'>,
@@ -15,7 +16,10 @@ function TableRoot({ className, ...props }: TableRootProps) {
     >
       <table
         data-slot="table"
-        className={cn('w-full caption-bottom text-sm', className)}
+        className={cn(
+          cn(typographyVariants({ role: 'body' }), 'w-full caption-bottom'),
+          className,
+        )}
         {...props}
       />
     </div>

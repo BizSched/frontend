@@ -21,6 +21,7 @@ import {
   shiftCalendarMonth,
 } from '@lib/utilities/calendar/calendarDate';
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 interface CalendarProps {
   selectedDate: string | null;
@@ -92,7 +93,7 @@ function Calendar({
     <section
       aria-label={label}
       className={cn(
-        'bg-white-50 max-tablet:rounded-[1.5rem] max-mobile:rounded-none w-full min-w-0 overflow-hidden rounded-[2rem] shadow-[0_0_60px_rgb(0_0_0/0.05)]',
+        'w-full min-w-0 overflow-hidden rounded-[2rem] bg-white-50 shadow-[0_0_60px_rgb(0_0_0/0.05)] max-tablet:rounded-[1.5rem] max-mobile:rounded-none',
         className,
       )}
     >
@@ -138,8 +139,10 @@ function Calendar({
             month_caption: 'hidden',
             month_grid: 'w-full table-fixed border-separate border-spacing-0',
             weekdays: 'h-8 [&>th:first-child]:border-l',
-            weekday:
-              'h-8 border-y border-r border-slate-200 bg-white-50 text-center text-xs leading-4 font-normal text-slate-400',
+            weekday: cn(
+              typographyVariants({ role: 'caption' }),
+              'h-8 border-y border-r border-slate-200 bg-white-50 text-center text-slate-400',
+            ),
             weeks:
               '[&>tr>td:first-child]:border-l [&>tr:last-child>td:first-child]:overflow-hidden [&>tr:last-child>td:first-child]:rounded-bl-[2rem] [&>tr:last-child>td:last-child]:overflow-hidden [&>tr:last-child>td:last-child]:rounded-br-[2rem] max-tablet:[&>tr:last-child>td:first-child]:rounded-bl-[1.5rem] max-tablet:[&>tr:last-child>td:last-child]:rounded-br-[1.5rem] max-mobile:[&>tr:last-child>td:first-child]:rounded-bl-none max-mobile:[&>tr:last-child>td:last-child]:rounded-br-none',
             week: 'h-40 max-tablet:h-[6.25rem]',

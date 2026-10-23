@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react';
 
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 import { Modal } from './Modal';
 
@@ -19,8 +20,10 @@ interface ConfirmModalProps {
   children?: ReactNode;
 }
 
-const ACTION_CLASS =
-  'rounded-full px-5 py-3 text-lg font-medium tracking-[-0.03em] transition-colors';
+const ACTION_CLASS = cn(
+  typographyVariants({ role: 'label' }),
+  'rounded-full px-5 py-3 transition-colors',
+);
 
 function ConfirmModal({
   open,
@@ -60,7 +63,7 @@ function ConfirmModal({
             render={
               <button
                 type="button"
-                className={cn(ACTION_CLASS, 'border-border border')}
+                className={cn(ACTION_CLASS, 'border border-border')}
               />
             }
           >

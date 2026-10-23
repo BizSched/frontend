@@ -12,16 +12,21 @@ import {
 } from 'react';
 
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 const uploadInputVariants = cva(
   'flex w-full items-center gap-2 border border-dashed border-slate-300 text-slate-500 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none disabled:cursor-not-allowed',
   {
     variants: {
       size: {
-        large:
-          'h-14 rounded-[16px] px-4 py-4 text-base tracking-[-0.02em] [&>svg]:size-6',
-        small:
-          'h-11 rounded-[12px] px-3 py-3 text-sm tracking-[-0.03em] [&>svg]:size-5',
+        large: cn(
+          typographyVariants({ role: 'label' }),
+          'h-14 rounded-[16px] px-4 py-4 [&>svg]:size-6',
+        ),
+        small: cn(
+          typographyVariants({ role: 'label' }),
+          'h-11 rounded-[12px] px-3 py-3 [&>svg]:size-5',
+        ),
       },
       tone: {
         default: 'bg-white-50',
@@ -87,7 +92,10 @@ function UploadInput({
         onClick={handleClick}
         className={cn(
           hasFile
-            ? 'flex w-full items-center gap-1 overflow-hidden rounded-[14px] bg-slate-50 px-4 py-3.5 text-sm leading-5 font-medium tracking-[-0.03em] text-slate-700 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none disabled:cursor-not-allowed'
+            ? cn(
+                typographyVariants({ role: 'label' }),
+                'flex w-full items-center gap-1 overflow-hidden rounded-[14px] bg-slate-50 px-4 py-3.5 text-slate-700 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none disabled:cursor-not-allowed',
+              )
             : uploadInputVariants({ size, tone }),
           className,
         )}

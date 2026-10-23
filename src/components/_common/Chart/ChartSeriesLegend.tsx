@@ -7,18 +7,16 @@ import { useChartContext } from '@hooks/chart/useChartContext';
 import { useChartSeries } from '@hooks/chart/useChartSeries';
 
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
-const chartSeriesLegendVariants = cva(
-  'flex flex-wrap items-center font-medium',
-  {
-    variants: {
-      size: {
-        large: 'gap-4 text-sm',
-        small: 'gap-2.5 text-[0.625rem] leading-3',
-      },
+const chartSeriesLegendVariants = cva('flex flex-wrap items-center', {
+  variants: {
+    size: {
+      large: cn(typographyVariants({ role: 'supporting' }), 'gap-4'),
+      small: cn(typographyVariants({ role: 'supporting' }), 'gap-2.5'),
     },
   },
-);
+});
 
 const chartSeriesLegendChipVariants = cva('shrink-0', {
   variants: {

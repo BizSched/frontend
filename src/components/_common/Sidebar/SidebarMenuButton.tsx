@@ -2,14 +2,21 @@ import { Button } from '@base-ui/react/button';
 import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 const sidebarMenuButtonVariants = cva(
-  'flex w-full items-center gap-2 text-left tracking-[-0.03em] outline-none not-disabled:hover:bg-primary-100 focus-visible:ring-2 focus-visible:ring-primary-500 disabled:cursor-not-allowed [&_svg]:text-slate-300 disabled:[&_svg]:text-slate-200 data-[active]:[&_svg]:text-primary-700',
+  'flex w-full items-center gap-2 text-left outline-none not-disabled:hover:bg-primary-100 focus-visible:ring-2 focus-visible:ring-primary-500 disabled:cursor-not-allowed [&_svg]:text-slate-300 disabled:[&_svg]:text-slate-200 data-[active]:[&_svg]:text-primary-700',
   {
     variants: {
       size: {
-        default: 'min-h-14 rounded-[20px] px-4 py-3.5 text-lg font-semibold',
-        sub: 'min-h-11 rounded-lg px-6 py-3 text-sm font-medium',
+        default: cn(
+          typographyVariants({ role: 'subtitle' }),
+          'min-h-14 rounded-[20px] px-4 py-3.5',
+        ),
+        sub: cn(
+          typographyVariants({ role: 'label' }),
+          'min-h-11 rounded-lg px-6 py-3',
+        ),
       },
       isActive: {
         true: 'text-primary-700',

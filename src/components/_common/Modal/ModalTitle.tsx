@@ -3,6 +3,7 @@
 import { Dialog } from '@base-ui/react/dialog';
 
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 interface ModalTitleProps extends Omit<Dialog.Title.Props, 'className'> {
   className?: string;
@@ -13,7 +14,7 @@ function ModalTitle({ className, ...props }: ModalTitleProps) {
     <Dialog.Title
       data-slot="modal-title"
       className={cn(
-        'text-foreground text-xl font-semibold tracking-[-0.03em]',
+        cn(typographyVariants({ role: 'sectionTitle' }), 'text-foreground'),
         className,
       )}
       {...props}

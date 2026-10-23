@@ -42,7 +42,7 @@ describe('ChartSeriesLegend', () => {
     },
     {
       size: 'small',
-      list: ['text-[0.625rem]', 'leading-3', 'gap-2.5'],
+      list: ['text-sm', 'leading-5', 'gap-2.5'],
       chip: ['size-2', 'rounded-[2px]'],
     },
   ] as const)(
@@ -50,7 +50,7 @@ describe('ChartSeriesLegend', () => {
     ({ size, list, chip }) => {
       renderLegend(size, [{ product: 1 }]);
 
-      expect(screen.getByRole('list')).toHaveClass('font-medium', ...list);
+      expect(screen.getByRole('list')).toHaveClass('font-normal', ...list);
       expect(screen.getAllByRole('listitem')[0]).toHaveClass('gap-1');
       expect(
         screen

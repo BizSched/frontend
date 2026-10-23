@@ -11,6 +11,7 @@ import { useChartConfig } from '@hooks/chart/useChartConfig';
 
 import { getPayloadConfigFromPayload } from '@lib/utilities/chart/getPayloadConfigFromPayload';
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 type TooltipNameType = number | string;
 
@@ -89,7 +90,10 @@ function ChartTooltipContent({
   return (
     <div
       className={cn(
-        'grid min-w-32 items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl',
+        cn(
+          typographyVariants({ role: 'supporting' }),
+          'grid min-w-32 items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 shadow-xl',
+        ),
         className,
       )}
     >
@@ -140,7 +144,7 @@ function ChartTooltipContent({
                     )}
                     <div
                       className={cn(
-                        'flex flex-1 justify-between leading-none',
+                        'flex flex-1 justify-between',
                         nestLabel ? 'items-end' : 'items-center',
                       )}
                     >
