@@ -5,11 +5,15 @@ import { DayButton as DayPickerDayButton } from 'react-day-picker';
 import type { DayButtonProps, Modifiers } from 'react-day-picker';
 
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 type DatePickerCellType = 'default' | 'today' | 'selected';
 
 const datePickerCellVariants = cva(
-  'flex size-10 cursor-pointer items-center justify-center rounded-full text-sm leading-5 tracking-[-0.03em] text-slate-500 transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:font-normal disabled:text-slate-300 motion-reduce:transition-none',
+  cn(
+    typographyVariants({ role: 'label' }),
+    'flex size-10 cursor-pointer items-center justify-center rounded-full text-slate-500 transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:font-normal disabled:text-slate-300 motion-reduce:transition-none',
+  ),
   {
     variants: {
       type: {

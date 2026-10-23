@@ -1,6 +1,8 @@
 import { SocialButton } from '@components/_common/IconButton/SocialButton';
 
+import { cn } from '@lib/utilities/cn';
 import { ROUTE_PATHS } from '@lib/utilities/routePaths';
+import { typographyVariants } from '@lib/utilities/typography';
 
 interface AuthSocialLoginProps {
   title: string;
@@ -20,7 +22,12 @@ function AuthSocialLogin({
     >
       <div className="flex w-full items-center gap-2">
         <span aria-hidden className="h-px flex-1 bg-slate-100" />
-        <p className="text-sm font-medium tracking-[-0.03em] whitespace-nowrap text-slate-300">
+        <p
+          className={cn(
+            typographyVariants({ role: 'supporting' }),
+            'whitespace-nowrap text-slate-300',
+          )}
+        >
           {title}
         </p>
         <span aria-hidden className="h-px flex-1 bg-slate-100" />
@@ -28,7 +35,10 @@ function AuthSocialLogin({
       {errorMessage && (
         <p
           role="alert"
-          className="text-center text-sm tracking-[-0.03em] text-warning-500"
+          className={cn(
+            typographyVariants({ role: 'supporting' }),
+            'text-center text-warning-500',
+          )}
         >
           {errorMessage}
         </p>

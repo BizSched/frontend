@@ -6,12 +6,13 @@ import type { ComponentProps } from 'react';
 import { useChartContext } from '@hooks/chart/useChartContext';
 
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
-const chartCenterTextVariants = cva('font-bold text-foreground', {
+const chartCenterTextVariants = cva('text-foreground tabular-nums', {
   variants: {
     size: {
-      large: 'text-base',
-      small: 'text-[0.625rem] leading-3',
+      large: typographyVariants({ role: 'subtitle' }),
+      small: typographyVariants({ role: 'label' }),
     },
   },
 });

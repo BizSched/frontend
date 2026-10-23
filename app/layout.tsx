@@ -7,6 +7,9 @@ import { Toaster } from '@components/_common/Toast/Toaster';
 import { OverlayProvider } from '@providers/overlay/OverlayProvider';
 import { QueryProvider } from '@providers/query/QueryProvider';
 
+import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
+
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
@@ -31,7 +34,12 @@ export default function RootLayout({ children }: LayoutProps<'/'>) {
       lang="ko"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col">
+      <body
+        className={cn(
+          typographyVariants({ role: 'body' }),
+          'flex min-h-full flex-col',
+        )}
+      >
         <QueryProvider>
           <OverlayProvider>{children}</OverlayProvider>
         </QueryProvider>

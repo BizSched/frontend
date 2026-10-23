@@ -9,8 +9,10 @@ import { Table } from '@components/_common/Table/Table';
 import { useSalesList } from '@hooks/api/sales/useSalesList';
 import { useSalesCategoryList } from '@hooks/api/sales-category/useSalesCategoryList';
 
+import { cn } from '@lib/utilities/cn';
 import { ROUTE_PATHS } from '@lib/utilities/routePaths';
 import { formatSalesError } from '@lib/utilities/sales/formatSalesError';
+import { typographyVariants } from '@lib/utilities/typography';
 
 const RECENT_SIZE = 8;
 
@@ -37,7 +39,12 @@ function SalesRecordsCard() {
   const renderBody = () => {
     if (!list || !categories) {
       return (
-        <p className="flex flex-1 items-center justify-center text-sm text-slate-500">
+        <p
+          className={cn(
+            typographyVariants({ role: 'supporting' }),
+            'flex flex-1 items-center justify-center text-slate-500',
+          )}
+        >
           {error ? formatSalesError(error) : '불러오는 중'}
         </p>
       );
@@ -45,7 +52,12 @@ function SalesRecordsCard() {
 
     if (list.items.length === 0) {
       return (
-        <p className="flex flex-1 items-center justify-center text-sm text-slate-500">
+        <p
+          className={cn(
+            typographyVariants({ role: 'supporting' }),
+            'flex flex-1 items-center justify-center text-slate-500',
+          )}
+        >
           등록된 매출 내역이 없습니다
         </p>
       );
@@ -57,16 +69,33 @@ function SalesRecordsCard() {
           <Table aria-label="입력한 매출" className="table-fixed">
             <Table.Header>
               <Table.Row className="border-b border-slate-100 hover:bg-transparent">
-                <Table.Head className="text-xs text-slate-400">날짜</Table.Head>
+                <Table.Head
+                  className={cn(
+                    typographyVariants({ role: 'label' }),
+                    'text-slate-400',
+                  )}
+                >
+                  날짜
+                </Table.Head>
                 {categories.map((category) => (
                   <Table.Head
                     key={category.id}
-                    className="text-xs text-slate-400"
+                    className={cn(
+                      typographyVariants({ role: 'label' }),
+                      'text-slate-400',
+                    )}
                   >
                     {category.name}
                   </Table.Head>
                 ))}
-                <Table.Head className="text-xs text-slate-400">합계</Table.Head>
+                <Table.Head
+                  className={cn(
+                    typographyVariants({ role: 'label' }),
+                    'text-slate-400',
+                  )}
+                >
+                  합계
+                </Table.Head>
               </Table.Row>
             </Table.Header>
             <Table.Body>
@@ -75,16 +104,29 @@ function SalesRecordsCard() {
 
                 return (
                   <Table.Row key={sale.id} className="h-[59px] border-slate-50">
-                    <Table.Cell className="text-sm font-semibold text-slate-950">
+                    <Table.Cell
+                      className={cn(
+                        typographyVariants({ role: 'subtitle' }),
+                        'text-slate-950',
+                      )}
+                    >
                       {label}{' '}
-                      <span className="text-xs font-medium text-slate-300">
+                      <span
+                        className={cn(
+                          typographyVariants({ role: 'caption' }),
+                          'text-slate-400',
+                        )}
+                      >
                         {weekday}
                       </span>
                     </Table.Cell>
                     {categories.map((category) => (
                       <Table.Cell
                         key={category.id}
-                        className="text-right text-sm text-slate-500"
+                        className={cn(
+                          typographyVariants({ role: 'data' }),
+                          'text-right text-slate-500',
+                        )}
                       >
                         {formatAmount(
                           sale.sales.find(
@@ -93,7 +135,12 @@ function SalesRecordsCard() {
                         )}
                       </Table.Cell>
                     ))}
-                    <Table.Cell className="text-right text-sm font-semibold text-slate-950">
+                    <Table.Cell
+                      className={cn(
+                        typographyVariants({ role: 'data' }),
+                        'text-right text-slate-950',
+                      )}
+                    >
                       ₩{formatAmount(sale.totalAmount)}
                     </Table.Cell>
                   </Table.Row>
@@ -104,7 +151,12 @@ function SalesRecordsCard() {
         </div>
 
         <div className="hidden flex-1 max-tablet:block">
-          <div className="flex justify-between border-b border-slate-100 pb-2 text-xs text-slate-400">
+          <div
+            className={cn(
+              typographyVariants({ role: 'label' }),
+              'flex justify-between border-b border-slate-100 pb-2 text-slate-400',
+            )}
+          >
             <span>날짜</span>
             <span>합계</span>
           </div>
@@ -114,10 +166,21 @@ function SalesRecordsCard() {
             return (
               <div
                 key={sale.id}
-                className="flex h-[57px] items-center justify-between border-b border-slate-50 text-xs"
+                className={cn(
+                  typographyVariants({ role: 'data' }),
+                  'flex h-[57px] items-center justify-between border-b border-slate-50',
+                )}
               >
                 <span className="font-semibold text-slate-950">
-                  {label} <small className="text-slate-300">{weekday}</small>
+                  {label}{' '}
+                  <small
+                    className={cn(
+                      typographyVariants({ role: 'caption' }),
+                      'text-slate-400',
+                    )}
+                  >
+                    {weekday}
+                  </small>
                 </span>
                 <span className="font-semibold text-slate-950">
                   ₩{formatAmount(sale.totalAmount)}
@@ -142,12 +205,20 @@ function SalesRecordsCard() {
       className="mt-[31px] min-h-[720px] gap-5 shadow-[0_0_30px_rgba(0,0,0,0.05)] max-tablet:mt-3 max-tablet:min-h-[610px] max-tablet:p-5"
     >
       <Card.Header className="items-center">
-        <Card.Title className="text-2xl font-semibold text-slate-900 max-tablet:text-lg">
+        <Card.Title
+          className={cn(
+            typographyVariants({ role: 'sectionTitle' }),
+            'text-slate-900',
+          )}
+        >
           입력한 매출
         </Card.Title>
         <Link
           href={ROUTE_PATHS.salesDetails()}
-          className="flex items-center gap-1 rounded text-sm font-medium text-primary-700 hover:underline focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none max-tablet:text-xs"
+          className={cn(
+            typographyVariants({ role: 'label' }),
+            'flex items-center gap-1 rounded text-primary-700 hover:underline focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none',
+          )}
         >
           모두 보기
           <MoveRight aria-hidden="true" size={16} />
@@ -156,7 +227,12 @@ function SalesRecordsCard() {
 
       {renderBody()}
 
-      <Card.Footer className="flex justify-between border-t border-slate-100 pt-4 text-xs text-slate-400">
+      <Card.Footer
+        className={cn(
+          typographyVariants({ role: 'supporting' }),
+          'flex justify-between border-t border-slate-100 pt-4 text-slate-400',
+        )}
+      >
         <span>최근 {list?.items.length ?? 0}일</span>
         <strong className="font-semibold text-slate-950">
           합계 ₩{formatAmount(recentTotal ?? 0)}

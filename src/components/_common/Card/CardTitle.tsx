@@ -1,6 +1,7 @@
 import { Slot } from '@radix-ui/react-slot';
 
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 interface CardTitleProps extends Omit<
   React.ComponentPropsWithRef<'h2'>,
@@ -17,7 +18,7 @@ function CardTitle({ asChild = false, className, ...props }: CardTitleProps) {
     <Component
       data-slot="card-title"
       className={cn(
-        'text-xl leading-[30px] font-semibold tracking-[-0.03em] text-slate-500',
+        cn(typographyVariants({ role: 'subtitle' }), 'text-slate-500'),
         className,
       )}
       {...props}

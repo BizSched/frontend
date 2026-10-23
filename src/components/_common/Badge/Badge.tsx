@@ -2,9 +2,13 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import type { ComponentProps } from 'react';
 
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 const badgeVariants = cva(
-  'inline-flex shrink-0 items-center rounded-full border px-2 py-1 text-center text-xs leading-4 font-medium whitespace-nowrap',
+  cn(
+    typographyVariants({ role: 'caption' }),
+    'inline-flex shrink-0 items-center rounded-full border px-2 py-1 text-center whitespace-nowrap',
+  ),
   {
     variants: {
       color: {

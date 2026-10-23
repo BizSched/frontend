@@ -4,10 +4,18 @@ import Link from 'next/link';
 import { Button } from '@components/_common/Button/Button';
 import { Input } from '@components/_common/Input/Input';
 
+import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
+
 function PartTimeStaffHeader() {
   return (
     <header className="flex items-center justify-between gap-2.5 px-2 max-mobile:sr-only">
-      <h1 className="min-w-0 text-2xl font-semibold tracking-[-0.03em] break-keep text-black max-tablet:text-xl">
+      <h1
+        className={cn(
+          typographyVariants({ role: 'pageTitle' }),
+          'min-w-0 break-keep text-black',
+        )}
+      >
         아르바이트생 관리
       </h1>
       <div className="flex shrink-0 items-center gap-2.5 max-mobile:hidden">

@@ -23,8 +23,8 @@ const renderCenter = (size: ChartSize, className?: string) =>
 
 describe('ChartCenter', () => {
   it.each([
-    { size: 'large', classes: ['text-base', 'font-bold'] },
-    { size: 'small', classes: ['text-[0.625rem]', 'leading-3', 'font-bold'] },
+    { size: 'large', classes: ['text-base', 'leading-6', 'font-semibold'] },
+    { size: 'small', classes: ['text-sm', 'leading-5', 'font-semibold'] },
   ] as const)(
     'Context size가 $size 일 때 label·value에 같은 글자 스타일을 적용한다',
     ({ size, classes }) => {

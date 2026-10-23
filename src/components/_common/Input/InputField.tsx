@@ -1,6 +1,7 @@
 import { cloneElement, type ReactElement } from 'react';
 
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 import { type InputProps } from './Input';
 
@@ -49,7 +50,7 @@ function InputField({
       <label
         htmlFor={inputId}
         data-slot="input-label"
-        className="text-sm font-medium tracking-[-0.03em] text-slate-700"
+        className={cn(typographyVariants({ role: 'label' }), 'text-slate-700')}
       >
         {label}
       </label>
@@ -60,7 +61,10 @@ function InputField({
         <p
           id={descriptionId}
           data-slot="input-description"
-          className="text-sm tracking-[-0.03em] text-slate-400"
+          className={cn(
+            typographyVariants({ role: 'supporting' }),
+            'text-slate-400',
+          )}
         >
           {description}
         </p>
@@ -71,7 +75,10 @@ function InputField({
           id={errorId}
           data-slot="input-error"
           role="alert"
-          className="text-sm tracking-[-0.03em] text-warning-500"
+          className={cn(
+            typographyVariants({ role: 'supporting' }),
+            'text-warning-500',
+          )}
         >
           {errorMessage}
         </p>

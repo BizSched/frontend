@@ -6,6 +6,7 @@ import { PartTimeStaffAttachmentFile } from '@components/partTime/staff/PartTime
 import type { PartTimeStaffFormAttachment } from '@lib/types/partTimeStaff';
 import { cn } from '@lib/utilities/cn';
 import { PART_TIME_STAFF_ATTACHMENT_MAX_COUNT } from '@lib/utilities/partTime/partTimeStaffAttachment';
+import { typographyVariants } from '@lib/utilities/typography';
 
 const ROW_BUTTON_CLASS_NAME =
   'flex min-w-0 cursor-pointer rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring';
@@ -45,7 +46,12 @@ function PartTimeStaffFormAttachments({
           className={cn(ROW_BUTTON_CLASS_NAME, 'items-center gap-1')}
         >
           <FileUpIcon size={24} className="shrink-0 text-slate-400" />
-          <span className="text-sm leading-5 font-semibold tracking-[-0.03em] text-white-950">
+          <span
+            className={cn(
+              typographyVariants({ role: 'label' }),
+              'text-white-950',
+            )}
+          >
             첨부파일 ({attachments.length}/
             {PART_TIME_STAFF_ATTACHMENT_MAX_COUNT})
           </span>

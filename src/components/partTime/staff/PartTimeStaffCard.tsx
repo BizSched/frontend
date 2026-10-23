@@ -9,10 +9,12 @@ import type {
   PartTimeStaffEmploymentStatus,
   PartTimeStaffListItem,
 } from '@lib/types/partTimeStaff';
+import { cn } from '@lib/utilities/cn';
 import {
   PART_TIME_STAFF_EMPLOYMENT_STATUS_LABELS,
   formatPartTimeStaffCreatedAt,
 } from '@lib/utilities/partTime/partTimeStaff';
+import { typographyVariants } from '@lib/utilities/typography';
 
 const EMPLOYMENT_STATUS_BADGE_COLORS: Record<
   PartTimeStaffEmploymentStatus,
@@ -58,9 +60,7 @@ function PartTimeStaffCard({
         <div className="flex min-w-0 items-center gap-4 max-tablet:gap-2">
           <PartTimeStaffNoteIcon />
           <div className="flex min-w-0 items-center gap-2">
-            <Card.Title className="truncate max-tablet:text-sm max-tablet:leading-5">
-              {name}
-            </Card.Title>
+            <Card.Title className="truncate">{name}</Card.Title>
             <Badge color={EMPLOYMENT_STATUS_BADGE_COLORS[employmentStatus]}>
               {PART_TIME_STAFF_EMPLOYMENT_STATUS_LABELS[employmentStatus]}
             </Badge>
@@ -90,18 +90,31 @@ function PartTimeStaffCard({
         </Card.Action>
       </Card.Header>
 
-      <Card.Content className="flex-row items-center justify-between gap-2">
+      <Card.Content className="flex-row flex-wrap items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="shrink-0 rounded-[8px] border border-primary-900 bg-white-50 px-2 py-1 text-xs leading-4 font-semibold text-primary-900">
+          <span
+            className={cn(
+              typographyVariants({ role: 'caption' }),
+              'shrink-0 rounded-[8px] border border-primary-900 bg-white-50 px-2 py-1 text-primary-900',
+            )}
+          >
             PHONE
           </span>
-          <span className="truncate text-sm leading-5 tracking-[-0.03em] text-slate-500 max-tablet:text-xs max-tablet:leading-4 max-tablet:tracking-normal">
+          <span
+            className={cn(
+              typographyVariants({ role: 'body' }),
+              'truncate text-slate-500',
+            )}
+          >
             {phone}
           </span>
         </div>
         <time
           dateTime={createdAt}
-          className="shrink-0 text-xs leading-4 text-slate-300"
+          className={cn(
+            typographyVariants({ role: 'caption' }),
+            'shrink-0 text-slate-300',
+          )}
         >
           {formatPartTimeStaffCreatedAt(createdAt)}
         </time>

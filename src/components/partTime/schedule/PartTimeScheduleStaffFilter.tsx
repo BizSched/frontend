@@ -4,6 +4,8 @@ import Image from 'next/image';
 import { Dropdown } from '@components/_common/Dropdown/Dropdown';
 
 import type { PartTimeStaff } from '@lib/types/partTimeSchedule';
+import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 import ImgGoal from '@assets/icons/img_goal.svg';
 
@@ -56,7 +58,12 @@ function PartTimeScheduleStaffFilter({
           <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#ffe5b7]">
             <Image src={ImgGoal} alt="" width={18} height={17.78} unoptimized />
           </span>
-          <span className="truncate text-sm font-semibold tracking-[-0.03em] text-slate-500">
+          <span
+            className={cn(
+              typographyVariants({ role: 'label' }),
+              'truncate text-slate-500',
+            )}
+          >
             {selectedStaff?.name ?? ALL_STAFF_LABEL}
           </span>
         </span>

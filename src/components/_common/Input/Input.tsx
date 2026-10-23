@@ -7,16 +7,23 @@ import {
 } from 'react';
 
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 import { InputIcon } from './InputIcon';
 
 const inputVariants = cva(
-  'flex w-full items-center border bg-white-50 tracking-[-0.02em] transition-colors focus-within:ring-2 focus-within:ring-primary-500',
+  'flex w-full items-center border bg-white-50 transition-colors focus-within:ring-2 focus-within:ring-primary-500',
   {
     variants: {
       size: {
-        large: 'h-14 gap-2 rounded-[16px] px-4 py-4 text-base',
-        small: 'h-11 gap-2 rounded-[12px] px-3 py-3 text-sm tracking-[-0.03em]',
+        large: cn(
+          typographyVariants({ role: 'body' }),
+          'h-14 gap-2 rounded-[16px] px-4 py-2',
+        ),
+        small: cn(
+          typographyVariants({ role: 'body' }),
+          'h-11 gap-2 rounded-[12px] px-3 py-2',
+        ),
       },
       variant: {
         default: '',

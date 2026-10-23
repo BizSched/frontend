@@ -2,6 +2,7 @@ import { Button as ButtonPrimitive } from '@base-ui/react/button';
 import { cva, type VariantProps } from 'class-variance-authority';
 
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 const buttonVariants = cva(
   'inline-flex shrink-0 cursor-pointer items-center justify-center gap-1 overflow-hidden rounded-full px-[18px] font-semibold whitespace-nowrap transition-colors outline-none focus-visible:ring-3 focus-visible:ring-ring/50 data-disabled:pointer-events-none data-disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg]:size-6 [&_svg]:shrink-0',
@@ -16,9 +17,9 @@ const buttonVariants = cva(
           'border border-slate-200 bg-transparent text-slate-400 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-500 data-disabled:border-slate-100 data-disabled:bg-transparent data-disabled:text-slate-300',
       },
       size: {
-        large: 'h-14 py-3.5 text-lg leading-7 tracking-[-0.03em]',
-        medium: 'h-12 py-3 text-base leading-6 tracking-[-0.03em]',
-        small: 'h-11 py-2.5 text-sm leading-5 tracking-[-0.03em]',
+        large: cn(typographyVariants({ role: 'label' }), 'h-14 py-3.5'),
+        medium: cn(typographyVariants({ role: 'label' }), 'h-12 py-3'),
+        small: cn(typographyVariants({ role: 'label' }), 'h-11 py-2.5'),
       },
     },
     defaultVariants: {

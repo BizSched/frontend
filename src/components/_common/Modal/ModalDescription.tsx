@@ -3,6 +3,7 @@
 import { Dialog } from '@base-ui/react/dialog';
 
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 interface ModalDescriptionProps extends Omit<
   Dialog.Description.Props,
@@ -16,7 +17,7 @@ function ModalDescription({ className, ...props }: ModalDescriptionProps) {
     <Dialog.Description
       data-slot="modal-description"
       className={cn(
-        'text-muted-foreground text-base tracking-[-0.03em]',
+        cn(typographyVariants({ role: 'body' }), 'text-muted-foreground'),
         className,
       )}
       {...props}

@@ -7,6 +7,8 @@ import { PartTimeStaffForm } from '@components/partTime/staff/PartTimeStaffForm'
 import { staffEditQueryOptions } from '@hooks/api/staff/staffQueryOptions';
 
 import { formatCommonError } from '@lib/api/formatCommonError';
+import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 interface PartTimeStaffEditFormProps {
   staffId: number;
@@ -23,7 +25,13 @@ function PartTimeStaffEditForm({
   return (
     <div className="flex min-w-0 flex-1 flex-col">
       {hasIncompleteUpload && (
-        <p role="alert" className="px-6 pt-6 text-sm text-slate-500">
+        <p
+          role="alert"
+          className={cn(
+            typographyVariants({ role: 'supporting' }),
+            'px-6 pt-6 text-slate-500',
+          )}
+        >
           등록 정보는 저장됐지만 첨부파일 업로드를 완료하지 못했어요. 저장된
           파일을 확인하고 빠진 파일을 다시 첨부해주세요.
         </p>
@@ -32,7 +40,10 @@ function PartTimeStaffEditForm({
       {isError && (
         <div
           role="alert"
-          className="w-full py-10 text-center text-sm text-slate-500"
+          className={cn(
+            typographyVariants({ role: 'supporting' }),
+            'w-full py-10 text-center text-slate-500',
+          )}
         >
           <p>{formatCommonError(error)}</p>
           <button
@@ -40,7 +51,10 @@ function PartTimeStaffEditForm({
             onClick={() => {
               void refetch();
             }}
-            className="mt-2 cursor-pointer underline"
+            className={cn(
+              typographyVariants({ role: 'label' }),
+              'mt-2 cursor-pointer underline',
+            )}
           >
             다시 시도
           </button>
@@ -49,7 +63,10 @@ function PartTimeStaffEditForm({
       {!data && !isError && (
         <p
           role="status"
-          className="w-full py-10 text-center text-sm text-slate-500"
+          className={cn(
+            typographyVariants({ role: 'supporting' }),
+            'w-full py-10 text-center text-slate-500',
+          )}
         >
           상세 정보를 불러오는 중입니다.
         </p>

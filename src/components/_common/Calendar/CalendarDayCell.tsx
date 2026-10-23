@@ -3,6 +3,7 @@ import { Day as DayPickerDay } from 'react-day-picker';
 import type { DayProps } from 'react-day-picker';
 
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 interface CalendarDayContent {
   full: ReactNode;
@@ -58,17 +59,20 @@ function CalendarDayCell({
     >
       {children}
       {content && (
-        <div className="max-tablet:mt-7 max-tablet:px-1.5 pointer-events-none relative z-10 mt-8 flex min-w-0 flex-col gap-1 px-2">
-          <div className="max-tablet:hidden pointer-events-auto flex min-w-0 flex-col gap-1">
+        <div className="pointer-events-none relative z-10 mt-8 flex min-w-0 flex-col gap-1 px-2 max-tablet:mt-7 max-tablet:px-1.5">
+          <div className="pointer-events-auto flex min-w-0 flex-col gap-1 max-tablet:hidden">
             {content.full}
           </div>
-          <div className="max-tablet:flex pointer-events-auto hidden min-w-0 items-center">
+          <div className="pointer-events-auto hidden min-w-0 items-center max-tablet:flex">
             {content.compact}
           </div>
           {overflowCount > 0 && (
             <button
               type="button"
-              className="pointer-events-auto w-fit cursor-pointer rounded-sm text-xs leading-4 text-slate-400 outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-1"
+              className={cn(
+                typographyVariants({ role: 'label' }),
+                'pointer-events-auto w-fit cursor-pointer rounded-sm text-slate-400 outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-1',
+              )}
               aria-label={`${day.isoDate}의 일정 ${overflowCount}개 더 보기`}
               onClick={handleMoreClick}
             >

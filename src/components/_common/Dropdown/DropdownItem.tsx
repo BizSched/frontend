@@ -5,6 +5,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { useEffect, useRef } from 'react';
 
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 const dropdownItemVariants = cva(
   'group/dropdown-item block cursor-pointer outline-none select-none',
@@ -27,37 +28,42 @@ const dropdownItemVariants = cva(
   },
 );
 
-const dropdownItemCellVariants = cva(
-  'block tracking-[-0.03em] text-slate-500 transition-colors',
-  {
-    variants: {
-      size: {
-        large: 'rounded-[12px] p-[8px] text-[16px] leading-[24px]',
-        medium:
-          'flex-1 rounded-[8px] px-[6px] py-[3px] text-[14px] leading-[20px]',
-        small: 'rounded-[8px] px-[6px] py-[3px] text-[14px] leading-[20px]',
-      },
-      isSelected: {
-        true: 'bg-primary-alpha-30 font-semibold',
-        false: '',
-      },
+const dropdownItemCellVariants = cva('block text-slate-500 transition-colors', {
+  variants: {
+    size: {
+      large: cn(
+        typographyVariants({ role: 'label' }),
+        'rounded-[12px] p-[8px]',
+      ),
+      medium: cn(
+        typographyVariants({ role: 'label' }),
+        'flex-1 rounded-[8px] px-[6px] py-[3px]',
+      ),
+      small: cn(
+        typographyVariants({ role: 'label' }),
+        'rounded-[8px] px-[6px] py-[3px]',
+      ),
     },
-    compoundVariants: [
-      {
-        size: 'large',
-        className: 'group-focus/dropdown-item:bg-slate-200',
-      },
-      {
-        size: ['medium', 'small'],
-        className: 'group-focus/dropdown-item:bg-primary-alpha-20',
-      },
-    ],
-    defaultVariants: {
-      size: 'large',
-      isSelected: false,
+    isSelected: {
+      true: 'bg-primary-alpha-30 font-semibold',
+      false: '',
     },
   },
-);
+  compoundVariants: [
+    {
+      size: 'large',
+      className: 'group-focus/dropdown-item:bg-slate-200',
+    },
+    {
+      size: ['medium', 'small'],
+      className: 'group-focus/dropdown-item:bg-primary-alpha-20',
+    },
+  ],
+  defaultVariants: {
+    size: 'large',
+    isSelected: false,
+  },
+});
 
 interface DropdownItemProps
   extends

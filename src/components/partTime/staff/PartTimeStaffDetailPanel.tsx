@@ -21,6 +21,7 @@ import {
   PART_TIME_STAFF_EMPLOYMENT_STATUS_LABELS,
   PART_TIME_STAFF_EMPLOYMENT_STATUSES,
 } from '@lib/utilities/partTime/partTimeStaff';
+import { typographyVariants } from '@lib/utilities/typography';
 
 const EMPLOYMENT_STATUS_OPTIONS = PART_TIME_STAFF_EMPLOYMENT_STATUSES.map(
   (employmentStatus) => ({
@@ -155,7 +156,13 @@ function PartTimeStaffDetailPanel({
   );
 
   const headerNotice = isEmploymentStatusPending ? (
-    <p role="status" className="text-sm text-slate-500">
+    <p
+      role="status"
+      className={cn(
+        typographyVariants({ role: 'supporting' }),
+        'text-slate-500',
+      )}
+    >
       재직 상태를 바꾸는 중입니다.
     </p>
   ) : null;
@@ -217,13 +224,19 @@ function PartTimeStaffDetailPanel({
             {displayed?.error ? (
               <div
                 role="alert"
-                className="py-6 text-center text-sm text-slate-500"
+                className={cn(
+                  typographyVariants({ role: 'supporting' }),
+                  'py-6 text-center text-slate-500',
+                )}
               >
                 <p>{formatCommonError(displayed.error)}</p>
                 <button
                   type="button"
                   onClick={onRetry}
-                  className="mt-2 cursor-pointer underline"
+                  className={cn(
+                    typographyVariants({ role: 'label' }),
+                    'mt-2 cursor-pointer underline',
+                  )}
                 >
                   다시 시도
                 </button>
@@ -231,7 +244,10 @@ function PartTimeStaffDetailPanel({
             ) : displayed?.isLoading ? (
               <p
                 role="status"
-                className="py-6 text-center text-sm text-slate-500"
+                className={cn(
+                  typographyVariants({ role: 'supporting' }),
+                  'py-6 text-center text-slate-500',
+                )}
               >
                 상세 정보를 불러오는 중입니다.
               </p>

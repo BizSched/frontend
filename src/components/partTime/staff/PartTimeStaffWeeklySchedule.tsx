@@ -8,12 +8,14 @@ import type {
   PartTimeStaffShift,
   PartTimeStaffShiftStatus,
 } from '@lib/types/partTimeStaff';
+import { cn } from '@lib/utilities/cn';
 import {
   formatPartTimeStaffShiftTime,
   formatPartTimeStaffWeekTitle,
   getPartTimeStaffShiftStatus,
   getPartTimeStaffWeekDates,
 } from '@lib/utilities/partTime/partTimeStaff';
+import { typographyVariants } from '@lib/utilities/typography';
 
 const weeklyShiftChipVariants = cva('justify-center gap-0 px-0.5', {
   variants: {
@@ -71,19 +73,30 @@ function PartTimeStaffWeeklySchedule({
 
   return (
     <section aria-busy={isLoading} className="flex flex-col gap-2.5">
-      <h3 className="text-lg leading-7 font-semibold text-slate-900">
+      <h3
+        className={cn(
+          typographyVariants({ role: 'subtitle' }),
+          'text-slate-900',
+        )}
+      >
         {formatPartTimeStaffWeekTitle(today)}
       </h3>
       {error ? (
         <div
           role="alert"
-          className="flex items-center justify-center gap-2 py-2 text-xs text-slate-500"
+          className={cn(
+            typographyVariants({ role: 'supporting' }),
+            'flex items-center justify-center gap-2 py-2 text-slate-500',
+          )}
         >
           <p className="min-w-0 truncate">{formatCommonError(error)}</p>
           <button
             type="button"
             onClick={onRetry}
-            className="shrink-0 cursor-pointer underline"
+            className={cn(
+              typographyVariants({ role: 'label' }),
+              'shrink-0 cursor-pointer underline',
+            )}
           >
             다시 시도
           </button>
@@ -105,7 +118,10 @@ function PartTimeStaffWeeklySchedule({
               >
                 <time
                   dateTime={date}
-                  className="text-xs leading-4 font-semibold text-slate-600 tabular-nums max-tablet:w-3.5 max-tablet:text-center"
+                  className={cn(
+                    typographyVariants({ role: 'caption' }),
+                    'text-slate-600 max-tablet:w-3.5 max-tablet:text-center',
+                  )}
                 >
                   {Number(date.slice(8))}
                 </time>

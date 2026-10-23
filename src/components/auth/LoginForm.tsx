@@ -18,7 +18,9 @@ import { useLoginMutation } from '@hooks/api/auth/useAuth';
 import { ApiError } from '@lib/api/apiError';
 import { formatAuthError } from '@lib/api/entities/auth/formatAuthError';
 import { isValidEmail } from '@lib/utilities/auth/isValidEmail';
+import { cn } from '@lib/utilities/cn';
 import { ROUTE_PATHS } from '@lib/utilities/routePaths';
+import { typographyVariants } from '@lib/utilities/typography';
 
 const LOGIN_ERROR_TOAST_ID = 'login-error';
 
@@ -116,7 +118,12 @@ function LoginForm() {
           control={control}
           name="autoLogin"
           render={({ field }) => (
-            <label className="flex w-fit cursor-pointer items-center gap-2 pl-1 text-sm leading-5 tracking-[-0.03em] text-slate-500">
+            <label
+              className={cn(
+                typographyVariants({ role: 'label' }),
+                'flex w-fit cursor-pointer items-center gap-2 pl-1 text-slate-500',
+              )}
+            >
               <Checkbox
                 checked={field.value}
                 onCheckedChange={(checked) => field.onChange(checked)}
@@ -131,7 +138,10 @@ function LoginForm() {
           {errors.root?.server && (
             <p
               role="alert"
-              className="pl-1 text-sm tracking-[-0.03em] text-warning-500"
+              className={cn(
+                typographyVariants({ role: 'supporting' }),
+                'pl-1 text-warning-500',
+              )}
             >
               {errors.root.server.message}
             </p>

@@ -210,7 +210,7 @@ describe('Input', () => {
     expect(input.parentElement).toHaveClass(
       'h-11',
       'rounded-[12px]',
-      'text-sm',
+      'text-base',
     );
     expect(input).not.toHaveAttribute('size');
   });

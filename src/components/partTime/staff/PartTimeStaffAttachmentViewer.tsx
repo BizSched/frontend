@@ -8,6 +8,8 @@ import { useStaffAttachmentPreview } from '@hooks/api/staff/useStaffAttachmentPr
 
 import { formatCommonError } from '@lib/api/formatCommonError';
 import type { PartTimeStaffAttachmentPreview } from '@lib/types/partTimeStaff';
+import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 import IcChevronLeftDark from '@assets/icons/ic_chevron-left-dark.svg';
 
@@ -82,7 +84,14 @@ function PartTimeStaffAttachmentViewer({
         className="flex size-full flex-col p-10 max-laptop:h-[417px] max-tablet:h-57.5 max-tablet:p-4"
       >
         <div className="mb-4 flex min-h-11 items-center justify-between gap-3">
-          <p className="min-w-0 truncate text-sm text-slate-600">{name}</p>
+          <p
+            className={cn(
+              typographyVariants({ role: 'supporting' }),
+              'min-w-0 truncate text-slate-600',
+            )}
+          >
+            {name}
+          </p>
           {previewUrl && !error && (
             <a
               href={previewUrl}
@@ -98,20 +107,35 @@ function PartTimeStaffAttachmentViewer({
         </div>
         <div className="flex min-h-0 flex-1 items-center justify-center">
           {error ? (
-            <div role="alert" className="text-center text-sm text-slate-500">
+            <div
+              role="alert"
+              className={cn(
+                typographyVariants({ role: 'supporting' }),
+                'text-center text-slate-500',
+              )}
+            >
               <p>{formatCommonError(error)}</p>
               <button
                 type="button"
                 onClick={() => {
                   void refetch();
                 }}
-                className="mt-2 cursor-pointer underline"
+                className={cn(
+                  typographyVariants({ role: 'label' }),
+                  'mt-2 cursor-pointer underline',
+                )}
               >
                 다시 시도
               </button>
             </div>
           ) : !previewUrl ? (
-            <p role="status" className="text-sm text-slate-500">
+            <p
+              role="status"
+              className={cn(
+                typographyVariants({ role: 'supporting' }),
+                'text-slate-500',
+              )}
+            >
               첨부파일을 불러오는 중입니다.
             </p>
           ) : type === 'pdf' ? (
