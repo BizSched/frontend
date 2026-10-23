@@ -1,0 +1,111 @@
+# 문서 인덱스
+
+실제 `docs/` 디렉터리 구조 그대로 정리한다. 파일이 추가·삭제되면 이 문서도 함께 갱신한다.
+
+```
+docs/
+├── architecture/     # 구조·데이터·렌더링 설계
+├── convention/       # 코드·스타일·문서 작성 규칙
+├── collaboration/    # 브랜치·PR·리뷰·CI
+├── component/        # 공통 컴포넌트 설계 문서
+└── feature/          # 도메인별 기능 문서
+```
+
+## architecture/
+
+| 경로                                                                   | 내용                                                                              |
+| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| [architecture/tech-stack.md](./architecture/tech-stack.md)             | 사용 기술 스택 전체                                                               |
+| [architecture/folder-structure.md](./architecture/folder-structure.md) | 폴더 구성, `(main)` 라우트 그룹, 컴포넌트 분리 기준, 타입 파일 위치               |
+| [architecture/rendering.md](./architecture/rendering.md)               | Server/Client 경계, `"use client"` 허용 트리거, RSC 하이드레이션, `use cache`     |
+| [architecture/state-management.md](./architecture/state-management.md) | 상태 범위별 도구 선택, 서버 데이터 3가지 패턴, Query Key 관리                     |
+| [architecture/data-flow.md](./architecture/data-flow.md)               | DTO/DAO 변환, Fetcher 서버/클라이언트 분리, 캐시 정책, timeout                    |
+| [architecture/auth.md](./architecture/auth.md)                         | BFF + httpOnly 쿠키 인증, 로그인·refresh·로그아웃, 소셜 로그인, CSRF              |
+| [architecture/error-handling.md](./architecture/error-handling.md)     | 에러 변환·formatter, `throwOnError` 기준, retry, `error.tsx`·`not-found.tsx` 배치 |
+| [architecture/env.md](./architecture/env.md)                           | 환경변수 파일 구성, client/server 구분                                            |
+| [architecture/routing.md](./architecture/routing.md)                   | Route Config(`ROUTE_PATHS`), Navigation Item 매핑                                 |
+
+## convention/
+
+| 경로                                                         | 내용                                                          |
+| ------------------------------------------------------------ | ------------------------------------------------------------- |
+| [convention/naming.md](./convention/naming.md)               | 파일/함수/상수/이벤트/boolean 네이밍, import 순서와 alias     |
+| [convention/code-style.md](./convention/code-style.md)       | `interface`, enum 대체, export 방식                           |
+| [convention/comment.md](./convention/comment.md)             | 주석 허용 기준, `NOTE`/`TODO` 규칙                            |
+| [convention/ui-component.md](./convention/ui-component.md)   | 기본 UI·공통 컴포넌트 배치, `cva`·`cn` 사용                   |
+| [convention/style.md](./convention/style.md)                 | Tailwind 클래스 정렬, desktop-first 반응형, 커스텀 breakpoint |
+| [convention/accessibility.md](./convention/accessibility.md) | alt·시맨틱 태그·키보드 네비게이션, WCAG 2.1 AA 목표           |
+| [convention/test.md](./convention/test.md)                   | Vitest, 테스트 폴더 구조                                      |
+| [convention/commit.md](./convention/commit.md)               | 커밋 메시지 규칙 (`commit-message-generator` 스킬 적용)       |
+| [convention/glossary.md](./convention/glossary.md)           | 서비스 용어 표기 기준 (스케줄·아르바이트생)                   |
+
+## collaboration/
+
+| 경로                                                                   | 내용                                  |
+| ---------------------------------------------------------------------- | ------------------------------------- |
+| [collaboration/branch-strategy.md](./collaboration/branch-strategy.md) | 브랜치 전략, 네이밍                   |
+| [collaboration/pr-flow.md](./collaboration/pr-flow.md)                 | 기능 개발 / 긴급 수정 플로우          |
+| [collaboration/code-review.md](./collaboration/code-review.md)         | 리뷰 체크리스트 (사람 확인 / AI 위임) |
+| [collaboration/ci.md](./collaboration/ci.md)                           | 린트/CI/배포/알림                     |
+
+## component/
+
+`src/components/_common/`에 들어가는 공통 컴포넌트의 설계 문서를 모은다. **앞으로 추가되는 공통 컴포넌트 설계는 `component/{컴포넌트}/README.md`에 작성한다.**
+
+| 경로                                                                                     | 내용                                                                                           |
+| ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| [component/README.md](./component/README.md)                                             | 작성 규칙, `convention/`과의 차이, 문서 목록                                                   |
+| [component/card/README.md](./component/card/README.md)                                   | Card — 공통 surface primitive, compound 슬롯, variant 축                                       |
+| [component/table/README.md](./component/table/README.md)                                 | Table — 시맨틱 compound 슬롯, 가로 스크롤, 화면별 스타일 조합                                  |
+| [component/modal/README.md](./component/modal/README.md)                                 | Modal — compound 슬롯, variant, 토큰 매핑, overlay-kit 연동                                    |
+| [component/pagination/README.md](./component/pagination/README.md)                       | Pagination — 평면 props API, size 반응형 판정, 슬롯 계산, 토큰 매핑                            |
+| [component/button/README.md](./component/button/README.md)                               | Button — hierarchy × size variant, 버튼 계열 컴포넌트 분리 계획                                |
+| [component/IconButton/README.md](./component/IconButton/README.md)                       | IconButton — 원형 shape만 공유하는 4개 독립 컴포넌트(Social/Notification/ReadMore/Delete)      |
+| [component/TextButton/README.md](./component/TextButton/README.md)                       | TextButton — `size` variant, hover pseudo-class 방식 state, Button의 형제 컴포넌트             |
+| [component/select-button/README.md](./component/select-button/README.md)                 | SelectButton — Toggle 기반 선택 상태, 고정 라벨 너비, 그림자 토큰                              |
+| [component/dropdown/README.md](./component/dropdown/README.md)                           | Dropdown — 팝업 리스트 평면 API, variant, 토큰 매핑, 월 변경·Form 드롭다운 설계                |
+| [component/month-dropdown-button/README.md](./component/month-dropdown-button/README.md) | MonthDropdownButton — 월 선택 드롭다운 트리거, size 축, 토큰 매핑                              |
+| [component/month-select-dropdown/README.md](./component/month-select-dropdown/README.md) | MonthSelectDropdown — 월 선택 트리거 + 월 리스트 팝업 조합, 스크롤, controlled                 |
+| [component/form-dropdown/README.md](./component/form-dropdown/README.md)                 | FormDropdown — Form 트리거 + 옵션 팝업 조합, medium size·구분선, controlled                    |
+| [component/datepicker/README.md](./component/datepicker/README.md)                       | DatePicker — 버퍼링 선택(취소/확인), 셀 타입 매핑, 토큰 매핑                                   |
+| [component/input/README.md](./component/input/README.md)                                 | Input — 입력 primitive, 검색·파일·이미지 입력 설계                                             |
+| [component/radio/README.md](./component/radio/README.md)                                 | Radio — RadioGroup(compound), Base UI Radio 기반, 토큰 매핑                                    |
+| [component/checkbox/README.md](./component/checkbox/README.md)                           | Checkbox — 단일 원자, variant(solid/subtle) 2종, Base UI Checkbox 기반                         |
+| [component/chart/README.md](./component/chart/README.md)                                 | Chart — 누적 막대·도넛 compound, shadcn chart 생성물 처리, size 반응형, 빈 상태, 로딩 스켈레톤 |
+| [component/calendar/README.md](./component/calendar/README.md)                           | Calendar — 단일 날짜 선택, 월 이동, 일정 칩·모바일 점, Dropdown 조합                           |
+| [component/ActionButton/README.md](./component/ActionButton/README.md)                   | ActionButton — Base UI Menu 기반 speed dial, `actions` 배열 prop, lucide 아이콘                |
+| [component/toast/README.md](./component/toast/README.md)                                 | Toast — 구현 완료, shadcn/Sonner 기반, overlay-kit 미사용, layout 1회 마운트, 호출 규약        |
+| [component/badge/README.md](./component/badge/README.md)                                 | Badge — 표시용 pill 라벨, `color` variant, 토큰 불일치 HEX 매핑                                |
+
+## feature/
+
+| 경로                                                               | 내용                                                   |
+| ------------------------------------------------------------------ | ------------------------------------------------------ |
+| [feature/README.md](./feature/README.md)                           | 작성 규칙, 도메인 문서·페이지 설계 문서 템플릿         |
+| [feature/partTime/README.md](./feature/partTime/README.md)         | 아르바이트 도메인 개요, API 명세, API 연동 PR 계획     |
+| [feature/partTime/schedule.md](./feature/partTime/schedule.md)     | 아르바이트생 스케줄 관리 페이지 설계                   |
+| [feature/partTime/staff.md](./feature/partTime/staff.md)           | 아르바이트생 관리(목록·상세) 페이지 설계               |
+| [feature/partTime/staff-form.md](./feature/partTime/staff-form.md) | 아르바이트생 추가·수정 페이지 설계                     |
+| [feature/sales/README.md](./feature/sales/README.md)               | 매출 도메인 개요와 단계별 범위                         |
+| [feature/sales/dashboard.md](./feature/sales/dashboard.md)         | `/sales/dashboard` 매출 대시보드 페이지 설계           |
+| [feature/sales/details.md](./feature/sales/details.md)             | `/sales/details` 매출 내역 페이지 설계                 |     |
+| [feature/auth/README.md](./feature/auth/README.md)                 | 인증 도메인 개요, 가입 흐름, 약관·업종 규칙            |
+| [feature/auth/login.md](./feature/auth/login.md)                   | `/login` 로그인 페이지 설계, 로그인·로그아웃 연동 계획 |
+| [feature/auth/signup.md](./feature/auth/signup.md)                 | `/signup` 회원가입 페이지 설계                         |
+| [feature/auth/onboarding.md](./feature/auth/onboarding.md)         | `/onboarding` 소셜 가입 추가 정보 페이지 설계          |
+| [feature/landing/README.md](./feature/landing/README.md)           | `/` 랜딩 페이지 설계                                   |
+| [feature/dashboard/README.md](./feature/dashboard/README.md)       | `/dashboard` 대시보드 페이지 설계                      |
+
+도메인 문서는 `feature/{도메인}/README.md`, 페이지 설계 문서는 `feature/{도메인}/{페이지}.md` 경로로 추가한다.
+
+## 저장소 루트 문서
+
+| 경로                                          | 내용                                         |
+| --------------------------------------------- | -------------------------------------------- |
+| [../AGENTS.md](../AGENTS.md)                  | 작업 유형별 문서 라우팅, 필수 체크리스트     |
+| `../.claude/skills/commit-message-generator/` | 커밋 메시지 생성 스킬                        |
+| `../.github/ISSUE_TEMPLATE/`                  | 이슈 템플릿 (`progress.md`, `bug-report.md`) |
+
+## 확정되지 않은 항목
+
+문서에 규칙으로 서술되지 않았거나, 문서 안에 **"확인 필요" · "도입 예정" · "미확정"** 으로 표시된 항목은 임의로 확정해서 적용하지 않고 사용자에게 확인한다. 미정 사항은 별도 문서에 모으지 않고, 해당 규칙이 서술된 위치에 인라인으로 표시한다.

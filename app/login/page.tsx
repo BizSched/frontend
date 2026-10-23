@@ -1,0 +1,27 @@
+import type { Metadata } from 'next';
+
+import { AuthLayout } from '@components/auth/AuthLayout';
+import { AuthSocialLogin } from '@components/auth/AuthSocialLogin';
+import { LoginForm } from '@components/auth/LoginForm';
+
+import { formatSocialLoginError } from '@lib/api/entities/auth/formatSocialLoginError';
+
+export const metadata: Metadata = {
+  title: '로그인',
+};
+
+export default async function LoginPage({ searchParams }: PageProps<'/login'>) {
+  const { socialError, joinType } = await searchParams;
+
+  return (
+    <AuthLayout>
+      <h1 className="sr-only">로그인</h1>
+      <LoginForm />
+      <AuthSocialLogin
+        title="SNS 계정으로 로그인"
+        actionLabel="로그인"
+        errorMessage={formatSocialLoginError(socialError, joinType)}
+      />
+    </AuthLayout>
+  );
+}

@@ -1,0 +1,27 @@
+<svg width="91" height="108" viewBox="0 0 91 108" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="&#235;&#158;&#156;&#235;&#148;&#169;&#237;&#142;&#152;&#236;&#157;&#180;&#236;&#167;&#128;">
+<g id="&#235;&#158;&#156;&#235;&#148;&#169;&#237;&#142;&#152;&#236;&#157;&#180;&#236;&#167;&#128;-&#236;&#136;&#152;&#236;&#160;&#149;">
+<g id="Frame 2611506">
+<g id="Frame 2611523">
+<g id="checkbox-01" filter="url(#filter0_d_1_65264)">
+<rect id="Rectangle 6192" x="28.5381" y="4.46387" width="47.8325" height="47.8325" rx="14" transform="rotate(15 28.5381 4.46387)" fill="#FFD98A"/>
+<g id="ic_checkbox">
+<path id="Vector 7" d="M36.1071 32.1093L40.23 39.2503C40.6097 39.908 41.4506 40.1333 42.1082 39.7536L55.7294 31.8894" stroke="white" stroke-width="6" stroke-linecap="round"/>
+</g>
+</g>
+</g>
+</g>
+</g>
+</g>
+<defs>
+<filter id="filter0_d_1_65264" x="-1.1418" y="0" width="93.182" height="107.972" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+<feOffset dy="23"/>
+<feGaussianBlur stdDeviation="8.65"/>
+<feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 0.619608 0 0 0 0 0.34902 0 0 0 0.42 0"/>
+<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1_65264"/>
+<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1_65264" result="shape"/>
+</filter>
+</defs>
+</svg>

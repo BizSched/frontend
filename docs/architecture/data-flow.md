@@ -1,0 +1,124 @@
+# 데이터 흐름 (DTO/DAO, 에러 처리)
+
+## 레이어별 책임
+
+- **Component**: UI 표현, 사용자 이벤트 처리, Hook에서 전달받은 상태 표현
+- **Hook**: React 상태 관리, 서버 상태 관리, UI와 비즈니스 로직 연결
+- **API**: HTTP 요청, 응답 타입 검증, DTO → FE DAO 변환
+- **Utility**: React 무관 순수 함수, 데이터 포맷팅, 계산·변환
+
+## DTO/DAO 분리
+
+BE에서 온 응답(DTO)을 변환 함수(Formatter)를 통해 FE 구조(DAO)로 바꿔서 사용한다.
+
+`BE API(DTO) → Formatter → FE DAO → TanStack Query → UI`
+
+변환 함수 작성 시 AI를 적극 활용한다.
+
+> **용어 주의**: 여기서 말하는 DAO는 **DTO를 변환한 프론트엔드 구조**를 가리킨다. 백엔드에서 DAO(Data Access Object)는 데이터 접근 계층을 뜻하므로 같은 단어가 서로 다른 의미로 쓰인다. BE와 소통할 때는 "FE DAO" 또는 "DTO 변환 결과"로 풀어서 말한다.
+
+### API 타입·클라이언트·zod 생성 (orval)
+
+- DTO 타입과 API 호출 함수는 직접 작성하지 않고 BE OpenAPI 명세에서 `orval`로 생성한다 (`client: 'fetch'`). 명세와 타입이 어긋나지 않게 하기 위해서다.
+- 런타임 검증용 `zod` 스키마도 같은 명세에서 `orval`로 함께 생성한다 (`client: 'zod'`). 타입과 zod 스키마를 손으로 따로 유지하면 BE 명세가 바뀔 때 둘이 어긋날 위험이 있어, 같은 소스에서 동기화해서 생성한다.
+- 생성된 타입은 컴파일 타임 검사만 하므로, 응답의 런타임 검증은 생성된 `zod` 스키마로 한다. 검증은 API 레이어(`entities`)에서 Formatter 호출 전에 한다. orval의 `runtimeValidation` 옵션은 쓰지 않는다.
+- **TanStack Query 훅은 생성하지 않는다.** orval의 `react-query` 클라이언트 모드는 쓰지 않고, 생성된 fetch 함수를 가져와 Hook 레이어(`hooks/api/`)에서 직접 `queryOptions`/`useQuery`로 조립한다. 이유:
+  - 생성된 훅은 DTO를 그대로 반환해 Formatter·zod 검증을 끼울 지점이 없다.
+  - `queryKey` 구조가 생성기 컨벤션에 묶여 세밀한 캐시 무효화 전략을 설계하기 어렵다.
+  - 서버 prefetch와 클라이언트 `useQuery`가 같은 `queryOptions`를 공유하는 구조([결정 대기 항목](#결정-대기-항목) 참고)와 맞지 않는다.
+- orval 산출물 위치: `src/lib/api/generated/` (손으로 쓴 Fetcher·API 레이어와 분리 — orval이 `generate` 시 타겟 폴더 내용을 정리(clean)하므로 같은 폴더에 두면 안 됨).
+- orval의 `override.mutator`로 생성된 모든 호출 함수가 `customFetcher`를 거치도록 연결한다. 자세한 설정은 `orval.config.ts` 참고.
+- `override.fetch.includeHttpResponseReturnType: false`로 생성 함수의 반환 타입을 응답 body로 맞춘다. `customFetcher`는 body를 그대로 반환하고, 실패는 `ApiError`로 throw하기 때문이다.
+- 생성 결과는 커밋한다. 빌드 때마다 BE 명세로 다시 생성하면 배포(Preview 포함)가 BE 가용성에 묶이고, 롤백한 커밋이 당시와 다른 타입으로 다시 생성될 수 있다. 그래서 `prebuild`에서는 생성하지 않고, BE 명세가 바뀌면 `pnpm generate:api`로 다시 생성해 커밋한다.
+
+### 변환 함수 호출 위치
+
+API 호출 함수(`lib/api/entities/{도메인}/api.ts`) 내부에서 생성 함수로 요청하고, 응답을 생성 zod 스키마로 검증한 직후 변환 함수(`lib/api/entities/{도메인}/to{DAO명}.ts`, 예: `toLoginUser`)를 호출해 DAO로 변환한 뒤 return한다. Hook이나 Component 단에서는 `entities` 함수와 변환된 DAO만 사용한다.
+
+- 예외: BFF Route Handler는 토큰이 든 원래 응답이 필요해 `entities`를 거치지 않고 생성 함수와 생성 zod 스키마를 직접 쓴다. 인증 관련 함수의 배치는 [auth.md](./auth.md)의 "생성 함수와 BFF"가 단일 출처다.
+
+### 직렬화 계약
+
+Formatter가 반환하는 DAO는 **Server Component에서 Client Component로 그대로 넘어갈 수 있어야** 한다. 허용 타입과 금지 값은 [rendering.md](./rendering.md)의 "직렬화 계약"이 단일 출처다.
+
+## 서버 렌더링과의 연결
+
+첫 화면 데이터의 prefetch·hydration 흐름, 서버/클라이언트 `queryOptions` 공유, 읽기 전용 화면 예외는 [rendering.md](./rendering.md)의 "하이브리드 데이터 패칭"이 단일 출처다.
+
+## API 클라이언트 (Fetcher)
+
+### baseURL (확정)
+
+baseURL은 환경변수로 관리한다. client/server 네이밍 규칙은 [env.md](./env.md)의 "client / server 구분"이 단일 출처다.
+
+- 서버: 서버 전용 `BE_BASE_URL`을 앞에 붙인다.
+- 브라우저: same-origin이므로 상대 경로(`/api/...`) 그대로 BFF로 보낸다.
+
+### 인증 — BFF + httpOnly 쿠키 (확정)
+
+인증은 **쿠키 기반**으로 하고, 토큰을 클라이언트 JS에서 직접 다루지 않는다. BE가 요구하는 `Authorization: Bearer` 헤더는 Next 서버(BFF)가 쿠키의 토큰으로 붙인다. 로그인·refresh·로그아웃 흐름과 보안 규칙은 [auth.md](./auth.md)가 단일 출처다.
+
+- **서버 요청**: Server Component의 fetch는 브라우저 쿠키를 자동으로 전달하지 않는다. 인증 헤더 헬퍼로 쿠키의 access 토큰을 Bearer 헤더로 만들어 BE에 직접 요청한다.
+- **브라우저 요청**: BE를 직접 호출하지 않고 same-origin BFF 경로로 요청한다. BFF가 헤더를 붙여 BE로 전달한다.
+
+### `customFetcher` 하나로 통일 (확정)
+
+Fetcher는 `customFetcher` 하나로 둔다. orval 생성 함수와 직접 작성한 API 함수가 모두 이 함수를 거친다.
+
+- 응답은 기본적으로 JSON이다. 첨부파일처럼 바이너리를 받는 호출은 `CustomFetcherOptions.responseType: 'blob'`을 넘긴다. 성공한 응답만 Blob으로 읽고, 실패 응답은 기존 JSON 에러 변환·401 refresh·재시도 규칙을 그대로 적용한다. `responseType`은 HTTP 요청 옵션에서 제거한다.
+
+- 예외: 브라우저 세션 처리(`authSession`)의 refresh·세션 정리 요청은 `sendRequest`를 직접 쓴다. 이 요청들은 refresh 대상이 아니고, `customFetcher`가 `authSession`을 쓰므로 거치면 순환 의존이 생긴다.
+
+| 실행 환경                                  | 요청 대상                      | 인증 헤더                              | 401 `TOKEN_EXPIRED`   |
+| ------------------------------------------ | ------------------------------ | -------------------------------------- | --------------------- |
+| 서버 (Server Component, BFF Route Handler) | BE 직접 (`BE_BASE_URL` + 경로) | 부르는 쪽이 `options.headers`로 넘긴다 | 처리하지 않음         |
+| 브라우저                                   | BFF (상대 경로 `/api/...`)     | 없음 (BFF가 쿠키로 처리)               | refresh 후 1회 재시도 |
+
+- `customFetcher`는 `next/headers`를 import하지 않는다. 브라우저 번들에도 들어가는 모듈이기 때문이다.
+- 서버에서 부르는 쪽은 인증 헤더 헬퍼(`lib/api/getAuthHeaders.ts`)로 쿠키의 access 토큰을 `Authorization` 헤더로 만들어 넘긴다. access 쿠키가 없으면 빈 헤더를 돌려주어, 로그인처럼 토큰 없이 부르는 API도 같은 방식으로 부른다.
+- 환경 분기(`typeof window`)는 baseURL과 refresh 재시도에만 쓴다. timeout, signal 병합, 에러 변환, 빈 body 처리는 환경과 관계없이 같다.
+- refresh 흐름은 [auth.md](./auth.md)의 "Refresh"가 단일 출처다.
+
+### 서버 전용 차단 (확정)
+
+- `server-only` 적용: 인증 헤더 헬퍼(`getAuthHeaders`), 토큰 쿠키 읽기·쓰기 유틸, BFF Route Handler 유틸(`lib/api/bff/`)
+- 적용하지 않음: `customFetcher`, orval 생성 함수·스키마, `entities` 함수, `queryOptions`, Formatter, `ApiError`, BFF errorCode 상수 — 서버·클라이언트가 공유하는 모듈이다
+
+### 캐시 — SSR 기본 (확정)
+
+**기본값은 SSR(요청마다 새로 조회)** 이다. 서버 fetch는 캐시하지 않는 것을 기본으로 두고, 정적으로 돌릴 구간만 **선언적으로 예외 처리**한다.
+
+| 구간                                 | 설정                                                      |
+| ------------------------------------ | --------------------------------------------------------- |
+| 기본 (인증·사용자별 데이터)          | 캐시하지 않음 (`cache: 'no-store'`)                       |
+| 주기적으로 갱신해도 되는 공개 데이터 | `next: { revalidate: <초> }` (ISR)                        |
+| 빌드 시점에 고정 가능한 데이터       | `next: { revalidate: false }` 또는 `use cache` (SSG 성격) |
+
+인증 쿠키가 실린 요청은 **절대 캐시하지 않는다.** 요청 간 캐시가 공유되면 다른 사용자의 데이터가 노출된다.
+`use cache` 부분 도입 기준은 [rendering.md](./rendering.md)의 "캐싱 지시어" 참고.
+
+### timeout — Fetcher 내부 구현 (확정)
+
+timeout은 `Fetcher` 내부에서 `AbortController`(또는 `AbortSignal.timeout()`)로 구현한다. 호출부마다 개별 구현하지 않는다.
+호출부가 자체 `signal`을 넘길 수 있으므로, Fetcher는 **timeout signal과 호출부 signal을 합쳐서** 전달해야 한다.
+
+브라우저 요청은 `브라우저 → BFF → BE` 두 홉이므로 **브라우저 요청 timeout은 BFF→BE timeout보다 길어야** 한다. 짧으면 브라우저가 포기한 뒤에도 BFF가 BE 응답을 기다린다.
+
+| 실행 환경          | timeout |
+| ------------------ | ------- |
+| 서버 (BFF→BE 포함) | 10초    |
+| 브라우저           | 15초    |
+
+### retry · 에러 변환 (확정)
+
+Fetcher는 재시도하지 않는다. 예외로 브라우저의 `customFetcher`는 401 `TOKEN_EXPIRED`에 한해 refresh 후 1회 재시도한다. 재시도 규칙과 Fetcher의 에러 변환 규칙은 [error-handling.md](./error-handling.md)가 단일 출처다.
+
+### 결정 사항
+
+| 항목                           | 내용                                                                                                                             | 결정 날짜  |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+| 서버 prefetch의 인증 헤더 전달 | 서버는 `getAuthHeaders()` 결과를 `queryOptions(params, { headers })`로 전달한다. 클라이언트는 인자 없이 같은 options를 사용한다. | 2026-10-11 |
+
+## API 에러 처리
+
+전체 흐름은 `API → error formatter → TanStack Query → UI`다. `ApiError`·`NetworkError` 변환, 도메인·공통 formatter, `throwOnError` 기준, `error.tsx`·`not-found.tsx` 배치는 [error-handling.md](./error-handling.md)가 단일 출처다.

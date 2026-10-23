@@ -1,0 +1,19 @@
+# 네이밍 규칙
+
+- 파일: 컴포넌트를 export하면 `PascalCase` (예: `ModalHeader.tsx`), 함수를 export하면 `camelCase` (예: `openConfirmModal.tsx`). 함수 파일은 JSX를 포함해 `.tsx`여도 camelCase를 쓴다.
+- 함수: Component는 `function` 선언식, 그 외(hook·util·내부 핸들러)는 화살표 함수
+- 상수: `CONST_VALUE`
+- 이벤트 props: `on대상동작` (예: onClick, onValueChange)
+- 내부 핸들러: `handle대상동작` (예: handleClick)
+- boolean: `is`·`has` 접두사, 부정형 이름 피하기
+
+타입 선언·export 방식은 [code-style.md](./code-style.md) 참고.
+
+## import 순서 / 절대경로 alias
+
+alias는 [folder-structure.md](../architecture/folder-structure.md)의 폴더 구조를 1:1로 따른다. 폴더가 늘거나 이름이 바뀌면 그 문서를 먼저 고치고 alias를 맞춘다.
+
+- 프로젝트 최상위: `@app`(라우트 진입점 `app/`), `@test`(테스트 `test/`), `@proxy`(최상위 파일 `proxy.ts`. Next가 `app/`과 같은 위치에서만 찾아 폴더로 옮길 수 없어, 테스트에서 상대경로 대신 쓴다)
+- `src` 바로 하위: `@components`, `@hooks`, `@lib`, `@providers`, `@stores`, `@assets`
+
+`app/`은 `src/` 안이 아니라 `src/`와 나란히 최상위에 둔다. 각 폴더가 무엇을 담는지는 [folder-structure.md](../architecture/folder-structure.md)를, 타입 선언 위치는 [folder-structure.md의 "타입 정의 파일 위치"](../architecture/folder-structure.md#타입-정의-파일-위치)를 참고한다. 타입 전용 alias는 두지 않는다.

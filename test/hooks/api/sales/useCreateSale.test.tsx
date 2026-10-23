@@ -1,0 +1,145 @@
+import {
+  QueryClient,
+  QueryClientProvider,
+  QueryObserver,
+} from '@tanstack/react-query';
+import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import { salesKeys } from '@hooks/api/sales/salesQueryOptions';
+import { useCreateSale } from '@hooks/api/sales/useCreateSale';
+
+import { createSale } from '@lib/api/entities/sales/api';
+import type { SaleCreateRequest } from '@lib/api/generated/bizSchedAPI.schemas';
+
+vi.mock('@lib/api/entities/sales/api', () => ({
+  createSale: vi.fn(),
+  deleteSale: vi.fn(),
+  getSalesList: vi.fn(),
+  getSalesMonthTotal: vi.fn(),
+  updateSale: vi.fn(),
+}));
+
+const createQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+
+const renderCreateSale = (queryClient: QueryClient) =>
+  renderHook(() => useCreateSale(), {
+    wrapper: ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    ),
+  });
+
+const request: SaleCreateRequest = {
+  date: '2026-10-01',
+  sales: [],
+  totalAmount: 0,
+};
+const listKey = salesKeys.list({ month: '2026-10' });
+const monthTotalKey = salesKeys.monthTotal({ month: '2026-10' });
+const dashboardKeys = [
+  salesKeys.summary({ month: '2026-10' }),
+  salesKeys.chart({ unit: 'MONTH', date: '2026-10-16' }),
+  salesKeys.ratio({ month: '2026-10' }),
+  salesKeys.list({ page: 1, size: 8 }),
+];
+const categoryKey = ['salesCategory', 'list'] as const;
+
+describe('useCreateSale', () => {
+  beforeEach(() => vi.resetAllMocks());
+  afterEach(() => cleanup());
+
+  it('매출 생성에 성공하면 매출 목록과 월 합계 쿼리를 무효화한다', async () => {
+    vi.mocked(createSale).mockResolvedValue({
+      id: 1,
+      date: request.date,
+      sales: [],
+      totalAmount: 0,
+    });
+    const queryClient = createQueryClient();
+    queryClient.setQueryData(listKey, { items: [] });
+    queryClient.setQueryData(monthTotalKey, 0);
+    queryClient.setQueryData(categoryKey, []);
+    const { result } = renderCreateSale(queryClient);
+
+    act(() => result.current.mutate(request));
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(createSale).toHaveBeenCalledWith(request);
+    expect(queryClient.getQueryState(listKey)?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(monthTotalKey)?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(categoryKey)?.isInvalidated).toBe(false);
+  });
+
+  it('활성 매출 목록 재조회가 끝난 뒤 저장 성공을 알린다', async () => {
+    vi.mocked(createSale).mockResolvedValue({
+      id: 1,
+      date: request.date,
+      sales: [],
+      totalAmount: 0,
+    });
+    const queryClient = createQueryClient();
+    queryClient.setQueryData(listKey, { items: [] });
+    let resolveRefetch!: (value: { items: { id: number }[] }) => void;
+    const refetch = vi.fn(
+      () =>
+        new Promise<{ items: { id: number }[] }>((resolve) => {
+          resolveRefetch = resolve;
+        }),
+    );
+    const observer = new QueryObserver(queryClient, {
+      queryKey: listKey,
+      queryFn: refetch,
+      staleTime: 60_000,
+    });
+    const unsubscribe = observer.subscribe(() => {});
+    const onSuccess = vi.fn();
+    const { result } = renderCreateSale(queryClient);
+
+    act(() => result.current.mutate(request, { onSuccess }));
+
+    await waitFor(() => expect(refetch).toHaveBeenCalledOnce());
+    expect(onSuccess).not.toHaveBeenCalled();
+
+    resolveRefetch({ items: [{ id: 1 }] });
+    await waitFor(() => expect(onSuccess).toHaveBeenCalledOnce());
+    expect(queryClient.getQueryData(listKey)).toEqual({ items: [{ id: 1 }] });
+    unsubscribe();
+  });
+
+  it('매출 생성에 성공하면 대시보드의 요약·차트·구성·최근 내역 쿼리를 무효화한다', async () => {
+    vi.mocked(createSale).mockResolvedValue({
+      id: 1,
+      date: request.date,
+      sales: [],
+      totalAmount: 0,
+    });
+    const queryClient = createQueryClient();
+    dashboardKeys.forEach((key) => queryClient.setQueryData(key, {}));
+    const { result } = renderCreateSale(queryClient);
+
+    act(() => result.current.mutate(request));
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    dashboardKeys.forEach((key) =>
+      expect(queryClient.getQueryState(key)?.isInvalidated).toBe(true),
+    );
+  });
+
+  it('매출 생성에 실패하면 오류를 mutation 상태에 보존한다', async () => {
+    const error = new Error('매출 생성 실패');
+    vi.mocked(createSale).mockRejectedValue(error);
+    const { result } = renderCreateSale(createQueryClient());
+
+    act(() => result.current.mutate(request));
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(result.current.error).toBe(error);
+  });
+});

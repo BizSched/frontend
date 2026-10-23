@@ -1,0 +1,62 @@
+import { CompleteSocialSignupBody } from '@lib/api/completeSocialSignupBody';
+import { customFetcher } from '@lib/api/customFetcher';
+import { toLoginUser } from '@lib/api/entities/auth/toLoginUser';
+import { Login1Response } from '@lib/api/generated/auth/auth.zod';
+import type {
+  LoginRequest,
+  SignupRequest,
+} from '@lib/api/generated/bizSchedAPI.schemas';
+import { getCompleteSignupUrl } from '@lib/api/generated/oauth/oauth';
+import { CompleteSignupResponse } from '@lib/api/generated/oauth/oauth.zod';
+import { signup } from '@lib/api/generated/users/users';
+import { SignupBody, SignupResponse } from '@lib/api/generated/users/users.zod';
+
+const LOGIN_PATH = '/api/auth/login';
+const LOGOUT_PATH = '/api/auth/logout';
+
+// NOTE: BFF는 BE 로그인 응답에서 토큰을 빼고 돌려주므로 생성 스키마의 user만 검증한다 (docs/architecture/auth.md "생성 함수와 BFF")
+const LoginBffResponse = Login1Response.pick({ user: true });
+
+const CompleteSocialSignupBffResponse = CompleteSignupResponse.omit({
+  accessToken: true,
+  refreshToken: true,
+});
+
+type CompleteSocialSignupRequest = Pick<
+  SignupRequest,
+  'industry' | 'industryDetail' | 'termsAgreed'
+>;
+
+const postLogin = async (loginRequest: LoginRequest) => {
+  const response = await customFetcher<unknown>(LOGIN_PATH, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(loginRequest),
+  });
+
+  return toLoginUser(LoginBffResponse.parse(response).user);
+};
+
+const postLogout = () => customFetcher<void>(LOGOUT_PATH, { method: 'POST' });
+
+const postSignup = async (signupRequest: SignupRequest) => {
+  const response = await signup(SignupBody.parse(signupRequest));
+  return SignupResponse.parse(response);
+};
+
+const patchCompleteSocialSignup = async (
+  completeSocialSignupRequest: CompleteSocialSignupRequest,
+) => {
+  const response = await customFetcher<unknown>(getCompleteSignupUrl(), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(
+      CompleteSocialSignupBody.parse(completeSocialSignupRequest),
+    ),
+  });
+
+  return CompleteSocialSignupBffResponse.parse(response);
+};
+
+export { patchCompleteSocialSignup, postLogin, postLogout, postSignup };
+export type { CompleteSocialSignupRequest };

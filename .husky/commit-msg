@@ -1,0 +1,51 @@
+#!/usr/bin/env sh
+BOLD='\033[1m'
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[0;33m'
+CYAN='\033[0;36m'
+RESET='\033[0m'
+
+print_line() {
+  printf '%b\n' "$1"
+}
+
+print_line ""
+print_line "${CYAN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+print_line "${CYAN}${BOLD}  📝 Commit Convention Check                      ${RESET}"
+print_line "${CYAN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+print_line ""
+
+COMMIT_MSG=$(cat "$1")
+PATTERN='^(feat|fix|design|refactor|test|docs|chore|ci/cd): .+( #[0-9]+)$'
+
+print_line "${YELLOW}${BOLD}[1/1] Checking commit message format...${RESET}"
+print_line "${CYAN}──────────────────────────────────────────────────${RESET}"
+print_line "  ${BOLD}Message:${RESET} $(printf '%s\n' "$COMMIT_MSG" | head -1)"
+print_line ""
+
+if printf '%s\n' "$COMMIT_MSG" | head -1 | grep -qE "$PATTERN"; then
+  print_line "${GREEN}${BOLD}✔ Commit message format is valid${RESET}"
+else
+  print_line "${RED}${BOLD}✖ Invalid commit message format — commit aborted${RESET}"
+  print_line ""
+  print_line "${YELLOW}  올바른 형식:${RESET}"
+  print_line "  ${BOLD}타입: 설명 #이슈번호${RESET}"
+  print_line ""
+  print_line "${YELLOW}  사용 가능한 타입:${RESET}"
+  print_line "  feat, fix, design, refactor, test, docs, chore, ci/cd"
+  print_line ""
+  print_line "${YELLOW}  예시:${RESET}"
+  print_line "  feat: add login page #12"
+  print_line "  fix: resolve null pointer exception #34"
+  print_line "  docs: update README #45"
+  print_line "  ci/cd: add github actions workflow #56"
+  print_line ""
+  exit 1
+fi
+
+print_line ""
+print_line "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+print_line "${GREEN}${BOLD}  ✅ Convention check passed! Committing...      ${RESET}"
+print_line "${GREEN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+print_line ""

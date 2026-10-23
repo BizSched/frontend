@@ -1,0 +1,175 @@
+'use client';
+
+import { FileUpIcon, XIcon } from 'lucide-react';
+import { type ChangeEvent, useEffect, useRef, useState } from 'react';
+
+import { Button } from '@components/_common/Button/Button';
+import { Modal } from '@components/_common/Modal/Modal';
+import { toast } from '@components/_common/Toast/Toaster';
+
+import { cn } from '@lib/utilities/cn';
+import { preparePartTimeStaffAttachment } from '@lib/utilities/partTime/preparePartTimeStaffAttachment';
+import { typographyVariants } from '@lib/utilities/typography';
+
+const ATTACHMENT_ACCEPT = '.jpg,.jpeg,.png,.webp,.pdf';
+const FILE_ERROR_TOAST_ID = 'staff-attachment-file-error';
+
+const FILE_FIELD_CLASS_NAME = cn(
+  typographyVariants({ role: 'body' }),
+  'flex w-full items-center gap-2 rounded-[16px] border border-dashed border-[#cccccc] bg-[#fafafa] p-4 max-tablet:rounded-[12px] max-tablet:p-3',
+);
+
+interface PartTimeStaffAttachmentUploadModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onUpload: (file: File) => void;
+  onExitComplete?: () => void;
+  stackIndex?: number;
+}
+
+function PartTimeStaffAttachmentUploadModal({
+  open,
+  onOpenChange,
+  onUpload,
+  onExitComplete,
+  stackIndex = 0,
+}: PartTimeStaffAttachmentUploadModalProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [file, setFile] = useState<File>();
+  const [isProcessing, setIsProcessing] = useState(false);
+  const selectionVersion = useRef(0);
+
+  useEffect(
+    () => () => {
+      selectionVersion.current += 1;
+    },
+    [open],
+  );
+
+  const handleFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    const selectedFile = input.files?.[0];
+
+    input.value = '';
+
+    if (!selectedFile) return;
+    const version = ++selectionVersion.current;
+    setIsProcessing(true);
+    toast.dismiss(FILE_ERROR_TOAST_ID);
+    try {
+      const prepared = await preparePartTimeStaffAttachment(selectedFile);
+      if (version === selectionVersion.current && prepared) setFile(prepared);
+    } catch (error) {
+      if (version === selectionVersion.current) {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : '파일을 처리할 수 없어요. 다른 파일을 선택해주세요.',
+          { id: FILE_ERROR_TOAST_ID },
+        );
+      }
+    } finally {
+      if (version === selectionVersion.current) setIsProcessing(false);
+    }
+  };
+
+  return (
+    <Modal
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) selectionVersion.current += 1;
+        onOpenChange(isOpen);
+      }}
+      onOpenChangeComplete={(isOpened) => {
+        if (!isOpened) {
+          onExitComplete?.();
+        }
+      }}
+      stackIndex={stackIndex}
+    >
+      <Modal.Panel
+        size="sm"
+        className="max-tablet:rounded-[24px] max-tablet:p-4"
+      >
+        <div className="flex flex-col gap-8 max-tablet:gap-6">
+          <Modal.Header align="start">
+            <Modal.Title className="text-slate-500">
+              첨부파일 업로드
+            </Modal.Title>
+            <Modal.CloseButton />
+          </Modal.Header>
+          <input
+            ref={inputRef}
+            type="file"
+            accept={ATTACHMENT_ACCEPT}
+            hidden
+            onChange={handleFileChange}
+          />
+          {file ? (
+            <div className={FILE_FIELD_CLASS_NAME}>
+              <FileUpIcon
+                size={24}
+                className="shrink-0 text-slate-400 max-tablet:size-5"
+              />
+              <span className="min-w-0 flex-1 truncate text-slate-950">
+                {file.name}
+              </span>
+              <button
+                type="button"
+                aria-label={`${file.name} 선택 취소`}
+                onClick={() => {
+                  selectionVersion.current += 1;
+                  setFile(undefined);
+                  setIsProcessing(false);
+                }}
+                className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring max-tablet:size-5"
+              >
+                <XIcon size={16} strokeWidth={1.8} className="text-slate-300" />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => inputRef.current?.click()}
+              className={cn(
+                FILE_FIELD_CLASS_NAME,
+                typographyVariants({ role: 'label' }),
+                'cursor-pointer text-white-950 outline-none focus-visible:ring-2 focus-visible:ring-ring',
+              )}
+            >
+              <FileUpIcon size={24} className="shrink-0 max-tablet:size-5" />
+              파일을 선택해주세요
+            </button>
+          )}
+          {isProcessing && (
+            <p
+              role="status"
+              className={cn(
+                typographyVariants({ role: 'supporting' }),
+                'text-slate-500',
+              )}
+            >
+              이미지를 처리하고 있어요.
+            </p>
+          )}
+        </div>
+        <Button
+          type="button"
+          disabled={!file || isProcessing}
+          focusableWhenDisabled
+          onClick={() => {
+            if (file && !isProcessing) {
+              onUpload(file);
+            }
+          }}
+          className="w-full max-tablet:h-10 max-tablet:py-2.5 data-disabled:cursor-not-allowed data-disabled:bg-slate-200 data-disabled:hover:bg-slate-200"
+        >
+          업로드
+        </Button>
+      </Modal.Panel>
+    </Modal>
+  );
+}
+
+export { PartTimeStaffAttachmentUploadModal };
+export type { PartTimeStaffAttachmentUploadModalProps };

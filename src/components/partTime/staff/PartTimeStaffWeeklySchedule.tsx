@@ -1,0 +1,179 @@
+import { cva } from 'class-variance-authority';
+import { CheckIcon } from 'lucide-react';
+
+import { CalendarEventChip } from '@components/_common/Calendar/CalendarEventChip';
+
+import { formatCommonError } from '@lib/api/formatCommonError';
+import type {
+  PartTimeStaffShift,
+  PartTimeStaffShiftStatus,
+} from '@lib/types/partTimeStaff';
+import { cn } from '@lib/utilities/cn';
+import {
+  formatPartTimeStaffShiftTime,
+  formatPartTimeStaffWeekTitle,
+  getPartTimeStaffShiftStatus,
+  getPartTimeStaffWeekDates,
+} from '@lib/utilities/partTime/partTimeStaff';
+import { typographyVariants } from '@lib/utilities/typography';
+
+const weeklyShiftChipVariants = cva('justify-center gap-0 px-0.5', {
+  variants: {
+    status: {
+      scheduled: '',
+      completed: '',
+      missed: 'border-warning-300 bg-warning-50 text-warning-600',
+    },
+  },
+});
+
+const weeklyShiftDotVariants = cva(
+  'mt-0.5 hidden size-1.5 shrink-0 rounded-full max-tablet:block',
+  {
+    variants: {
+      status: {
+        none: 'bg-transparent',
+        scheduled: 'bg-primary-500',
+        completed: 'bg-slate-400',
+        missed: 'bg-warning-500',
+      },
+    },
+  },
+);
+
+const getWeeklyShiftDotStatus = (statuses: PartTimeStaffShiftStatus[]) => {
+  if (statuses.length === 0) {
+    return 'none';
+  }
+
+  if (statuses.includes('missed')) {
+    return 'missed';
+  }
+
+  return statuses.includes('scheduled') ? 'scheduled' : 'completed';
+};
+
+interface PartTimeStaffWeeklyScheduleProps {
+  now: string;
+  shifts: PartTimeStaffShift[];
+  isLoading?: boolean;
+  error?: unknown;
+  onRetry?: () => void;
+}
+
+function PartTimeStaffWeeklySchedule({
+  now,
+  shifts,
+  isLoading,
+  error,
+  onRetry,
+}: PartTimeStaffWeeklyScheduleProps) {
+  const today = now.slice(0, 10);
+  const weekDates = getPartTimeStaffWeekDates(today);
+
+  return (
+    <section aria-busy={isLoading} className="flex flex-col gap-2.5">
+      <h3
+        className={cn(
+          typographyVariants({ role: 'subtitle' }),
+          'text-slate-900',
+        )}
+      >
+        {formatPartTimeStaffWeekTitle(today)}
+      </h3>
+      {error ? (
+        <div
+          role="alert"
+          className={cn(
+            typographyVariants({ role: 'supporting' }),
+            'flex items-center justify-center gap-2 py-2 text-slate-500',
+          )}
+        >
+          <p className="min-w-0 truncate">{formatCommonError(error)}</p>
+          <button
+            type="button"
+            onClick={onRetry}
+            className={cn(
+              typographyVariants({ role: 'label' }),
+              'shrink-0 cursor-pointer underline',
+            )}
+          >
+            다시 시도
+          </button>
+        </div>
+      ) : (
+        <ol className="grid grid-cols-7 gap-2 max-tablet:gap-0">
+          {weekDates.map((date) => {
+            const dayShifts = shifts
+              .filter((shift) => shift.date === date)
+              .map((shift) => ({
+                shift,
+                status: getPartTimeStaffShiftStatus(shift, now),
+              }));
+
+            return (
+              <li
+                key={date}
+                className="flex min-w-0 flex-col gap-0.5 max-tablet:flex-row max-tablet:justify-center max-tablet:gap-0.75"
+              >
+                <time
+                  dateTime={date}
+                  className={cn(
+                    typographyVariants({ role: 'caption' }),
+                    'text-slate-600 max-tablet:w-3.5 max-tablet:text-center',
+                  )}
+                >
+                  {Number(date.slice(8))}
+                </time>
+                <span
+                  aria-hidden="true"
+                  className={weeklyShiftDotVariants({
+                    status: getWeeklyShiftDotStatus(
+                      dayShifts.map(({ status }) => status),
+                    ),
+                  })}
+                />
+                {isLoading && (
+                  <span
+                    aria-hidden
+                    className="h-6 rounded bg-slate-100 max-tablet:hidden"
+                  />
+                )}
+                {dayShifts.length > 0 && (
+                  <ul className="flex flex-col gap-1 max-tablet:sr-only">
+                    {dayShifts.map(({ shift, status }) => (
+                      <li key={shift.id}>
+                        <CalendarEventChip
+                          label={formatPartTimeStaffShiftTime(shift)}
+                          tone={status === 'completed' ? 'muted' : 'accent'}
+                          leadingSlot={
+                            <>
+                              {status === 'completed' && (
+                                <CheckIcon
+                                  aria-label="완료"
+                                  size={16}
+                                  className="text-slate-300"
+                                />
+                              )}
+                              {status === 'missed' && (
+                                <span className="sr-only">미출근</span>
+                              )}
+                            </>
+                          }
+                          className={weeklyShiftChipVariants({ status })}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      )}
+    </section>
+  );
+}
+
+export { PartTimeStaffWeeklySchedule };
+export type { PartTimeStaffWeeklyScheduleProps };

@@ -1,0 +1,80 @@
+import { ChevronDownIcon } from 'lucide-react';
+import Image from 'next/image';
+
+import { Dropdown } from '@components/_common/Dropdown/Dropdown';
+
+import type { PartTimeStaff } from '@lib/types/partTimeSchedule';
+import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
+
+import ImgGoal from '@assets/icons/img_goal.svg';
+
+const ALL_STAFF_LABEL = '아르바이트생 전체 스케줄';
+const STAFF_LOAD_ERROR_LABEL = '목록을 불러오지 못했어요 · 다시 시도';
+
+interface PartTimeScheduleStaffFilterProps {
+  staffs: PartTimeStaff[];
+  selectedStaffId: number | null;
+  onStaffChange: (staffId: number | null) => void;
+  isError?: boolean;
+  onRetry?: () => void;
+}
+
+function PartTimeScheduleStaffFilter({
+  staffs,
+  selectedStaffId,
+  onStaffChange,
+  isError,
+  onRetry,
+}: PartTimeScheduleStaffFilterProps) {
+  const selectedStaff = staffs.find((staff) => staff.id === selectedStaffId);
+
+  const items = [
+    {
+      label: ALL_STAFF_LABEL,
+      isSelected: selectedStaffId === null,
+      onSelect: () => onStaffChange(null),
+    },
+    ...staffs.map((staff) => ({
+      label: staff.name,
+      isSelected: staff.id === selectedStaffId,
+      onSelect: () => onStaffChange(staff.id),
+    })),
+    ...(isError ? [{ label: STAFF_LOAD_ERROR_LABEL, onSelect: onRetry }] : []),
+  ];
+
+  return (
+    <Dropdown
+      items={items}
+      sideOffset={6}
+      className="max-h-80 w-(--anchor-width) overflow-y-auto"
+    >
+      <button
+        type="button"
+        aria-label={`스케줄 필터: ${selectedStaff?.name ?? ALL_STAFF_LABEL}`}
+        className="group flex w-87.5 cursor-pointer items-center justify-between gap-2 rounded-2xl border border-[#f2f2f2] bg-[#fafafa] px-3 py-2 outline-none focus-visible:ring-2 focus-visible:ring-slate-500 max-tablet:w-full"
+      >
+        <span className="flex min-w-0 items-center gap-2">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-[#ffe5b7]">
+            <Image src={ImgGoal} alt="" width={18} height={17.78} unoptimized />
+          </span>
+          <span
+            className={cn(
+              typographyVariants({ role: 'label' }),
+              'truncate text-slate-500',
+            )}
+          >
+            {selectedStaff?.name ?? ALL_STAFF_LABEL}
+          </span>
+        </span>
+        <ChevronDownIcon
+          size={24}
+          className="text-slate-300 transition-transform group-data-popup-open:rotate-180"
+        />
+      </button>
+    </Dropdown>
+  );
+}
+
+export { PartTimeScheduleStaffFilter };
+export type { PartTimeScheduleStaffFilterProps };
