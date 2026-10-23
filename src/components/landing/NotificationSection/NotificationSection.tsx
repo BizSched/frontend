@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { cn } from '@lib/utilities/cn';
 import { typographyVariants } from '@lib/utilities/typography';
 
-import ImgNotification from '@assets/images/landing/img_notification.png';
+import ImgNotification from '@assets/images/landing/img_notification.svg';
 
 function NotificationSection() {
   return (
@@ -26,7 +26,7 @@ function NotificationSection() {
         <Image
           src={ImgNotification}
           alt=""
-          sizes="(max-width: 743px) 344px, 713px"
+          unoptimized
           className="mt-14 ml-[31px] h-auto w-[713px] max-tablet:mt-7 max-tablet:ml-[18px] max-tablet:w-[344px]"
         />
       </div>

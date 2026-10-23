@@ -11,7 +11,7 @@ const STEPS = [
   {
     icon: ImgStepRegister,
     title: '아르바이트생\n등록하기',
-    description: '이름과 연락처만 입력하면\n바로 시작할 수 있어요',
+    description: '이름, 연락처만 입력하면\n바로 시작할 수 있어요',
   },
   {
     icon: ImgStepDocument,
