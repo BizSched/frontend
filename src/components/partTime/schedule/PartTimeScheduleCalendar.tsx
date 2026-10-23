@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 
 import {
   Calendar,
@@ -18,11 +18,13 @@ import { useChangeScheduleAttendance } from '@hooks/api/schedule/useChangeSchedu
 import { useDeleteSchedule } from '@hooks/api/schedule/useDeleteSchedule';
 import { useScheduleList } from '@hooks/api/schedule/useScheduleList';
 import { useStaffOptions } from '@hooks/api/staff/useStaffOptions';
+import { usePartTimeScheduleImage } from '@hooks/partTime/usePartTimeScheduleImage';
 
 import { formatCommonError } from '@lib/api/formatCommonError';
 import type { PartTimeSchedule } from '@lib/types/partTimeSchedule';
 import {
   comparePartTimeScheduleTime,
+  formatPartTimeScheduleImageFileName,
   getPartTimeScheduleRange,
   groupPartTimeSchedulesByDate,
 } from '@lib/utilities/partTime/partTimeSchedule';
@@ -71,6 +73,8 @@ function PartTimeScheduleCalendar({
   const [selectedStaffId, setSelectedStaffId] = useState<number | null>(null);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const isActionPendingRef = useRef(false);
+  const captureRef = useRef<HTMLDivElement>(null);
+  const { registerTarget } = usePartTimeScheduleImage();
   const deleteMutation = useDeleteSchedule();
   const attendanceMutation = useChangeScheduleAttendance();
   const isSchedulePending =
@@ -80,6 +84,10 @@ function PartTimeScheduleCalendar({
 
   const staffId = selectedStaffId ?? undefined;
   const staffQuery = useStaffOptions();
+  const selectedStaffName = staffQuery.data?.find(
+    (staff) => staff.id === selectedStaffId,
+  )?.name;
+
   const monthRange = useMemo(() => getPartTimeScheduleRange(month), [month]);
   const hasSeparateSelectedRange =
     selectedDate !== null &&
@@ -108,6 +116,22 @@ function PartTimeScheduleCalendar({
     ? [monthQuery, selectedMonthQuery]
     : [monthQuery];
   const failedQueries = activeQueries.filter(({ isError }) => isError);
+  const isImageReady = activeQueries.every(
+    ({ isSuccess, isPlaceholderData }) => isSuccess && !isPlaceholderData,
+  );
+
+  useLayoutEffect(
+    () =>
+      registerTarget(() => ({
+        element: captureRef.current,
+        fileName: formatPartTimeScheduleImageFileName(
+          selectedDate ?? today,
+          selectedStaffName,
+        ),
+        isReady: isImageReady,
+      })),
+    [registerTarget, selectedDate, today, selectedStaffName, isImageReady],
+  );
 
   const schedulesByDate = useMemo(
     () =>
@@ -204,7 +228,10 @@ function PartTimeScheduleCalendar({
           </button>
         </div>
       )}
-      <div className="flex items-start gap-8 max-laptop:flex-col max-laptop:items-stretch max-laptop:gap-0 max-laptop:overflow-hidden max-laptop:rounded-[2rem] max-laptop:bg-white-50 max-laptop:shadow-[0_0_60px_rgb(0_0_0/0.05)] max-tablet:rounded-[1.5rem] max-mobile:rounded-none max-mobile:shadow-none">
+      <div
+        ref={captureRef}
+        className="flex items-start gap-8 max-laptop:flex-col max-laptop:items-stretch max-laptop:gap-0 max-laptop:overflow-hidden max-laptop:rounded-[2rem] max-laptop:bg-white-50 max-laptop:shadow-[0_0_60px_rgb(0_0_0/0.05)] max-tablet:rounded-[1.5rem] max-mobile:rounded-none max-mobile:shadow-none"
+      >
         <Calendar
           selectedDate={selectedDate}
           onDateChange={setSelectedDate}

@@ -15,11 +15,16 @@ import {
 } from '@components/_common/Calendar/Calendar';
 import { openConfirmModal } from '@components/_common/Modal/openConfirmModal';
 import { Toaster, toast } from '@components/_common/Toast/Toaster';
+import { PartTimeScheduleActionButtons } from '@components/partTime/schedule/PartTimeScheduleActionButtons';
 import { PartTimeScheduleCalendar } from '@components/partTime/schedule/PartTimeScheduleCalendar';
 import type { PartTimeScheduleDaySummaryProps } from '@components/partTime/schedule/PartTimeScheduleDaySummary';
+import { PartTimeScheduleImageSaveButton } from '@components/partTime/schedule/PartTimeScheduleImageSaveButton';
 import type { PartTimeScheduleStaffFilterProps } from '@components/partTime/schedule/PartTimeScheduleStaffFilter';
 
 import { scheduleKeys } from '@hooks/api/schedule/scheduleQueryOptions';
+import { usePartTimeScheduleImage } from '@hooks/partTime/usePartTimeScheduleImage';
+
+import { PartTimeScheduleImageProvider } from '@providers/partTime/PartTimeScheduleImageProvider';
 
 import { ApiError } from '@lib/api/apiError';
 import {
@@ -29,6 +34,8 @@ import {
 } from '@lib/api/entities/schedule/api';
 import { getAllStaffs } from '@lib/api/entities/staff/api';
 import type { PartTimeSchedule } from '@lib/types/partTimeSchedule';
+import { captureElementImage } from '@lib/utilities/capture/captureElementImage';
+import { downloadBlob } from '@lib/utilities/capture/downloadBlob';
 
 vi.mock('@lib/api/entities/schedule/api', () => ({
   getScheduleList: vi.fn(),
@@ -116,13 +123,39 @@ vi.mock('@components/partTime/schedule/PartTimeScheduleStaffFilter', () => ({
   ),
 }));
 
+vi.mock('@lib/utilities/capture/captureElementImage', () => ({
+  captureElementImage: vi.fn(),
+}));
+vi.mock('@lib/utilities/capture/downloadBlob', () => ({
+  downloadBlob: vi.fn(),
+}));
+
+function ImageSaveTrigger() {
+  const { saveImage } = usePartTimeScheduleImage();
+
+  return (
+    <button
+      onClick={() => {
+        void saveImage();
+      }}
+    >
+      직접 이미지 저장
+    </button>
+  );
+}
+
 const clients: QueryClient[] = [];
 const renderCalendar = () => {
   const client = new QueryClient();
   clients.push(client);
   render(
     <QueryClientProvider client={client}>
-      <PartTimeScheduleCalendar today="2026-10-15" initialMonth="2026-10" />
+      <PartTimeScheduleImageProvider>
+        <PartTimeScheduleCalendar today="2026-10-15" initialMonth="2026-10" />
+        <PartTimeScheduleImageSaveButton />
+        <PartTimeScheduleActionButtons />
+        <ImageSaveTrigger />
+      </PartTimeScheduleImageProvider>
       <Toaster />
     </QueryClientProvider>,
   );
@@ -396,4 +429,240 @@ describe('PartTimeScheduleCalendar 쓰기', () => {
       expect(getScheduleList).toHaveBeenCalledTimes(1);
     },
   );
+});
+
+describe('PartTimeScheduleCalendar 이미지 저장', () => {
+  const blob = new Blob(['png'], { type: 'image/png' });
+  const waitForSaveButton = async () => {
+    const button = screen.getByRole('button', { name: '이미지 저장' });
+    await waitFor(() =>
+      expect(button.getAttribute('aria-disabled')).not.toBe('true'),
+    );
+    return button;
+  };
+
+  it('필터가 전체면 선택 날짜만 파일명에 넣는다', async () => {
+    vi.mocked(getAllStaffs).mockResolvedValue([]);
+    vi.mocked(getScheduleList).mockResolvedValue([]);
+    vi.mocked(captureElementImage).mockResolvedValue(blob);
+    renderCalendar();
+
+    fireEvent.click(await waitForSaveButton());
+
+    await waitFor(() =>
+      expect(downloadBlob).toHaveBeenCalledWith(
+        blob,
+        '아르바이트생-스케줄-2026-10-15.png',
+      ),
+    );
+    expect(captureElementImage).toHaveBeenCalledWith(
+      expect.objectContaining({ tagName: 'DIV' }),
+      48,
+    );
+  });
+
+  it('필터를 고르면 아르바이트생 이름을, 다른 달로 넘겨도 선택 날짜를 쓴다', async () => {
+    vi.mocked(getAllStaffs).mockResolvedValue([
+      { id: 7, name: '김알바', isDeleted: false },
+    ]);
+    vi.mocked(getScheduleList).mockResolvedValue([]);
+    vi.mocked(captureElementImage).mockResolvedValue(blob);
+    renderCalendar();
+    await waitFor(() => expect(getAllStaffs).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole('button', { name: '직원 7 선택' }));
+    fireEvent.click(screen.getByRole('button', { name: '이동 2026-11' }));
+    fireEvent.click(await waitForSaveButton());
+
+    await waitFor(() =>
+      expect(downloadBlob).toHaveBeenCalledWith(
+        blob,
+        '아르바이트생-스케줄-2026-10-15-김알바.png',
+      ),
+    );
+  });
+
+  it('저장 중에는 포커스를 유지하고 중복 실행을 막으며, 실패 후 다시 저장할 수 있다', async () => {
+    vi.mocked(getAllStaffs).mockResolvedValue([]);
+    vi.mocked(getScheduleList).mockResolvedValue([]);
+    const capture = Promise.withResolvers<Blob>();
+    vi.mocked(captureElementImage).mockReturnValueOnce(capture.promise);
+    vi.mocked(captureElementImage).mockResolvedValue(blob);
+    renderCalendar();
+
+    const button = await waitForSaveButton();
+    button.focus();
+    fireEvent.click(button);
+    fireEvent.click(button);
+    fireEvent.click(screen.getByRole('button', { name: '직접 이미지 저장' }));
+
+    expect(button.textContent).toContain('저장 중…');
+    expect(button.getAttribute('aria-busy')).toBe('true');
+    expect(button.getAttribute('aria-disabled')).toBe('true');
+    expect(document.activeElement).toBe(button);
+    expect(captureElementImage).toHaveBeenCalledTimes(1);
+
+    await act(async () => capture.reject(new Error('capture')));
+
+    expect(
+      await screen.findByText('이미지를 저장하지 못했어요. 다시 시도해주세요.'),
+    ).toBeTruthy();
+    expect(captureElementImage).toHaveBeenCalledTimes(1);
+    expect(downloadBlob).not.toHaveBeenCalled();
+    fireEvent.click(await waitForSaveButton());
+    await waitFor(() =>
+      expect(downloadBlob).toHaveBeenCalledWith(
+        blob,
+        '아르바이트생-스케줄-2026-10-15.png',
+      ),
+    );
+  });
+
+  it('최초 조회 중에는 저장을 막고, 정상적인 빈 목록을 받으면 저장한다', async () => {
+    const schedules = Promise.withResolvers<PartTimeSchedule[]>();
+    vi.mocked(getAllStaffs).mockResolvedValue([]);
+    vi.mocked(getScheduleList).mockReturnValue(schedules.promise);
+    vi.mocked(captureElementImage).mockResolvedValue(blob);
+    renderCalendar();
+
+    expect(
+      screen
+        .getByRole('button', { name: '이미지 저장' })
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
+    fireEvent.click(screen.getByRole('button', { name: '직접 이미지 저장' }));
+    expect(captureElementImage).not.toHaveBeenCalled();
+
+    await act(async () => schedules.resolve([]));
+    fireEvent.click(await waitForSaveButton());
+    await waitFor(() => expect(downloadBlob).toHaveBeenCalled());
+  });
+
+  it('FAB의 이미지 저장도 준비 상태와 저장 중 잠금을 반영하고 스케줄 추가는 유지한다', async () => {
+    const schedules = Promise.withResolvers<PartTimeSchedule[]>();
+    const capture = Promise.withResolvers<Blob>();
+    vi.mocked(getAllStaffs).mockResolvedValue([]);
+    vi.mocked(getScheduleList).mockReturnValue(schedules.promise);
+    vi.mocked(captureElementImage).mockReturnValue(capture.promise);
+    renderCalendar();
+
+    fireEvent.click(screen.getByRole('button', { name: '스케줄 액션 열기' }));
+    const save = await screen.findByRole('menuitem', { name: '이미지 저장' });
+    expect(save.getAttribute('aria-disabled')).toBe('true');
+    expect(
+      screen
+        .getByRole('menuitem', { name: '스케줄 추가' })
+        .getAttribute('aria-disabled'),
+    ).not.toBe('true');
+    fireEvent.click(save);
+    expect(captureElementImage).not.toHaveBeenCalled();
+
+    await act(async () => schedules.resolve([]));
+    await waitFor(() =>
+      expect(save.getAttribute('aria-disabled')).not.toBe('true'),
+    );
+    fireEvent.click(save);
+    await waitFor(() => expect(screen.queryByRole('menu')).toBeNull());
+    fireEvent.click(screen.getByRole('button', { name: '스케줄 액션 열기' }));
+    const saving = await screen.findByRole('menuitem', { name: '저장 중…' });
+    expect(saving.getAttribute('aria-disabled')).toBe('true');
+    fireEvent.click(saving);
+    expect(captureElementImage).toHaveBeenCalledTimes(1);
+    expect(
+      screen
+        .getByRole('menuitem', { name: '스케줄 추가' })
+        .getAttribute('aria-disabled'),
+    ).not.toBe('true');
+
+    await act(async () => capture.resolve(blob));
+    await waitFor(() => expect(downloadBlob).toHaveBeenCalled());
+  });
+
+  it('조회 실패 시 저장을 막고 재시도가 성공하면 다시 허용한다', async () => {
+    vi.mocked(getAllStaffs).mockResolvedValue([]);
+    vi.mocked(getScheduleList)
+      .mockRejectedValueOnce(new ApiError('BAD', 400, '조회 실패'))
+      .mockResolvedValue([]);
+    vi.mocked(captureElementImage).mockResolvedValue(blob);
+    renderCalendar();
+
+    await screen.findByRole('alert');
+    expect(
+      screen
+        .getByRole('button', { name: '이미지 저장' })
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
+    fireEvent.click(screen.getByRole('button', { name: '직접 이미지 저장' }));
+    expect(captureElementImage).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: '다시 시도' }));
+    fireEvent.click(await waitForSaveButton());
+    await waitFor(() => expect(downloadBlob).toHaveBeenCalled());
+  });
+
+  it('필터 응답을 기다리는 동안 이전 목록을 저장하지 않는다', async () => {
+    const schedules = Promise.withResolvers<PartTimeSchedule[]>();
+    vi.mocked(getAllStaffs).mockResolvedValue([
+      { id: 7, name: '김알바', isDeleted: false },
+    ]);
+    vi.mocked(getScheduleList)
+      .mockResolvedValueOnce([])
+      .mockReturnValue(schedules.promise);
+    vi.mocked(captureElementImage).mockResolvedValue(blob);
+    renderCalendar();
+    await waitForSaveButton();
+    await waitFor(() => expect(getAllStaffs).toHaveBeenCalled());
+
+    fireEvent.click(screen.getByRole('button', { name: '직원 7 선택' }));
+    expect(
+      screen
+        .getByRole('button', { name: '이미지 저장' })
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
+    fireEvent.click(screen.getByRole('button', { name: '직접 이미지 저장' }));
+    expect(captureElementImage).not.toHaveBeenCalled();
+
+    await act(async () => schedules.resolve([]));
+    fireEvent.click(await waitForSaveButton());
+    await waitFor(() =>
+      expect(downloadBlob).toHaveBeenCalledWith(
+        blob,
+        '아르바이트생-스케줄-2026-10-15-김알바.png',
+      ),
+    );
+  });
+
+  it('현재 월 조회가 끝나도 다른 달의 선택 날짜 조회가 준비될 때까지 저장을 막는다', async () => {
+    const selectedSchedules = Promise.withResolvers<PartTimeSchedule[]>();
+    vi.mocked(getAllStaffs).mockResolvedValue([
+      { id: 7, name: '김알바', isDeleted: false },
+    ]);
+    vi.mocked(getScheduleList).mockImplementation(async ({ from, staffId }) =>
+      staffId === 7 && from === '2026-09-28' ? selectedSchedules.promise : [],
+    );
+    vi.mocked(captureElementImage).mockResolvedValue(blob);
+    renderCalendar();
+    await waitForSaveButton();
+    fireEvent.click(screen.getByRole('button', { name: '이동 2026-12' }));
+    await waitForSaveButton();
+    fireEvent.click(screen.getByRole('button', { name: '직원 7 선택' }));
+
+    await waitFor(() =>
+      expect(getScheduleList).toHaveBeenCalledWith(
+        { from: '2026-11-30', to: '2027-01-03', staffId: 7 },
+        expect.anything(),
+      ),
+    );
+    expect(
+      screen
+        .getByRole('button', { name: '이미지 저장' })
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
+    fireEvent.click(screen.getByRole('button', { name: '직접 이미지 저장' }));
+    expect(captureElementImage).not.toHaveBeenCalled();
+
+    await act(async () => selectedSchedules.resolve([]));
+    fireEvent.click(await waitForSaveButton());
+    await waitFor(() => expect(downloadBlob).toHaveBeenCalled());
+  });
 });

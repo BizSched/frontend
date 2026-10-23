@@ -87,6 +87,29 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+describe('PartTimeStaffForm 필수 입력', () => {
+  it('이름만 필수로 표시하고 이름만 입력해도 제출할 수 있다', async () => {
+    renderForm();
+    expect(
+      screen.getByLabelText('아르바이트생 이름').getAttribute('aria-required'),
+    ).toBe('true');
+    expect(screen.getByLabelText('번호').hasAttribute('aria-required')).toBe(
+      false,
+    );
+    expect(isSubmitDisabled()).toBe(true);
+
+    fireEvent.change(screen.getByLabelText('아르바이트생 이름'), {
+      target: { value: '김알바' },
+    });
+    await waitFor(() => expect(isSubmitDisabled()).toBe(false));
+
+    fireEvent.change(screen.getByLabelText('번호'), {
+      target: { value: '0101234' },
+    });
+    await waitFor(() => expect(isSubmitDisabled()).toBe(true));
+  });
+});
+
 describe('PartTimeStaffForm 저장', () => {
   it('등록 응답의 ID로 상세를 열고 저장 중 중복 제출과 입력 변경을 막는다', async () => {
     let resolve!: (staff: PartTimeStaffDetailItem) => void;

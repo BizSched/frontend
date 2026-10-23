@@ -89,9 +89,16 @@ const formatPartTimeScheduleSummaryTitle = (date: string, today: string) => {
   return `${Number(month)}월 ${Number(day)}일 스케줄`;
 };
 
+const formatPartTimeScheduleImageFileName = (
+  date: string,
+  staffName?: string,
+) =>
+  `${['아르바이트생-스케줄', date, staffName].filter(Boolean).join('-')}.png`;
+
 export {
   comparePartTimeScheduleTime,
   formatPartTimeScheduleDuration,
+  formatPartTimeScheduleImageFileName,
   formatPartTimeScheduleSummaryTitle,
   getPartTimeScheduleRange,
   getPartTimeScheduleStaffOptions,

@@ -8,9 +8,11 @@ import {
   PencilIcon,
   Trash2Icon,
 } from 'lucide-react';
+import Image from 'next/image';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Fragment, useEffect, useState } from 'react';
 
+import { Button } from '@components/_common/Button/Button';
 import { Card } from '@components/_common/Card/Card';
 import { Input } from '@components/_common/Input/Input';
 import { openConfirmModal } from '@components/_common/Modal/openConfirmModal';
@@ -37,8 +39,15 @@ import { formatSalesError } from '@lib/utilities/sales/formatSalesError';
 import { isSalesMonth } from '@lib/utilities/sales/salesMonth';
 import { typographyVariants } from '@lib/utilities/typography';
 
+import IcEmpty from '@assets/icons/ic_empty.svg';
+
 const NUMBER_FORMAT = new Intl.NumberFormat('ko-KR');
 const PAGE_SIZE = 10;
+// NOTE: 데이터 상태(10행)의 최소 높이와 같게 두어 로딩·빈·오류 상태에서도 카드 높이가 변하지 않게 한다
+const STATE_PANEL_CLASS = cn(
+  typographyVariants({ role: 'supporting' }),
+  'flex min-h-[580px] flex-col items-center justify-center gap-2 text-center text-slate-500',
+);
 
 const createUrl = (pathname: string, searchParams: URLSearchParams) => {
   const query = searchParams.toString();
@@ -252,12 +261,7 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
 
       <div className="border-b border-slate-500 pb-2">
         {isError ? (
-          <div
-            className={cn(
-              typographyVariants({ role: 'supporting' }),
-              'py-8 text-center text-slate-500',
-            )}
-          >
+          <div role="alert" className={STATE_PANEL_CLASS}>
             <p>{formatSalesError(error)}</p>
             <button
               type="button"
@@ -266,251 +270,258 @@ function SalesDetailsSection({ initialMonth }: SalesDetailsSectionProps) {
                 void refetchMonthTotal();
                 void refetchCategories();
               }}
-              className="mt-2 cursor-pointer font-semibold text-slate-700 underline"
+              className="cursor-pointer rounded font-semibold text-slate-700 underline focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none"
             >
               다시 시도
             </button>
           </div>
         ) : isLoading ? (
-          <p
-            className={cn(
-              typographyVariants({ role: 'supporting' }),
-              'py-8 text-center text-slate-500',
-            )}
-          >
+          <p role="status" className={STATE_PANEL_CLASS}>
             매출 내역을 불러오는 중입니다.
           </p>
         ) : salesList && salesList.items.length === 0 ? (
-          <p
-            className={cn(
-              typographyVariants({ role: 'supporting' }),
-              'py-8 text-center text-slate-500',
-            )}
-          >
-            등록된 매출 내역이 없습니다.
-          </p>
+          <div className={STATE_PANEL_CLASS}>
+            <Image src={IcEmpty} alt="" width={100} height={128} unoptimized />
+            <p className={typographyVariants({ role: 'subtitle' })}>
+              등록된 매출 내역이 없습니다.
+            </p>
+          </div>
         ) : (
-          <Table
-            aria-label="날짜별 매출 내역"
-            className={cn(typographyVariants({ role: 'body' }), 'table-fixed')}
-          >
-            <Table.Header>
-              <Table.Row className="border-slate-200 hover:bg-transparent">
-                <Table.Head
-                  scope="col"
-                  className={cn(
-                    typographyVariants({ role: 'label' }),
-                    'h-auto w-[118px] px-0 pb-1 text-center text-slate-500 max-desktop:w-[100px]',
-                  )}
-                >
-                  날짜
-                </Table.Head>
-                {categories?.map((category) => (
+          <div className="max-h-[620px] min-h-[580px] overflow-y-auto max-tablet:max-h-none">
+            <Table
+              aria-label="날짜별 매출 내역"
+              className={cn(
+                typographyVariants({ role: 'body' }),
+                'table-fixed',
+              )}
+            >
+              <Table.Header>
+                <Table.Row className="border-slate-200 hover:bg-transparent">
                   <Table.Head
-                    key={category.id}
                     scope="col"
                     className={cn(
                       typographyVariants({ role: 'label' }),
-                      'h-auto px-1 pb-1 text-center wrap-anywhere whitespace-normal text-slate-500 max-tablet:hidden',
+                      'h-auto w-[118px] px-0 pb-1 text-center text-slate-500 max-desktop:w-[100px]',
                     )}
                   >
-                    {category.name}
+                    날짜
                   </Table.Head>
-                ))}
-                <Table.Head
-                  scope="col"
-                  className={cn(
-                    typographyVariants({ role: 'label' }),
-                    'h-auto w-[118px] px-0 pb-1 text-center text-slate-500 max-desktop:w-[100px] max-tablet:w-auto',
-                  )}
-                >
-                  합계
-                </Table.Head>
-                <Table.Head
-                  scope="col"
-                  className="h-auto w-[104px] p-0 max-tablet:w-20"
-                >
-                  <span className="sr-only">내역 수정</span>
-                </Table.Head>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {salesList?.items.map((sale) => {
-                const saleDate = parseISO(sale.date);
-                const dateLabel = format(saleDate, 'M월 d일', { locale: ko });
-                const isEditing = editingDay === sale.id;
-                return (
-                  <Fragment key={sale.id}>
-                    <Table.Row className="h-[59px] border-slate-50 hover:bg-transparent max-desktop:h-[55px]">
-                      <Table.Head
-                        scope="row"
-                        className={cn(
-                          typographyVariants({ role: 'subtitle' }),
-                          'h-auto px-0 py-3.5 text-slate-950',
-                        )}
-                      >
-                        <time dateTime={sale.date}>
-                          {format(saleDate, 'M월 d일', { locale: ko })}
-                        </time>
-                        <span
+                  {categories?.map((category) => (
+                    <Table.Head
+                      key={category.id}
+                      scope="col"
+                      className={cn(
+                        typographyVariants({ role: 'label' }),
+                        'h-auto px-1 pb-1 text-center wrap-anywhere whitespace-normal text-slate-500 max-tablet:hidden',
+                      )}
+                    >
+                      {category.name}
+                    </Table.Head>
+                  ))}
+                  <Table.Head
+                    scope="col"
+                    className={cn(
+                      typographyVariants({ role: 'label' }),
+                      'h-auto w-[118px] px-0 pb-1 text-center text-slate-500 max-desktop:w-[100px] max-tablet:w-auto',
+                    )}
+                  >
+                    합계
+                  </Table.Head>
+                  <Table.Head
+                    scope="col"
+                    className="h-auto w-[104px] p-0 max-tablet:w-20"
+                  >
+                    <span className="sr-only">내역 수정</span>
+                  </Table.Head>
+                </Table.Row>
+              </Table.Header>
+              <Table.Body>
+                {salesList?.items.map((sale) => {
+                  const saleDate = parseISO(sale.date);
+                  const dateLabel = format(saleDate, 'M월 d일', { locale: ko });
+                  const isEditing = editingDay === sale.id;
+                  return (
+                    <Fragment key={sale.id}>
+                      <Table.Row className="h-[59px] border-slate-50 hover:bg-transparent max-desktop:h-[55px]">
+                        <Table.Head
+                          scope="row"
                           className={cn(
-                            typographyVariants({ role: 'caption' }),
-                            'ml-2 text-slate-400 max-desktop:ml-1',
+                            typographyVariants({ role: 'subtitle' }),
+                            'h-auto px-0 py-3.5 text-slate-950',
                           )}
                         >
-                          {format(saleDate, 'EEEEE', { locale: ko })}
-                        </span>
-                      </Table.Head>
-                      {categories?.map((category) => {
-                        const amount =
-                          sale.sales.find(
-                            (item) => item.categoryId === category.id,
-                          )?.amount ?? 0;
-                        return (
-                          <Table.Cell
-                            key={category.id}
+                          <time dateTime={sale.date}>
+                            {format(saleDate, 'M월 d일', { locale: ko })}
+                          </time>
+                          <span
                             className={cn(
-                              typographyVariants({ role: 'data' }),
-                              'px-1 py-3.5 text-right text-slate-600 max-tablet:hidden',
+                              typographyVariants({ role: 'caption' }),
+                              'ml-2 text-slate-400 max-desktop:ml-1',
                             )}
                           >
-                            {NUMBER_FORMAT.format(amount)}
-                          </Table.Cell>
-                        );
-                      })}
-                      <Table.Cell
-                        className={cn(
-                          typographyVariants({ role: 'data' }),
-                          'px-0 py-3.5 text-right font-semibold text-slate-950 max-tablet:pr-1',
-                        )}
-                      >
-                        ₩{NUMBER_FORMAT.format(sale.totalAmount)}
-                      </Table.Cell>
-                      <Table.Cell className="px-0 py-2 text-right">
-                        <div className="flex items-center justify-end gap-2 max-tablet:gap-1">
-                          <button
-                            type="button"
-                            aria-label={`${dateLabel} 매출 수정`}
-                            disabled={editingDay !== null || isPending}
-                            onClick={() => handleEdit(sale)}
-                            className="flex size-10 cursor-pointer items-center justify-center rounded-xl bg-slate-50 text-slate-800 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 max-tablet:size-9"
-                          >
-                            <PencilIcon
-                              aria-hidden="true"
-                              className="size-4.5"
-                            />
-                          </button>
-                          <button
-                            type="button"
-                            aria-label={`${dateLabel} 매출 삭제`}
-                            disabled={editingDay !== null || isPending}
-                            onClick={() => void handleDelete(sale.id)}
-                            className="flex size-10 cursor-pointer items-center justify-center rounded-xl bg-warning-50 text-warning-500 hover:bg-warning-100 focus-visible:ring-2 focus-visible:ring-warning-500 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 max-tablet:size-9"
-                          >
-                            <Trash2Icon
-                              aria-hidden="true"
-                              className="size-4.5"
-                            />
-                          </button>
-                        </div>
-                      </Table.Cell>
-                    </Table.Row>
-                    {isEditing && !isSheet && (
-                      <Table.Row className="border-slate-50 bg-slate-100 hover:bg-slate-100">
-                        <Table.Cell
-                          colSpan={(categories?.length ?? 0) + 3}
-                          className="px-4 py-4"
-                        >
-                          <div
-                            role="group"
-                            aria-label={`${dateLabel} 매출 수정`}
-                            className="flex flex-wrap items-center gap-3"
-                          >
-                            <span
-                              className={cn(
-                                typographyVariants({ role: 'subtitle' }),
-                                'text-slate-950',
-                              )}
-                            >
-                              {dateLabel}
-                            </span>
-                            {categories?.map((category) => {
-                              const amount =
-                                draftSales.find(
-                                  (item) => item.categoryId === category.id,
-                                )?.amount ?? 0;
-                              return (
-                                <Input
-                                  key={category.id}
-                                  aria-label={
-                                    category.name + ' ' + dateLabel + ' 매출'
-                                  }
-                                  type="number"
-                                  min={0}
-                                  step={1}
-                                  size="small"
-                                  disabled={isPending}
-                                  aria-invalid={
-                                    hasAmountError &&
-                                    (!Number.isInteger(amount) || amount < 0)
-                                  }
-                                  value={amount}
-                                  onChange={(event) =>
-                                    handleAmountChange(
-                                      category.id,
-                                      Number(event.target.value),
-                                    )
-                                  }
-                                  className={cn(
-                                    typographyVariants({ role: 'data' }),
-                                    'h-9 min-w-24 flex-1 border-slate-200 px-2 py-1 [&_input]:text-right',
-                                  )}
-                                />
-                              );
-                            })}
-                            <span
+                            {format(saleDate, 'EEEEE', { locale: ko })}
+                          </span>
+                        </Table.Head>
+                        {categories?.map((category) => {
+                          const amount =
+                            sale.sales.find(
+                              (item) => item.categoryId === category.id,
+                            )?.amount ?? 0;
+                          return (
+                            <Table.Cell
+                              key={category.id}
                               className={cn(
                                 typographyVariants({ role: 'data' }),
-                                'ml-auto font-semibold text-slate-950',
+                                'px-1 py-3.5 text-right text-slate-600 max-tablet:hidden',
                               )}
                             >
-                              ₩
-                              {NUMBER_FORMAT.format(
-                                draftSales.reduce(
-                                  (sum, { amount }) => sum + amount,
-                                  0,
-                                ),
-                              )}
-                            </span>
-                          </div>
-                          <div className="mt-3 flex justify-end gap-2">
+                              {NUMBER_FORMAT.format(amount)}
+                            </Table.Cell>
+                          );
+                        })}
+                        <Table.Cell
+                          className={cn(
+                            typographyVariants({ role: 'data' }),
+                            'px-0 py-3.5 text-right font-semibold text-slate-950 max-tablet:pr-1',
+                          )}
+                        >
+                          ₩{NUMBER_FORMAT.format(sale.totalAmount)}
+                        </Table.Cell>
+                        <Table.Cell className="px-0 py-2 text-right">
+                          <div className="flex items-center justify-end gap-2 max-tablet:gap-1">
                             <button
                               type="button"
-                              aria-label={`${dateLabel} 편집 취소`}
-                              onClick={handleEditCancel}
-                              disabled={isPending}
-                              className="cursor-pointer rounded px-3 py-1 text-base text-slate-500 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none"
+                              aria-label={`${dateLabel} 매출 수정`}
+                              disabled={editingDay !== null || isPending}
+                              onClick={() => handleEdit(sale)}
+                              className="flex size-10 cursor-pointer items-center justify-center rounded-xl bg-slate-50 text-slate-800 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none enabled:hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50 max-tablet:size-9"
                             >
-                              취소
+                              <PencilIcon
+                                aria-hidden="true"
+                                className="size-4.5"
+                              />
                             </button>
                             <button
                               type="button"
-                              aria-label={`${dateLabel} 편집 저장`}
-                              onClick={handleEditSave}
-                              disabled={isPending}
-                              className="cursor-pointer rounded bg-primary-500 px-3 py-1 text-base text-white focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:outline-none"
+                              aria-label={`${dateLabel} 매출 삭제`}
+                              disabled={editingDay !== null || isPending}
+                              onClick={() => void handleDelete(sale.id)}
+                              className="flex size-10 cursor-pointer items-center justify-center rounded-xl bg-warning-50 text-warning-500 focus-visible:ring-2 focus-visible:ring-warning-500 focus-visible:outline-none enabled:hover:bg-warning-100 disabled:cursor-not-allowed disabled:opacity-50 max-tablet:size-9"
                             >
-                              저장
+                              <Trash2Icon
+                                aria-hidden="true"
+                                className="size-4.5"
+                              />
                             </button>
                           </div>
                         </Table.Cell>
                       </Table.Row>
-                    )}
-                  </Fragment>
-                );
-              })}
-            </Table.Body>
-          </Table>
+                      {isEditing && !isSheet && (
+                        <Table.Row className="border-slate-50 bg-slate-100 hover:bg-slate-100">
+                          <Table.Cell
+                            colSpan={(categories?.length ?? 0) + 3}
+                            className="px-4 py-4"
+                          >
+                            <div
+                              role="group"
+                              aria-label={`${dateLabel} 매출 수정`}
+                              className="flex flex-wrap items-center gap-3"
+                            >
+                              <span
+                                className={cn(
+                                  typographyVariants({ role: 'subtitle' }),
+                                  'text-slate-950',
+                                )}
+                              >
+                                {dateLabel}
+                              </span>
+                              {categories?.map((category) => {
+                                const amount =
+                                  draftSales.find(
+                                    (item) => item.categoryId === category.id,
+                                  )?.amount ?? 0;
+                                return (
+                                  <Input
+                                    key={category.id}
+                                    aria-label={
+                                      category.name + ' ' + dateLabel + ' 매출'
+                                    }
+                                    type="number"
+                                    min={0}
+                                    step={1}
+                                    size="small"
+                                    disabled={isPending}
+                                    aria-invalid={
+                                      hasAmountError &&
+                                      (!Number.isInteger(amount) || amount < 0)
+                                    }
+                                    value={amount}
+                                    onChange={(event) =>
+                                      handleAmountChange(
+                                        category.id,
+                                        Number(event.target.value),
+                                      )
+                                    }
+                                    className={cn(
+                                      typographyVariants({ role: 'data' }),
+                                      'h-9 min-w-24 flex-1 border-slate-200 px-2 py-1 [&_input]:text-right',
+                                    )}
+                                  />
+                                );
+                              })}
+                              <span
+                                className={cn(
+                                  typographyVariants({ role: 'data' }),
+                                  'ml-auto font-semibold text-slate-950',
+                                )}
+                              >
+                                ₩
+                                {NUMBER_FORMAT.format(
+                                  draftSales.reduce(
+                                    (sum, { amount }) => sum + amount,
+                                    0,
+                                  ),
+                                )}
+                              </span>
+                            </div>
+                            <div className="mt-3 flex justify-end gap-2">
+                              <Button
+                                type="button"
+                                hierarchy="tertiary"
+                                size="small"
+                                aria-label={`${dateLabel} 편집 취소`}
+                                onClick={handleEditCancel}
+                                disabled={isPending}
+                                className={cn(
+                                  typographyVariants({ role: 'label' }),
+                                  'h-10 w-auto bg-white-50',
+                                )}
+                              >
+                                취소
+                              </Button>
+                              <Button
+                                type="button"
+                                size="small"
+                                aria-label={`${dateLabel} 편집 저장`}
+                                onClick={handleEditSave}
+                                disabled={isPending}
+                                className={cn(
+                                  typographyVariants({ role: 'label' }),
+                                  'h-10 w-auto',
+                                )}
+                              >
+                                저장
+                              </Button>
+                            </div>
+                          </Table.Cell>
+                        </Table.Row>
+                      )}
+                    </Fragment>
+                  );
+                })}
+              </Table.Body>
+            </Table>
+          </div>
         )}
       </div>
 

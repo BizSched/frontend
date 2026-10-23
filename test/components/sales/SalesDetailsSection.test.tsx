@@ -47,14 +47,16 @@ const categories = ['상품 판매', '서비스', '배달·온라인', '기타']
 );
 let salesList: SalesList;
 
-const renderSalesDetailsSection = () => {
+const renderSalesDetailsSection = ({ seedList = true } = {}) => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
-  queryClient.setQueryData(
-    salesKeys.list({ month: '2026-09', page: 1, size: 10 }),
-    salesList,
-  );
+  if (seedList) {
+    queryClient.setQueryData(
+      salesKeys.list({ month: '2026-09', page: 1, size: 10 }),
+      salesList,
+    );
+  }
   queryClient.setQueryData(salesKeys.monthTotal({ month: '2026-09' }), 1000000);
   queryClient.setQueryData(salesCategoryKeys.list(), categories);
   return render(
@@ -342,5 +344,39 @@ describe('SalesDetailsSection', () => {
     );
     expect(openConfirmModal).toHaveBeenCalledTimes(1);
     expect(deleteSale).toHaveBeenCalledWith(42);
+  });
+
+  it('해당 월에 매출이 없으면 빈 상태를 표시하고 표는 그리지 않는다', () => {
+    salesList = { ...salesList, totalCount: 0, items: [] };
+    renderSalesDetailsSection();
+
+    expect(
+      screen.getByText('등록된 매출 내역이 없습니다.'),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  });
+
+  it('목록을 불러오는 동안 로딩 상태를 알린다', () => {
+    vi.mocked(getSalesList).mockReturnValue(new Promise(() => {}));
+    renderSalesDetailsSection({ seedList: false });
+
+    expect(screen.getByRole('status')).toHaveTextContent(
+      '매출 내역을 불러오는 중입니다.',
+    );
+  });
+
+  it('조회에 실패하면 오류를 알리고 다시 시도로 재조회한다', async () => {
+    vi.mocked(getSalesList).mockRejectedValue(new Error('server down'));
+    renderSalesDetailsSection({ seedList: false });
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      '매출 내역을 불러오지 못했습니다.',
+    );
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    expect(getSalesList).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByRole('button', { name: '다시 시도' }));
+
+    await waitFor(() => expect(getSalesList).toHaveBeenCalledTimes(2));
   });
 });
