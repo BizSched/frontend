@@ -6,6 +6,7 @@ import {
   CAPTURE_EXPAND_PROPS,
 } from '@lib/utilities/capture/captureAttributes';
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 interface PartTimeScheduleMemoProps {
   memo: string;
@@ -40,7 +41,8 @@ function PartTimeScheduleMemo({ memo, className }: PartTimeScheduleMemoProps) {
         id={memoId}
         {...CAPTURE_EXPAND_PROPS}
         className={cn(
-          'min-w-0 flex-1 text-xs leading-4 tracking-[-0.03em] wrap-break-word whitespace-pre-wrap text-slate-400',
+          typographyVariants({ role: 'body' }),
+          'min-w-0 flex-1 wrap-break-word whitespace-pre-wrap text-slate-400',
           !isExpanded && 'line-clamp-2',
         )}
       >

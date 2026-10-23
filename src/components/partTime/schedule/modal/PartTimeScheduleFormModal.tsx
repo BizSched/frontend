@@ -27,6 +27,7 @@ import {
   isComposingInput,
   limitPartTimeMemo,
 } from '@lib/utilities/partTime/partTimeTextInput';
+import { typographyVariants } from '@lib/utilities/typography';
 
 const STAFF_PLACEHOLDER = '아르바이트생을 선택해주세요';
 
@@ -43,12 +44,14 @@ const TIME_OPTIONS = Array.from({ length: 24 }, (_, hour) => {
   return { value: time, label: time };
 });
 
-const FIELD_CLASS_NAME =
-  'h-14 w-full rounded-[16px] max-tablet:h-11 max-tablet:rounded-[12px] max-tablet:px-3 max-tablet:text-sm';
+const FIELD_CLASS_NAME = cn(
+  typographyVariants({ role: 'body' }),
+  'h-14 w-full rounded-[16px] max-tablet:h-11 max-tablet:rounded-[12px] max-tablet:px-3',
+);
 
 const DROPDOWN_CLASS_NAME = cn(
   FIELD_CLASS_NAME,
-  'border border-slate-300 py-0 text-base font-normal tracking-[-0.02em] disabled:bg-slate-50 disabled:text-slate-500 max-tablet:[&_svg]:size-5',
+  'border border-slate-300 py-0 disabled:bg-slate-50 disabled:text-slate-500 max-tablet:[&_svg]:size-5',
 );
 
 const DROPDOWN_CONTENT_CLASS_NAME =
@@ -57,11 +60,13 @@ const DROPDOWN_CONTENT_CLASS_NAME =
 const MEMO_FRAME_CLASS_NAME =
   'flex min-h-30 w-full flex-col rounded-[16px] border border-slate-300 bg-white-50 p-4 transition-colors focus-within:ring-2 focus-within:ring-primary-500 has-[:disabled]:cursor-not-allowed has-[:disabled]:bg-slate-50 max-tablet:min-h-24 max-tablet:rounded-[12px] max-tablet:p-3';
 
-const MEMO_CLASS_NAME =
-  'w-full flex-1 resize-none bg-transparent field-sizing-content text-base tracking-[-0.02em] text-slate-700 outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:text-slate-500 max-tablet:text-sm max-tablet:tracking-[-0.03em]';
+const MEMO_CLASS_NAME = cn(
+  typographyVariants({ role: 'body' }),
+  'field-sizing-content w-full flex-1 resize-none bg-transparent text-slate-700 outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:text-slate-500',
+);
 
 const FOOTER_BUTTON_CLASS_NAME =
-  'w-auto min-w-0 max-tablet:h-12 max-tablet:py-3 max-tablet:text-base max-tablet:leading-6';
+  'w-auto min-w-0 max-tablet:h-12 max-tablet:py-3';
 
 type PartTimeScheduleFormMode = keyof typeof FORM_MODAL_TEXT;
 
@@ -201,7 +206,7 @@ function PartTimeScheduleFormModal({
         className="gap-8 max-tablet:gap-4"
       >
         <Modal.Header align="start">
-          <Modal.Title className="max-tablet:text-xl">{text.title}</Modal.Title>
+          <Modal.Title>{text.title}</Modal.Title>
           <Modal.CloseButton disabled={isLocked} />
         </Modal.Header>
         <form
@@ -345,7 +350,10 @@ function PartTimeScheduleFormModal({
               </div>
               <p
                 id={`${fieldId}-memo-length`}
-                className="-mt-1 px-1 text-right text-xs leading-4 text-slate-300"
+                className={cn(
+                  typographyVariants({ role: 'caption' }),
+                  '-mt-1 px-1 text-right text-slate-300',
+                )}
               >
                 공백포함 {memoLength.withSpaces}자 | 공백제외{' '}
                 {memoLength.withoutSpaces}자

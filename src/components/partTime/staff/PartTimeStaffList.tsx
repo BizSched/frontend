@@ -25,6 +25,8 @@ import type {
   PartTimeStaffEmploymentStatus,
   PartTimeStaffShift,
 } from '@lib/types/partTimeStaff';
+import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 import IcEmpty from '@assets/icons/ic_empty.svg';
 
@@ -210,24 +212,45 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
   };
 
   const listContent = activeListQuery.isError ? (
-    <div role="alert" className="py-10 text-center text-sm text-slate-500">
+    <div
+      role="alert"
+      className={cn(
+        typographyVariants({ role: 'supporting' }),
+        'py-10 text-center text-slate-500',
+      )}
+    >
       <p>{formatCommonError(activeListQuery.error)}</p>
       <button
         type="button"
         onClick={() => {
           void activeListQuery.refetch();
         }}
-        className="mt-2 cursor-pointer underline"
+        className={cn(
+          typographyVariants({ role: 'label' }),
+          'mt-2 cursor-pointer underline',
+        )}
       >
         다시 시도
       </button>
     </div>
   ) : !activeListQuery.data ? (
-    <p role="status" className="py-10 text-center text-sm text-slate-500">
+    <p
+      role="status"
+      className={cn(
+        typographyVariants({ role: 'supporting' }),
+        'py-10 text-center text-slate-500',
+      )}
+    >
       아르바이트생 목록을 불러오는 중입니다.
     </p>
   ) : staffs.length === 0 && activeListQuery.data.totalCount > 0 ? (
-    <p role="status" className="py-10 text-center text-sm text-slate-500">
+    <p
+      role="status"
+      className={cn(
+        typographyVariants({ role: 'supporting' }),
+        'py-10 text-center text-slate-500',
+      )}
+    >
       아르바이트생 목록을 갱신하는 중입니다.
     </p>
   ) : staffs.length === 0 ? (
@@ -240,7 +263,12 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
         unoptimized
         className="max-tablet:h-21.25 max-tablet:w-19.75"
       />
-      <p className="text-base leading-6 font-medium tracking-[-0.03em] text-white-950 max-tablet:text-sm max-tablet:leading-5">
+      <p
+        className={cn(
+          typographyVariants({ role: 'supporting' }),
+          'text-white-950',
+        )}
+      >
         등록된 아르바이트생이 없어요.
       </p>
     </div>
@@ -273,14 +301,26 @@ function PartTimeStaffList({ now }: PartTimeStaffListProps) {
   return (
     <div className="flex flex-1 flex-col gap-5 max-mobile:gap-4">
       {deleteMutation.isPending && (
-        <p role="status" className="text-sm text-slate-500">
+        <p
+          role="status"
+          className={cn(
+            typographyVariants({ role: 'supporting' }),
+            'text-slate-500',
+          )}
+        >
           아르바이트생을 삭제하는 중입니다.
         </p>
       )}
       {!deleteMutation.isPending &&
         activeListQuery.isFetching &&
         staffs.length > 0 && (
-          <p role="status" className="text-sm text-slate-500">
+          <p
+            role="status"
+            className={cn(
+              typographyVariants({ role: 'supporting' }),
+              'text-slate-500',
+            )}
+          >
             아르바이트생 목록을 갱신하는 중입니다.
           </p>
         )}

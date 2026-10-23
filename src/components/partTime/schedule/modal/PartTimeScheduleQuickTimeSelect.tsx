@@ -1,5 +1,8 @@
 import { CalendarEventChip } from '@components/_common/Calendar/CalendarEventChip';
 
+import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
+
 const QUICK_TIME_RANGES = [
   { label: '오전', startTime: '09:00', endTime: '13:00' },
   { label: '오후', startTime: '13:00', endTime: '18:00' },
@@ -36,7 +39,7 @@ function PartTimeScheduleQuickTimeSelect({
             onClick={() => {
               if (!isDisabled) onSelect(range.startTime, range.endTime);
             }}
-            className="font-semibold"
+            className={cn(typographyVariants({ role: 'label' }))}
           />
         );
       })}

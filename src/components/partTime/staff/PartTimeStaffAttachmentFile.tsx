@@ -1,6 +1,7 @@
 import { FileUpIcon } from 'lucide-react';
 
 import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
 
 interface PartTimeStaffAttachmentFileProps {
   name: string;
@@ -16,7 +17,8 @@ function PartTimeStaffAttachmentFile({
       <FileUpIcon size={24} className="shrink-0 text-slate-400" />
       <span
         className={cn(
-          'truncate text-sm leading-5 font-medium tracking-[-0.03em] text-slate-500',
+          typographyVariants({ role: 'body' }),
+          'truncate text-slate-500',
           nameClassName,
         )}
       >

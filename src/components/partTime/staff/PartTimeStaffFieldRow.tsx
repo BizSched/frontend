@@ -1,5 +1,8 @@
 import type { ReactNode } from 'react';
 
+import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
+
 interface PartTimeStaffFieldRowProps {
   label: string;
   children: ReactNode;
@@ -11,10 +14,20 @@ function PartTimeStaffFieldRow({
 }: PartTimeStaffFieldRowProps) {
   return (
     <div className="flex min-w-0 items-center gap-1">
-      <dt className="flex h-6 w-14 shrink-0 items-center text-sm leading-5 font-medium tracking-[-0.03em] text-slate-300">
+      <dt
+        className={cn(
+          typographyVariants({ role: 'label' }),
+          'flex h-6 w-14 shrink-0 items-center text-slate-300',
+        )}
+      >
         {label}
       </dt>
-      <dd className="min-w-0 flex-1 text-sm leading-5 tracking-[-0.03em] wrap-break-word text-slate-500">
+      <dd
+        className={cn(
+          typographyVariants({ role: 'body' }),
+          'min-w-0 flex-1 wrap-break-word text-slate-500',
+        )}
+      >
         {children}
       </dd>
     </div>

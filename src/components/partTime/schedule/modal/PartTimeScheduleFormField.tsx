@@ -1,5 +1,8 @@
 import type { ReactNode } from 'react';
 
+import { cn } from '@lib/utilities/cn';
+import { typographyVariants } from '@lib/utilities/typography';
+
 interface PartTimeScheduleFormFieldProps {
   label: string;
   labelId: string;
@@ -26,7 +29,10 @@ function PartTimeScheduleFormField({
     >
       <p
         id={labelId}
-        className="flex gap-px px-1 text-base font-semibold tracking-[-0.03em] text-slate-500 max-tablet:text-sm"
+        className={cn(
+          typographyVariants({ role: 'label' }),
+          'flex gap-px px-1 text-slate-500',
+        )}
       >
         {label}
         {isRequired && (
@@ -43,7 +49,10 @@ function PartTimeScheduleFormField({
         <p
           id={errorId}
           role="alert"
-          className="px-1 text-sm tracking-[-0.03em] text-warning-500"
+          className={cn(
+            typographyVariants({ role: 'supporting' }),
+            'px-1 text-warning-500',
+          )}
         >
           {errorMessage}
         </p>
